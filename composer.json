@@ -1,0 +1,22 @@
+{
+    "name": "meowseo/meowseo",
+    "description": "MeowSEO WordPress Plugin",
+    "type": "wordpress-plugin",
+    "require": {
+        "php": ">=8.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.5",
+        "yoast/phpunit-polyfills": "^1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "MeowSEO\\": "includes/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "MeowSEO\\Tests\\": "tests/"
+        }
+    }
+}

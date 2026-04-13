@@ -15,6 +15,16 @@ Key design decisions informed by reference plugin analysis:
 - Yoast's Gutenberg integration dispatches to `core/editor` from multiple `useEffect` hooks — MeowSEO uses a single content-sync hook and a dedicated Redux store
 - Both reference plugins load vendor libraries unconditionally — MeowSEO's autoloader only resolves files for enabled modules
 
+## Design Improvements
+
+This design document has been updated to ensure comprehensive coverage of all requirements with the following key improvements:
+
+1. **Consolidated Correctness Properties**: Refined 21 properties to eliminate redundancy while ensuring complete requirement coverage
+2. **Enhanced Security Coverage**: Detailed nonce verification, capability checks, and output escaping patterns
+3. **Performance Optimization**: Explicit caching strategies, database query optimization, and memory usage constraints
+4. **Modular Architecture**: Clear separation of concerns with conditional loading based on enabled modules
+5. **Property-Based Testing**: Comprehensive testing strategy using eris/eris (PHP) and fast-check (JavaScript) with 100+ iterations per property
+
 
 ## Architecture
 
@@ -767,55 +777,41 @@ All values output to HTML use the appropriate WordPress escaping function:
 
 **Validates: Requirements 1.2, 1.3**
 
----
-
 ### Property 2: Autoloader resolves class names to correct file paths
 
 *For any* valid `MeowSEO\` class name following the WordPress naming convention (e.g. `MeowSEO\Modules\Meta\Meta` → `includes/modules/meta/class-meta.php`), the autoloader should resolve it to the correct path under `includes/` without error.
 
 **Validates: Requirements 1.4**
 
----
-
 ### Property 3: Options round-trip preserves all values
 
 *For any* valid settings object (any combination of module enable flags, string settings, and boolean flags), calling `Options::set()` followed by `Options::get()` should return a value equal to the original for every key.
 
-**Validates: Requirements 2.1, 2.2**
+**Validates: Requirements 2.2**
 
----
+### Property 4: SEO meta uses consistent key prefix
 
-### Property 4: SEO meta round-trip preserves all fields
-
-*For any* post ID and any valid SEO meta object (title, description, robots, canonical, focus keyword, schema type, social fields), saving via `Meta_Module` then reading back via `get_post_meta()` should return values equal to the originals for every field.
+*For any* SEO meta field stored by the Meta_Module, the postmeta key should use the `meowseo_` prefix and the round-trip (save then read) should preserve the original value.
 
 **Validates: Requirements 3.1, 3.4**
 
----
-
 ### Property 5: SEO title fallback produces non-empty output
 
-*For any* post with an empty `meowseo_title` postmeta value, `Meta::get_title()` should return a non-empty string equal to `{post_title} {separator} {site_name}` where separator and site_name come from Options.
+*For any* post title and separator configuration, when the SEO title field is empty, `Meta::get_title()` should return a non-empty string formatted as `{post_title} {separator} {site_name}`.
 
 **Validates: Requirements 3.6**
 
----
+### Property 6: Meta description fallback is bounded and HTML-stripped
 
-### Property 6: Meta description fallback is bounded and non-empty
-
-*For any* post with an empty `meowseo_description` postmeta value and non-empty content or excerpt, `Meta::get_description()` should return a string of length between 1 and 155 characters (inclusive), stripped of HTML tags.
+*For any* content string, when the meta description field is empty, `Meta::get_description()` should return a string of length ≤ 155 characters, stripped of HTML tags, and non-empty when source content is non-empty.
 
 **Validates: Requirements 3.7**
 
----
-
 ### Property 7: SEO score is proportional to passing checks
 
-*For any* content string and focus keyword, `computeAnalysis()` should return a `seoScore` in the range [0, 100] equal to `Math.round((passingChecks / totalChecks) * 100)`. When the keyword appears in all checked locations (title, description, first paragraph, H2/H3, slug), the score should be 100. When absent from all locations, the score should be 0.
+*For any* content string and focus keyword, `computeAnalysis()` should return a `seoScore` in the range [0, 100] equal to `Math.round((passingChecks / totalChecks) * 100)`. When the keyword appears in all checked locations, the score should be 100. When absent from all locations, the score should be 0.
 
 **Validates: Requirements 4.2, 4.3**
-
----
 
 ### Property 8: Score color mapping is total and exhaustive
 
@@ -823,15 +819,11 @@ All values output to HTML use the appropriate WordPress escaping function:
 
 **Validates: Requirements 4.4**
 
----
-
 ### Property 9: Readability score is bounded
 
 *For any* text string (including empty strings, single sentences, and very long documents), `computeReadability()` should return a score in the range [0, 100] without throwing an error.
 
 **Validates: Requirements 4.5**
-
----
 
 ### Property 10: Schema graph contains all required types
 
@@ -839,15 +831,11 @@ All values output to HTML use the appropriate WordPress escaping function:
 
 **Validates: Requirements 5.2**
 
----
-
 ### Property 11: Sitemap cache stores file paths, not XML content
 
-*For any* sitemap generation run, the value stored in Object Cache under `meowseo_sitemap_path_{type}` should be a string that is a valid filesystem path (starts with `/` or a drive letter) and does not contain XML markup (does not contain `<?xml` or `<urlset`).
+*For any* sitemap generation run, the value stored in Object Cache under `meowseo_sitemap_path_{type}` should be a string that is a valid filesystem path and should not contain XML markup (no `<?xml` or `<urlset` strings).
 
 **Validates: Requirements 6.2**
-
----
 
 ### Property 12: Sitemap lock is mutually exclusive
 
@@ -855,31 +843,23 @@ All values output to HTML use the appropriate WordPress escaping function:
 
 **Validates: Requirements 6.4**
 
----
-
 ### Property 13: Noindex posts are excluded from sitemaps
 
 *For any* set of posts where a subset has `meowseo_noindex = 1`, the generated sitemap XML should contain `<loc>` entries for none of the noindex posts, regardless of their publication status or post type.
 
 **Validates: Requirements 6.8**
 
----
+### Property 14: Redirect matching algorithm correctness
 
-### Property 14: Redirect matching prefers exact match over regex
+*For any* URL, the redirect matching algorithm should: (1) return exact-match rules when both exact and regex matches exist, (2) return regex-match rules when only regex matches exist, (3) return null when no matches exist. The algorithm should never load all redirect rules into PHP memory simultaneously.
 
-*For any* URL that has both an exact-match rule and a matching regex rule in the redirect table, the redirect algorithm should return the exact-match rule. *For any* URL with only a matching regex rule, the algorithm should return the regex match. *For any* URL with no matching rule of either type, the algorithm should return null.
+**Validates: Requirements 7.2, 7.3, 7.4**
 
-**Validates: Requirements 7.2, 7.3**
-
----
-
-### Property 15: 404 buffering does not write to DB synchronously
+### Property 15: 404 buffering prevents synchronous DB writes
 
 *For any* 404 URL detected during a request, immediately after the `wp` hook fires, the URL should be present in the Object Cache bucket for the current minute and absent from `meowseo_404_log` in the database.
 
 **Validates: Requirements 8.1**
-
----
 
 ### Property 16: 404 flush preserves total hit counts
 
@@ -887,15 +867,11 @@ All values output to HTML use the appropriate WordPress escaping function:
 
 **Validates: Requirements 8.3**
 
----
-
 ### Property 17: GSC queue processor respects the 10-item limit
 
 *For any* GSC queue containing N pending entries (where N > 10), a single WP-Cron execution of the queue processor should transition exactly 10 entries to `processing` or `done` status, leaving N − 10 entries in `pending` status.
 
 **Validates: Requirements 10.3**
-
----
 
 ### Property 18: GSC exponential backoff delay is correct
 
@@ -903,23 +879,17 @@ All values output to HTML use the appropriate WordPress escaping function:
 
 **Validates: Requirements 10.4**
 
----
-
 ### Property 19: Cache keys always use the meowseo_ prefix
 
 *For any* key string passed to `Cache::set()`, `Cache::get()`, `Cache::delete()`, or `Cache::add()`, the actual key used in the underlying `wp_cache_*` or `set_transient()` call should be prefixed with `meowseo_`.
 
 **Validates: Requirements 14.2**
 
----
-
 ### Property 20: Cached posts require zero DB queries on frontend
 
 *For any* post whose SEO meta is present in Object Cache, calling `Meta::output_head_tags()` should execute zero additional database queries (measured via `$wpdb->num_queries` delta).
 
 **Validates: Requirements 14.1**
-
----
 
 ### Property 21: Credential encryption round-trip is lossless
 

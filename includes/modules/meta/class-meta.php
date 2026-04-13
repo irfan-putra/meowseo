@@ -1,0 +1,630 @@
+<?php
+/**
+ * Meta Module
+ *
+ * Manages per-post SEO meta fields (title, description, robots, canonical).
+ * Stores data in wp_postmeta with meowseo_ prefix.
+ *
+ * @package MeowSEO
+ * @since 1.0.0
+ */
+
+namespace MeowSEO\Modules\Meta;
+
+use MeowSEO\Contracts\Module;
+use MeowSEO\Helpers\Cache;
+use MeowSEO\Options;
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+/**
+ * Meta module class
+ *
+ * Implements the Module interface to provide SEO meta tag management.
+ *
+ * @since 1.0.0
+ */
+class Meta implements Module {
+
+	/**
+	 * Module ID
+	 *
+	 * @since 1.0.0
+	 * @var string
+	 */
+	private const MODULE_ID = 'meta';
+
+	/**
+	 * Postmeta key prefix
+	 *
+	 * @since 1.0.0
+	 * @var string
+	 */
+	private const META_PREFIX = 'meowseo_';
+
+	/**
+	 * Options instance
+	 *
+	 * @since 1.0.0
+	 * @var Options
+	 */
+	private Options $options;
+
+	/**
+	 * Constructor
+	 *
+	 * @since 1.0.0
+	 * @param Options $options Options instance.
+	 */
+	public function __construct( Options $options ) {
+		$this->options = $options;
+	}
+
+	/**
+	 * Boot the module
+	 *
+	 * Register hooks and initialize module functionality.
+	 *
+	 * @since 1.0.0
+	 * @return void
+	 */
+	public function boot(): void {
+		// Register postmeta fields.
+		add_action( 'init', array( $this, 'register_postmeta' ) );
+
+		// Output meta tags in wp_head.
+		add_action( 'wp_head', array( $this, 'output_head_tags' ), 1 );
+
+		// Register REST API fields.
+		add_action( 'rest_api_init', array( $this, 'register_rest_fields' ) );
+	}
+
+	/**
+	 * Get module ID
+	 *
+	 * @since 1.0.0
+	 * @return string Module ID.
+	 */
+	public function get_id(): string {
+		return self::MODULE_ID;
+	}
+
+	/**
+	 * Register postmeta fields
+	 *
+	 * Registers all SEO meta fields for posts.
+	 *
+	 * @since 1.0.0
+	 * @return void
+	 */
+	public function register_postmeta(): void {
+		$post_types = get_post_types( array( 'public' => true ) );
+
+		$meta_fields = array(
+			'title'              => array(
+				'type'         => 'string',
+				'description'  => __( 'SEO title', 'meowseo' ),
+				'single'       => true,
+				'show_in_rest' => true,
+			),
+			'description'        => array(
+				'type'         => 'string',
+				'description'  => __( 'Meta description', 'meowseo' ),
+				'single'       => true,
+				'show_in_rest' => true,
+			),
+			'robots'             => array(
+				'type'         => 'string',
+				'description'  => __( 'Robots directive', 'meowseo' ),
+				'single'       => true,
+				'show_in_rest' => true,
+				'default'      => 'index,follow',
+			),
+			'canonical'          => array(
+				'type'         => 'string',
+				'description'  => __( 'Canonical URL', 'meowseo' ),
+				'single'       => true,
+				'show_in_rest' => true,
+			),
+			'focus_keyword'      => array(
+				'type'         => 'string',
+				'description'  => __( 'Focus keyword', 'meowseo' ),
+				'single'       => true,
+				'show_in_rest' => true,
+			),
+			'schema_type'        => array(
+				'type'         => 'string',
+				'description'  => __( 'Schema type override', 'meowseo' ),
+				'single'       => true,
+				'show_in_rest' => true,
+			),
+			'social_title'       => array(
+				'type'         => 'string',
+				'description'  => __( 'Social media title', 'meowseo' ),
+				'single'       => true,
+				'show_in_rest' => true,
+			),
+			'social_description' => array(
+				'type'         => 'string',
+				'description'  => __( 'Social media description', 'meowseo' ),
+				'single'       => true,
+				'show_in_rest' => true,
+			),
+			'social_image_id'    => array(
+				'type'         => 'integer',
+				'description'  => __( 'Social media image ID', 'meowseo' ),
+				'single'       => true,
+				'show_in_rest' => true,
+			),
+			'noindex'            => array(
+				'type'         => 'boolean',
+				'description'  => __( 'Noindex flag', 'meowseo' ),
+				'single'       => true,
+				'show_in_rest' => true,
+				'default'      => false,
+			),
+		);
+
+		foreach ( $post_types as $post_type ) {
+			foreach ( $meta_fields as $field => $args ) {
+				register_post_meta(
+					$post_type,
+					self::META_PREFIX . $field,
+					$args
+				);
+			}
+		}
+	}
+
+	/**
+	 * Output meta tags in head
+	 *
+	 * Outputs SEO title, meta description, robots, and canonical tags.
+	 *
+	 * @since 1.0.0
+	 * @return void
+	 */
+	public function output_head_tags(): void {
+		if ( ! is_singular() ) {
+			return;
+		}
+
+		$post_id = get_the_ID();
+		if ( ! $post_id ) {
+			return;
+		}
+
+		// Output title tag.
+		$title = $this->get_title( $post_id );
+		if ( ! empty( $title ) ) {
+			echo '<title>' . esc_html( $title ) . '</title>' . "\n";
+		}
+
+		// Output meta description.
+		$description = $this->get_description( $post_id );
+		if ( ! empty( $description ) ) {
+			echo '<meta name="description" content="' . esc_attr( $description ) . '">' . "\n";
+		}
+
+		// Output robots meta tag.
+		$robots = $this->get_robots( $post_id );
+		if ( ! empty( $robots ) ) {
+			echo '<meta name="robots" content="' . esc_attr( $robots ) . '">' . "\n";
+		}
+
+		// Output canonical link.
+		$canonical = $this->get_canonical( $post_id );
+		if ( ! empty( $canonical ) ) {
+			echo '<link rel="canonical" href="' . esc_url( $canonical ) . '">' . "\n";
+		}
+	}
+
+	/**
+	 * Get SEO title for a post
+	 *
+	 * Returns custom SEO title or falls back to post title with separator.
+	 *
+	 * @since 1.0.0
+	 * @param int $post_id Post ID.
+	 * @return string SEO title.
+	 */
+	public function get_title( int $post_id ): string {
+		// Check cache first.
+		$cache_key = "meta_{$post_id}";
+		$cached = Cache::get( $cache_key );
+		
+		if ( is_array( $cached ) && isset( $cached['title'] ) ) {
+			return $cached['title'];
+		}
+
+		// Get custom title from postmeta.
+		$custom_title = get_post_meta( $post_id, self::META_PREFIX . 'title', true );
+
+		if ( ! empty( $custom_title ) ) {
+			$title = $custom_title;
+		} else {
+			// Fallback to post title + separator + site title.
+			$post = get_post( $post_id );
+			if ( ! $post ) {
+				return '';
+			}
+
+			$post_title = get_the_title( $post );
+			$site_title = get_bloginfo( 'name' );
+			$separator = $this->get_separator();
+
+			$title = $post_title . ' ' . $separator . ' ' . $site_title;
+		}
+
+		// Cache the result.
+		$this->cache_meta( $post_id, 'title', $title );
+
+		return $title;
+	}
+
+	/**
+	 * Get meta description for a post
+	 *
+	 * Returns custom meta description or falls back to excerpt/content (155 chars).
+	 *
+	 * @since 1.0.0
+	 * @param int $post_id Post ID.
+	 * @return string Meta description.
+	 */
+	public function get_description( int $post_id ): string {
+		// Check cache first.
+		$cache_key = "meta_{$post_id}";
+		$cached = Cache::get( $cache_key );
+		
+		if ( is_array( $cached ) && isset( $cached['description'] ) ) {
+			return $cached['description'];
+		}
+
+		// Get custom description from postmeta.
+		$custom_description = get_post_meta( $post_id, self::META_PREFIX . 'description', true );
+
+		if ( ! empty( $custom_description ) ) {
+			$description = $custom_description;
+		} else {
+			// Fallback to excerpt or content (first 155 chars).
+			$post = get_post( $post_id );
+			if ( ! $post ) {
+				return '';
+			}
+
+			if ( ! empty( $post->post_excerpt ) ) {
+				$text = $post->post_excerpt;
+			} else {
+				$text = $post->post_content;
+			}
+
+			// Strip HTML and shortcodes.
+			$text = wp_strip_all_tags( strip_shortcodes( $text ) );
+			
+			// Limit to 155 characters.
+			if ( mb_strlen( $text ) > 155 ) {
+				$description = mb_substr( $text, 0, 155 ) . '...';
+			} else {
+				$description = $text;
+			}
+		}
+
+		// Cache the result.
+		$this->cache_meta( $post_id, 'description', $description );
+
+		return $description;
+	}
+
+	/**
+	 * Get robots directive for a post
+	 *
+	 * @since 1.0.0
+	 * @param int $post_id Post ID.
+	 * @return string Robots directive (e.g., 'index,follow').
+	 */
+	public function get_robots( int $post_id ): string {
+		// Check cache first.
+		$cache_key = "meta_{$post_id}";
+		$cached = Cache::get( $cache_key );
+		
+		if ( is_array( $cached ) && isset( $cached['robots'] ) ) {
+			return $cached['robots'];
+		}
+
+		// Get robots directive from postmeta.
+		$robots = get_post_meta( $post_id, self::META_PREFIX . 'robots', true );
+
+		if ( empty( $robots ) ) {
+			$robots = 'index,follow';
+		}
+
+		// Cache the result.
+		$this->cache_meta( $post_id, 'robots', $robots );
+
+		return $robots;
+	}
+
+	/**
+	 * Get canonical URL for a post
+	 *
+	 * @since 1.0.0
+	 * @param int $post_id Post ID.
+	 * @return string Canonical URL.
+	 */
+	public function get_canonical( int $post_id ): string {
+		// Check cache first.
+		$cache_key = "meta_{$post_id}";
+		$cached = Cache::get( $cache_key );
+		
+		if ( is_array( $cached ) && isset( $cached['canonical'] ) ) {
+			return $cached['canonical'];
+		}
+
+		// Get custom canonical from postmeta.
+		$custom_canonical = get_post_meta( $post_id, self::META_PREFIX . 'canonical', true );
+
+		if ( ! empty( $custom_canonical ) ) {
+			$canonical = $custom_canonical;
+		} else {
+			// Fallback to post permalink.
+			$canonical = get_permalink( $post_id );
+			if ( ! $canonical ) {
+				$canonical = '';
+			}
+		}
+
+		// Cache the result.
+		$this->cache_meta( $post_id, 'canonical', $canonical );
+
+		return $canonical;
+	}
+
+	/**
+	 * Register REST API fields
+	 *
+	 * Exposes SEO meta fields via REST API.
+	 *
+	 * @since 1.0.0
+	 * @return void
+	 */
+	public function register_rest_fields(): void {
+		$post_types = get_post_types( array( 'public' => true ) );
+
+		foreach ( $post_types as $post_type ) {
+			register_rest_field(
+				$post_type,
+				'meowseo_meta',
+				array(
+					'get_callback'    => array( $this, 'get_rest_meta' ),
+					'update_callback' => array( $this, 'update_rest_meta' ),
+					'schema'          => array(
+						'description' => __( 'MeowSEO meta data', 'meowseo' ),
+						'type'        => 'object',
+						'context'     => array( 'view', 'edit' ),
+					),
+				)
+			);
+		}
+
+		// Register analysis REST route.
+		register_rest_route(
+			'meowseo/v1',
+			'/analysis/(?P<post_id>\d+)',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( $this, 'rest_get_analysis' ),
+				'permission_callback' => function ( $request ) {
+					$post_id = (int) $request['post_id'];
+					return current_user_can( 'edit_post', $post_id );
+				},
+				'args'                => array(
+					'post_id'       => array(
+						'required'          => true,
+						'type'              => 'integer',
+						'sanitize_callback' => 'absint',
+					),
+					'content'       => array(
+						'required'          => true,
+						'type'              => 'string',
+						'sanitize_callback' => 'wp_kses_post',
+					),
+					'focus_keyword' => array(
+						'required'          => false,
+						'type'              => 'string',
+						'sanitize_callback' => 'sanitize_text_field',
+						'default'           => '',
+					),
+				),
+			)
+		);
+	}
+
+	/**
+	 * Get REST meta callback
+	 *
+	 * @since 1.0.0
+	 * @param array $object Post object.
+	 * @return array SEO meta data.
+	 */
+	public function get_rest_meta( array $object ): array {
+		$post_id = $object['id'];
+
+		return array(
+			'title'       => $this->get_title( $post_id ),
+			'description' => $this->get_description( $post_id ),
+			'robots'      => $this->get_robots( $post_id ),
+			'canonical'   => $this->get_canonical( $post_id ),
+		);
+	}
+
+	/**
+	 * Update REST meta callback
+	 *
+	 * @since 1.0.0
+	 * @param mixed $value   New meta value.
+	 * @param object $object Post object.
+	 * @return bool True on success.
+	 */
+	public function update_rest_meta( $value, $object ): bool {
+		$post_id = $object->ID;
+
+		// Verify user has permission to edit this post.
+		if ( ! current_user_can( 'edit_post', $post_id ) ) {
+			return false;
+		}
+
+		// Update meta fields if provided.
+		if ( isset( $value['title'] ) ) {
+			update_post_meta( $post_id, self::META_PREFIX . 'title', sanitize_text_field( $value['title'] ) );
+		}
+
+		if ( isset( $value['description'] ) ) {
+			update_post_meta( $post_id, self::META_PREFIX . 'description', sanitize_textarea_field( $value['description'] ) );
+		}
+
+		if ( isset( $value['robots'] ) ) {
+			update_post_meta( $post_id, self::META_PREFIX . 'robots', sanitize_text_field( $value['robots'] ) );
+		}
+
+		if ( isset( $value['canonical'] ) ) {
+			update_post_meta( $post_id, self::META_PREFIX . 'canonical', esc_url_raw( $value['canonical'] ) );
+		}
+
+		// Invalidate cache.
+		Cache::delete( "meta_{$post_id}" );
+
+		return true;
+	}
+
+	/**
+	 * Get SEO analysis for a post
+	 *
+	 * Analyzes content against focus keyword and returns score with checks.
+	 *
+	 * @since 1.0.0
+	 * @param int    $post_id       Post ID.
+	 * @param string $content       Post content (HTML).
+	 * @param string $focus_keyword Focus keyword.
+	 * @return array Analysis result with score, checks, and color.
+	 */
+	public function get_seo_analysis( int $post_id, string $content = '', string $focus_keyword = '' ): array {
+		// Get post data if not provided.
+		$post = get_post( $post_id );
+		if ( ! $post ) {
+			return array(
+				'score'  => 0,
+				'checks' => array(),
+				'color'  => 'red',
+			);
+		}
+
+		// Use provided content or get from post.
+		if ( empty( $content ) ) {
+			$content = $post->post_content;
+		}
+
+		// Get focus keyword from postmeta if not provided.
+		if ( empty( $focus_keyword ) ) {
+			$focus_keyword = get_post_meta( $post_id, self::META_PREFIX . 'focus_keyword', true );
+		}
+
+		// Get SEO title and description.
+		$title       = $this->get_title( $post_id );
+		$description = $this->get_description( $post_id );
+		$slug        = $post->post_name;
+
+		// Prepare data for analyzer.
+		$data = array(
+			'title'         => $title,
+			'description'   => $description,
+			'content'       => $content,
+			'slug'          => $slug,
+			'focus_keyword' => $focus_keyword,
+		);
+
+		// Run analysis.
+		return SEO_Analyzer::analyze( $data );
+	}
+
+	/**
+	 * Get readability analysis for content
+	 *
+	 * Analyzes content readability and returns score with checks.
+	 *
+	 * @since 1.0.0
+	 * @param string $content Post content (HTML).
+	 * @return array Analysis result with score, checks, and color.
+	 */
+	public function get_readability_analysis( string $content ): array {
+		if ( empty( $content ) ) {
+			return array(
+				'score'  => 0,
+				'checks' => array(),
+				'color'  => 'red',
+			);
+		}
+
+		// Run readability analysis.
+		return Readability::analyze( $content );
+	}
+
+	/**
+	 * REST API callback for analysis endpoint
+	 *
+	 * @since 1.0.0
+	 * @param \WP_REST_Request $request REST request object.
+	 * @return \WP_REST_Response REST response.
+	 */
+	public function rest_get_analysis( $request ): \WP_REST_Response {
+		$post_id       = (int) $request['post_id'];
+		$content       = $request['content'];
+		$focus_keyword = $request->get_param( 'focus_keyword' ) ?? '';
+
+		// Get SEO analysis.
+		$seo_analysis = $this->get_seo_analysis( $post_id, $content, $focus_keyword );
+
+		// Get readability analysis.
+		$readability_analysis = $this->get_readability_analysis( $content );
+
+		// Combine results.
+		$response = array(
+			'seo'         => $seo_analysis,
+			'readability' => $readability_analysis,
+		);
+
+		return new \WP_REST_Response( $response, 200 );
+	}
+
+	/**
+	 * Get title separator
+	 *
+	 * @since 1.0.0
+	 * @return string Title separator.
+	 */
+	private function get_separator(): string {
+		return $this->options->get_separator();
+	}
+
+	/**
+	 * Cache meta data
+	 *
+	 * @since 1.0.0
+	 * @param int    $post_id Post ID.
+	 * @param string $key     Meta key.
+	 * @param mixed  $value   Meta value.
+	 * @return void
+	 */
+	private function cache_meta( int $post_id, string $key, $value ): void {
+		$cache_key = "meta_{$post_id}";
+		$cached = Cache::get( $cache_key );
+
+		if ( ! is_array( $cached ) ) {
+			$cached = array();
+		}
+
+		$cached[ $key ] = $value;
+		Cache::set( $cache_key, $cached, 3600 ); // Cache for 1 hour.
+	}
+}
