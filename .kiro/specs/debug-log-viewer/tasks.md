@@ -333,8 +333,8 @@ This implementation plan creates a centralized logging system for the MeowSEO Wo
 - [x] 12. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [-] 13. Integrate Logger into GSC module
-  - [ ] 13.1 Add logging for OAuth failures
+- [x] 13. Integrate Logger into GSC module
+  - [x] 13.1 Add logging for OAuth failures
     - Log with error level when authentication fails
     - Include job_type and error_code in context
     - Sanitize access_token from context
@@ -344,12 +344,12 @@ This implementation plan creates a centralized logging system for the MeowSEO Wo
     - **Property 23: Token Sanitization**
     - **Validates: Requirements 11.5**
 
-  - [ ] 13.2 Add logging for rate limit responses
+  - [x] 13.2 Add logging for rate limit responses
     - Log with warning level when HTTP 429 received
     - Include job_type and retry_after in context
     - _Requirements: 11.2_
 
-  - [ ] 13.3 Add logging for batch processing completion
+  - [x] 13.3 Add logging for batch processing completion
     - Log with info level when batch completes
     - Include job_type and processed_count in context
     - _Requirements: 11.3_

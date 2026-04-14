@@ -105,9 +105,20 @@ class GSC implements Module {
 		// Update status to 'processing' before execution.
 		$this->update_queue_status_bulk( $queue_entries, 'processing' );
 
+		$processed_count = 0;
 		foreach ( $queue_entries as $entry ) {
 			$this->process_queue_entry( $entry );
+			$processed_count++;
 		}
+
+		// Log batch completion (Requirement 11.3).
+		\MeowSEO\Helpers\Logger::info(
+			'Batch processing completed',
+			array(
+				'job_type'        => 'gsc_queue',
+				'processed_count' => $processed_count,
+			)
+		);
 	}
 
 	/**
@@ -166,6 +177,15 @@ class GSC implements Module {
 		$credentials = $this->options->get_gsc_credentials();
 
 		if ( empty( $credentials ) || empty( $credentials['access_token'] ) ) {
+			// Log OAuth failure (Requirement 11.1).
+			\MeowSEO\Helpers\Logger::error(
+				'OAuth authentication failed',
+				array(
+					'job_type'     => $job_type,
+					'error_code'   => 'no_credentials',
+					'access_token' => $credentials['access_token'] ?? null, // Will be sanitized.
+				)
+			);
 			return new \WP_Error( 'no_credentials', 'GSC credentials not configured.' );
 		}
 
@@ -175,6 +195,15 @@ class GSC implements Module {
 		$api_url = $this->build_api_url( $job_type, $payload );
 
 		if ( is_wp_error( $api_url ) ) {
+			// Log OAuth failure (Requirement 11.1).
+			\MeowSEO\Helpers\Logger::error(
+				'OAuth authentication failed',
+				array(
+					'job_type'     => $job_type,
+					'error_code'   => $api_url->get_error_code(),
+					'access_token' => $access_token, // Will be sanitized.
+				)
+			);
 			return $api_url;
 		}
 
@@ -276,6 +305,15 @@ class GSC implements Module {
 		$backoff_seconds = pow( 2, $attempts + 1 ) * 60;
 		$retry_after     = time() + $backoff_seconds;
 
+		// Log rate limit (Requirement 11.2).
+		\MeowSEO\Helpers\Logger::warning(
+			'Rate limit exceeded',
+			array(
+				'job_type'    => $this->get_job_type_from_queue( $id ),
+				'retry_after' => $retry_after,
+			)
+		);
+
 		DB::update_gsc_queue_retry( $id, $retry_after );
 	}
 
@@ -366,6 +404,27 @@ class GSC implements Module {
 				array_merge( array( $status ), $ids )
 			)
 		);
+	}
+
+	/**
+	 * Get job type from queue entry ID.
+	 *
+	 * @param int $id Queue entry ID.
+	 * @return string Job type or 'unknown'.
+	 */
+	private function get_job_type_from_queue( int $id ): string {
+		global $wpdb;
+
+		$table = $wpdb->prefix . 'meowseo_gsc_queue';
+
+		$job_type = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT job_type FROM {$table} WHERE id = %d",
+				$id
+			)
+		);
+
+		return $job_type ?? 'unknown';
 	}
 
 	/**
