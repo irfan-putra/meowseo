@@ -650,3 +650,12 @@ if ( ! function_exists( 'wp_mkdir_p' ) ) {
 		return true;
 	}
 }
+
+if ( ! function_exists( 'current_time' ) ) {
+	function current_time( $type = 'mysql', $gmt = 0 ) {
+		if ( 'mysql' === $type ) {
+			return gmdate( 'Y-m-d H:i:s' );
+		}
+		return time();
+	}
+}

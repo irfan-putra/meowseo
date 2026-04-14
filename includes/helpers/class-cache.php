@@ -134,6 +134,6 @@ class Cache {
 	 * @return bool True if Object Cache is available, false otherwise.
 	 */
 	private static function is_object_cache_available(): bool {
-		return wp_using_ext_object_cache();
+		return (bool) wp_using_ext_object_cache();
 	}
 }

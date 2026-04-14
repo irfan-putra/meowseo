@@ -20,7 +20,7 @@ This implementation plan creates a centralized logging system for the MeowSEO Wo
     - Implement private log() method that routes to instance methods
     - _Requirements: 1.1, 1.2_
 
-  - [ ]* 2.2 Write property test for Logger singleton
+  - [x] 2.2 Write property test for Logger singleton
     - **Property 1: Log Storage**
     - **Validates: Requirements 1.3, 2.1**
 
@@ -30,7 +30,7 @@ This implementation plan creates a centralized logging system for the MeowSEO Wo
     - Store log level from method parameter
     - _Requirements: 1.5_
 
-  - [ ]* 2.4 Write property test for automatic field capture
+  - [x] 2.4 Write property test for automatic field capture
     - **Property 2: Automatic Field Capture**
     - **Validates: Requirements 1.5**
 
@@ -40,7 +40,7 @@ This implementation plan creates a centralized logging system for the MeowSEO Wo
     - Generate message_hash using hash('sha256', $message)
     - _Requirements: 2.3, 2.4_
 
-  - [ ]* 2.6 Write property test for context serialization
+  - [x] 2.6 Write property test for context serialization
     - **Property 3: Context Serialization Round-Trip**
     - **Validates: Requirements 2.3**
 
@@ -51,11 +51,11 @@ This implementation plan creates a centralized logging system for the MeowSEO Wo
     - Use unique index idx_dedup for efficient matching
     - _Requirements: 6.1, 6.2, 6.3, 6.4_
 
-  - [ ]* 3.2 Write property test for deduplication
+  - [x] 3.2 Write property test for deduplication
     - **Property 12: Deduplication**
     - **Validates: Requirements 6.1**
 
-  - [ ]* 3.3 Write property test for deduplication matching
+  - [x]* 3.3 Write property test for deduplication matching
     - **Property 13: Deduplication Matching**
     - **Validates: Requirements 6.2**
 
@@ -65,11 +65,11 @@ This implementation plan creates a centralized logging system for the MeowSEO Wo
     - Use ORDER BY created_at ASC LIMIT in DELETE query
     - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5_
 
-  - [ ]* 3.5 Write property test for log entry limit
+  - [x] 3.5 Write property test for log entry limit
     - **Property 10: Log Entry Limit Invariant**
     - **Validates: Requirements 5.1, 5.4, 5.5**
 
-  - [ ]* 3.6 Write property test for cleanup trigger
+  - [x]* 3.6 Write property test for cleanup trigger
     - **Property 11: Cleanup Trigger**
     - **Validates: Requirements 5.2**
 
@@ -81,15 +81,15 @@ This implementation plan creates a centralized logging system for the MeowSEO Wo
     - Preserve non-sensitive values unchanged
     - _Requirements: 17.1, 17.2, 17.3, 17.4, 17.5_
 
-  - [ ]* 4.2 Write property test for sensitive key redaction
+  - [x]* 4.2 Write property test for sensitive key redaction
     - **Property 29: Sensitive Key Redaction**
     - **Validates: Requirements 17.1, 17.2**
 
-  - [ ]* 4.3 Write property test for nested sanitization
+  - [x]* 4.3 Write property test for nested sanitization
     - **Property 30: Nested Sanitization**
     - **Validates: Requirements 17.3**
 
-  - [ ]* 4.4 Write property test for non-sensitive preservation
+  - [x]* 4.4 Write property test for non-sensitive preservation
     - **Property 31: Non-Sensitive Preservation**
     - **Validates: Requirements 17.4**
 
