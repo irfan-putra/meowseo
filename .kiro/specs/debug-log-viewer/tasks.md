@@ -358,13 +358,13 @@ This implementation plan creates a centralized logging system for the MeowSEO Wo
     - **Property 22: GSC Context Fields**
     - **Validates: Requirements 11.4**
 
-- [ ] 14. Integrate Logger into Sitemap module
-  - [ ] 14.1 Add logging for generation failures
+- [x] 14. Integrate Logger into Sitemap module
+  - [x] 14.1 Add logging for generation failures
     - Log with error level when generation fails
     - Include post_type and error message in context
     - _Requirements: 12.1_
 
-  - [ ] 14.2 Add logging for cache regeneration
+  - [x] 14.2 Add logging for cache regeneration
     - Log with info level when cache regenerated
     - Include post_type and entry_count in context
     - _Requirements: 12.2, 12.3_
@@ -373,13 +373,13 @@ This implementation plan creates a centralized logging system for the MeowSEO Wo
     - **Property 24: Sitemap Context Fields**
     - **Validates: Requirements 12.3**
 
-  - [ ] 14.3 Add logging for file write failures
+  - [x] 14.3 Add logging for file write failures
     - Log with error level when file write fails
     - Include file_path and error message in context
     - _Requirements: 12.4_
 
-- [ ] 15. Integrate Logger into Redirects module
-  - [ ] 15.1 Add logging for redirect loop detection
+- [x] 15. Integrate Logger into Redirects module
+  - [x] 15.1 Add logging for redirect loop detection
     - Log with warning level when loop detected
     - Include source_url and target_url in context
     - _Requirements: 13.1, 13.3_
@@ -388,33 +388,33 @@ This implementation plan creates a centralized logging system for the MeowSEO Wo
     - **Property 25: Redirects Context Fields**
     - **Validates: Requirements 13.3**
 
-  - [ ] 15.2 Add logging for CSV import failures
+  - [x] 15.2 Add logging for CSV import failures
     - Log with error level when import fails
     - Include file_name and error message in context
     - _Requirements: 13.2_
 
-  - [ ] 15.3 Add logging for CSV import success
+  - [x] 15.3 Add logging for CSV import success
     - Log with info level when import succeeds
     - Include file_name and row_count in context
     - _Requirements: 13.4_
 
-- [ ] 16. Wire Logger system into plugin initialization
-  - [ ] 16.1 Update Admin class to initialize Log_Viewer
+- [x] 16. Wire Logger system into plugin initialization
+  - [x] 16.1 Update Admin class to initialize Log_Viewer
     - Add Log_Viewer instantiation in boot() method
     - Call log_viewer->boot() to register hooks
     - _Requirements: 7.1_
 
-  - [ ] 16.2 Update REST_API class to register REST_Logs routes
+  - [x] 16.2 Update REST_API class to register REST_Logs routes
     - Add REST_Logs instantiation in register_routes() method
     - Call rest_logs->register_routes()
     - _Requirements: 14.1_
 
-  - [ ] 16.3 Verify Logger singleton initialization
+  - [x] 16.3 Verify Logger singleton initialization
     - Ensure Logger::get_instance() is called early in plugin lifecycle
     - Verify error handlers are registered before module boot
     - _Requirements: 1.1, 3.1_
 
-- [ ] 17. Final checkpoint - Ensure all tests pass
+- [x] 17. Final checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes

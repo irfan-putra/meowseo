@@ -10,6 +10,8 @@
 
 namespace MeowSEO\Tests\Modules\Sitemap;
 
+use Brain\Monkey;
+use Brain\Monkey\Functions;
 use PHPUnit\Framework\TestCase;
 use MeowSEO\Modules\Sitemap\Sitemap_Generator;
 use MeowSEO\Helpers\Cache;
@@ -19,6 +21,27 @@ use MeowSEO\Options;
  * Sitemap requirements validation test case
  */
 class SitemapRequirementsTest extends TestCase {
+
+	/**
+	 * Set up test
+	 */
+	protected function setUp(): void {
+		parent::setUp();
+		Monkey\setUp();
+
+		// Mock WordPress functions
+		Functions\when( 'get_site_url' )->justReturn( 'http://example.com' );
+		Functions\when( 'wp_upload_dir' )->justReturn( [
+			'basedir' => sys_get_temp_dir() . '/meowseo-test-uploads',
+			'baseurl' => 'http://example.com/wp-content/uploads',
+		] );
+		Functions\when( 'trailingslashit' )->alias( function( $string ) {
+			return rtrim( $string, '/\\' ) . '/';
+		} );
+		Functions\when( 'wp_mkdir_p' )->alias( function( $target ) {
+			return @mkdir( $target, 0755, true );
+		} );
+	}
 
 	/**
 	 * Clean up test files
@@ -37,6 +60,7 @@ class SitemapRequirementsTest extends TestCase {
 			rmdir( $sitemap_dir );
 		}
 
+		Monkey\tearDown();
 		parent::tearDown();
 	}
 

@@ -10,6 +10,8 @@
 
 namespace MeowSEO;
 
+use MeowSEO\Admin\Log_Viewer;
+
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -34,6 +36,14 @@ class Admin {
 	private Options $options;
 
 	/**
+	 * Log_Viewer instance
+	 *
+	 * @since 1.0.0
+	 * @var Log_Viewer
+	 */
+	private Log_Viewer $log_viewer;
+
+	/**
 	 * Constructor
 	 *
 	 * @since 1.0.0
@@ -54,6 +64,10 @@ class Admin {
 	public function boot(): void {
 		add_action( 'admin_menu', array( $this, 'register_admin_menu' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
+
+		// Initialize Log_Viewer (Requirement 7.1).
+		$this->log_viewer = new Log_Viewer( $this->options );
+		$this->log_viewer->boot();
 	}
 
 	/**

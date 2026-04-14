@@ -70,26 +70,9 @@ if ( ! function_exists( 'strip_shortcodes' ) ) {
 	}
 }
 
-if ( ! function_exists( 'wp_upload_dir' ) ) {
-	function wp_upload_dir() {
-		return array(
-			'basedir' => sys_get_temp_dir() . '/meowseo-test-uploads',
-			'baseurl' => 'http://example.com/wp-content/uploads',
-		);
-	}
-}
-
-if ( ! function_exists( 'trailingslashit' ) ) {
-	function trailingslashit( $string ) {
-		return rtrim( $string, '/\\' ) . '/';
-	}
-}
-
-if ( ! function_exists( 'wp_mkdir_p' ) ) {
-	function wp_mkdir_p( $target ) {
-		return mkdir( $target, 0755, true );
-	}
-}
+// Note: wp_upload_dir() is intentionally not defined here to allow Brain\Monkey to mock it in tests
+// Note: trailingslashit() is intentionally not defined here to allow Brain\Monkey to mock it in tests
+// Note: wp_mkdir_p() is intentionally not defined here to allow Brain\Monkey to mock it in tests
 
 if ( ! function_exists( 'add_rewrite_rule' ) ) {
 	function add_rewrite_rule( $regex, $query, $after = 'bottom' ) {
@@ -229,6 +212,7 @@ if ( ! function_exists( 'plugins_url' ) ) {
 }
 
 // Note: get_bloginfo() is intentionally not defined here to allow Brain\Monkey to mock it in tests
+// Note: get_site_url() is intentionally not defined here to allow Brain\Monkey to mock it in tests
 
 if ( ! function_exists( 'get_post_types' ) ) {
 	function get_post_types( $args = array(), $output = 'names' ) {

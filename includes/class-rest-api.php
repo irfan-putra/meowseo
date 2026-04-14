@@ -12,6 +12,7 @@
 namespace MeowSEO;
 
 use MeowSEO\Helpers\Cache;
+use MeowSEO\REST\REST_Logs;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -82,6 +83,10 @@ class REST_API {
 
 		// Register settings endpoints.
 		$this->register_settings_routes();
+
+		// Register REST_Logs routes (Requirement 14.1).
+		$rest_logs = new REST_Logs( $this->options );
+		$rest_logs->register_routes();
 	}
 
 	/**

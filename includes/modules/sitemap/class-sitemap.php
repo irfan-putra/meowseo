@@ -13,6 +13,7 @@ namespace MeowSEO\Modules\Sitemap;
 
 use MeowSEO\Contracts\Module;
 use MeowSEO\Helpers\Cache;
+use MeowSEO\Helpers\Logger;
 use MeowSEO\Options;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -179,7 +180,15 @@ class Sitemap implements Module {
 				// Serve the generated file
 				$this->serve_sitemap_file( $file_path );
 			} else {
-				// Generation failed
+				// Generation failed - log error (Requirement 12.1)
+				Logger::error(
+					'Sitemap generation failed',
+					array(
+						'post_type' => $sitemap_type,
+						'error' => 'File generation returned false or file does not exist',
+					)
+				);
+				
 				status_header( 500 );
 				header( 'Content-Type: text/plain; charset=utf-8' );
 				echo 'Failed to generate sitemap.';
@@ -190,6 +199,15 @@ class Sitemap implements Module {
 				}
 			}
 		} catch ( \Exception $e ) {
+			// Log exception (Requirement 12.1)
+			Logger::error(
+				'Sitemap generation exception',
+				array(
+					'post_type' => $sitemap_type,
+					'error' => $e->getMessage(),
+				)
+			);
+			
 			// Log exception
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 				error_log( 'MeowSEO: Sitemap generation exception: ' . $e->getMessage() );
@@ -298,16 +316,100 @@ class Sitemap implements Module {
 				// Store file path in cache
 				$cache_key = 'sitemap_path_' . $post_type;
 				Cache::set( $cache_key, $file_path, self::CACHE_TTL );
+				
+				// Get entry count for logging
+				$entry_count = $this->get_sitemap_entry_count( $post_type );
+				
+				// Log cache regeneration (Requirement 12.2, 12.3)
+				Logger::info(
+					'Sitemap cache regenerated',
+					array(
+						'post_type' => $post_type,
+						'entry_count' => $entry_count,
+					)
+				);
+			} else {
+				// Log generation failure (Requirement 12.1)
+				Logger::error(
+					'Sitemap cache regeneration failed',
+					array(
+						'post_type' => $post_type,
+						'error' => 'File generation returned false',
+					)
+				);
 			}
 
 			// Also regenerate index
 			$index_path = $this->generator->generate_index();
 			if ( $index_path ) {
 				Cache::set( 'sitemap_path_index', $index_path, self::CACHE_TTL );
+				
+				// Log index regeneration (Requirement 12.2)
+				Logger::info(
+					'Sitemap index cache regenerated',
+					array(
+						'post_type' => 'index',
+						'entry_count' => count( $this->get_public_post_types() ),
+					)
+				);
+			} else {
+				// Log index generation failure (Requirement 12.1)
+				Logger::error(
+					'Sitemap index cache regeneration failed',
+					array(
+						'post_type' => 'index',
+						'error' => 'Index generation returned false',
+					)
+				);
 			}
 		} finally {
 			// Release lock
 			Cache::delete( $lock_key );
 		}
+	}
+
+	/**
+	 * Get entry count for a sitemap
+	 *
+	 * @param string $post_type Post type name.
+	 * @return int Entry count.
+	 */
+	private function get_sitemap_entry_count( string $post_type ): int {
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$count = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(*)
+				FROM {$wpdb->posts} p
+				LEFT JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id AND pm.meta_key = 'meowseo_noindex'
+				WHERE p.post_type = %s
+				AND p.post_status = 'publish'
+				AND (pm.meta_value IS NULL OR pm.meta_value = '0' OR pm.meta_value = '')
+				LIMIT 50000",
+				$post_type
+			)
+		);
+
+		return (int) $count;
+	}
+
+	/**
+	 * Get public post types for sitemap
+	 *
+	 * @return array Array of post type names.
+	 */
+	private function get_public_post_types(): array {
+		$post_types = get_post_types(
+			array(
+				'public' => true,
+			),
+			'names'
+		);
+
+		// Exclude attachment post type
+		unset( $post_types['attachment'] );
+
+		return array_values( $post_types );
 	}
 }

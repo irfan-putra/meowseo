@@ -10,6 +10,8 @@
 
 namespace MeowSEO\Tests\Modules\Sitemap;
 
+use Brain\Monkey;
+use Brain\Monkey\Functions;
 use PHPUnit\Framework\TestCase;
 use MeowSEO\Module_Manager;
 use MeowSEO\Options;
@@ -18,6 +20,32 @@ use MeowSEO\Options;
  * Sitemap integration test case
  */
 class SitemapIntegrationTest extends TestCase {
+
+	/**
+	 * Set up test
+	 */
+	protected function setUp(): void {
+		parent::setUp();
+		Monkey\setUp();
+
+		// Mock WordPress functions needed by sitemap module
+		Functions\when( 'wp_upload_dir' )->justReturn( [
+			'basedir' => sys_get_temp_dir() . '/meowseo-test-uploads',
+			'baseurl' => 'http://example.com/wp-content/uploads',
+		] );
+		Functions\when( 'trailingslashit' )->alias( function( $string ) {
+			return rtrim( $string, '/\\' ) . '/';
+		} );
+		Functions\when( 'wp_mkdir_p' )->justReturn( true );
+	}
+
+	/**
+	 * Tear down test
+	 */
+	protected function tearDown(): void {
+		Monkey\tearDown();
+		parent::tearDown();
+	}
 
 	/**
 	 * Test sitemap module loads via Module_Manager

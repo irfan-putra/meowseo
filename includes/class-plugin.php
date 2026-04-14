@@ -9,6 +9,8 @@
 
 namespace MeowSEO;
 
+use MeowSEO\Helpers\Logger;
+
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -92,6 +94,9 @@ class Plugin {
 	 */
 	public function boot(): void {
 		try {
+			// Initialize Logger singleton early to register error handlers (Requirements 1.1, 3.1).
+			Logger::get_instance();
+
 			// Initialize Module_Manager.
 			$this->module_manager = new Module_Manager( $this->options );
 

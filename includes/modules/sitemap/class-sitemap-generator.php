@@ -11,6 +11,7 @@
 
 namespace MeowSEO\Modules\Sitemap;
 
+use MeowSEO\Helpers\Logger;
 use MeowSEO\Options;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -79,6 +80,14 @@ class Sitemap_Generator {
 	 */
 	public function generate_index(): string|false {
 		if ( ! $this->ensure_directory_exists() ) {
+			// Log directory creation failure (Requirement 12.4)
+			Logger::error(
+				'Sitemap directory creation failed',
+				array(
+					'file_path' => $this->sitemap_dir,
+					'error' => 'Failed to create sitemap directory',
+				)
+			);
 			return false;
 		}
 
@@ -88,6 +97,14 @@ class Sitemap_Generator {
 		$file_path = $this->sitemap_dir . '/sitemap-index.xml';
 		
 		if ( false === file_put_contents( $file_path, $xml ) ) {
+			// Log file write failure (Requirement 12.4)
+			Logger::error(
+				'Sitemap file write failed',
+				array(
+					'file_path' => $file_path,
+					'error' => 'Failed to write sitemap index file',
+				)
+			);
 			return false;
 		}
 
@@ -102,6 +119,15 @@ class Sitemap_Generator {
 	 */
 	public function generate_child( string $post_type ): string|false {
 		if ( ! $this->ensure_directory_exists() ) {
+			// Log directory creation failure (Requirement 12.4)
+			Logger::error(
+				'Sitemap directory creation failed',
+				array(
+					'file_path' => $this->sitemap_dir,
+					'error' => 'Failed to create sitemap directory',
+					'post_type' => $post_type,
+				)
+			);
 			return false;
 		}
 
@@ -111,6 +137,15 @@ class Sitemap_Generator {
 		$file_path = $this->sitemap_dir . '/sitemap-' . $post_type . '.xml';
 		
 		if ( false === file_put_contents( $file_path, $xml ) ) {
+			// Log file write failure (Requirement 12.4)
+			Logger::error(
+				'Sitemap file write failed',
+				array(
+					'file_path' => $file_path,
+					'error' => 'Failed to write sitemap file',
+					'post_type' => $post_type,
+				)
+			);
 			return false;
 		}
 

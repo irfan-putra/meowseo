@@ -10,6 +10,7 @@
 
 namespace MeowSEO\Modules\Redirects;
 
+use MeowSEO\Helpers\Logger;
 use MeowSEO\Options;
 use WP_REST_Request;
 use WP_REST_Response;
@@ -119,6 +120,17 @@ class Redirects_REST {
 						'sanitize_callback' => 'absint',
 					),
 				),
+			)
+		);
+
+		// POST /meowseo/v1/redirects/import - Import redirects from CSV
+		register_rest_route(
+			self::NAMESPACE,
+			'/redirects/import',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( $this, 'import_csv' ),
+				'permission_callback' => array( $this, 'check_manage_options_and_nonce' ),
 			)
 		);
 	}
@@ -477,5 +489,191 @@ class Redirects_REST {
 		// Update option flag
 		$this->options->set( 'has_regex_rules', $has_regex > 0 );
 		$this->options->save();
+	}
+
+	/**
+	 * Import redirects from CSV file
+	 *
+	 * Expected CSV format: source_url,target_url,redirect_type,is_regex
+	 * Example: /old-page,/new-page,301,0
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response|WP_Error Response object or error.
+	 */
+	public function import_csv( WP_REST_Request $request ) {
+		$files = $request->get_file_params();
+
+		if ( empty( $files['file'] ) ) {
+			Logger::error(
+				'CSV import failed: No file provided',
+				[
+					'file_name' => '',
+					'error'     => 'No file uploaded',
+				]
+			);
+
+			return new WP_Error(
+				'no_file',
+				__( 'No file provided for import.', 'meowseo' ),
+				array( 'status' => 400 )
+			);
+		}
+
+		$file = $files['file'];
+		$file_name = $file['name'];
+
+		// Validate file type
+		$file_ext = strtolower( pathinfo( $file_name, PATHINFO_EXTENSION ) );
+		if ( 'csv' !== $file_ext ) {
+			Logger::error(
+				'CSV import failed: Invalid file type',
+				[
+					'file_name' => $file_name,
+					'error'     => 'File must be CSV format',
+				]
+			);
+
+			return new WP_Error(
+				'invalid_file_type',
+				__( 'File must be in CSV format.', 'meowseo' ),
+				array( 'status' => 400 )
+			);
+		}
+
+		// Read CSV file
+		$file_path = $file['tmp_name'];
+		$handle = fopen( $file_path, 'r' );
+
+		if ( false === $handle ) {
+			Logger::error(
+				'CSV import failed: Could not open file',
+				[
+					'file_name' => $file_name,
+					'error'     => 'Failed to open file for reading',
+				]
+			);
+
+			return new WP_Error(
+				'file_read_error',
+				__( 'Could not read the uploaded file.', 'meowseo' ),
+				array( 'status' => 500 )
+			);
+		}
+
+		global $wpdb;
+		$table = $wpdb->prefix . 'meowseo_redirects';
+
+		$imported_count = 0;
+		$skipped_count = 0;
+		$row_number = 0;
+		$errors = [];
+
+		// Skip header row if present
+		$first_row = fgetcsv( $handle );
+		if ( $first_row && ( 'source_url' === strtolower( $first_row[0] ) || 'source' === strtolower( $first_row[0] ) ) ) {
+			// Header row detected, continue to next row
+			$row_number++;
+		} else {
+			// No header, rewind to start
+			rewind( $handle );
+		}
+
+		// Process each row
+		while ( ( $row = fgetcsv( $handle ) ) !== false ) {
+			$row_number++;
+
+			// Skip empty rows
+			if ( empty( array_filter( $row ) ) ) {
+				continue;
+			}
+
+			// Validate row has at least 2 columns (source and target)
+			if ( count( $row ) < 2 ) {
+				$skipped_count++;
+				$errors[] = sprintf( 'Row %d: Missing required columns', $row_number );
+				continue;
+			}
+
+			$source_url = trim( $row[0] );
+			$target_url = trim( $row[1] );
+			$redirect_type = isset( $row[2] ) ? absint( $row[2] ) : 301;
+			$is_regex = isset( $row[3] ) ? (bool) $row[3] : false;
+
+			// Validate required fields
+			if ( empty( $source_url ) || empty( $target_url ) ) {
+				$skipped_count++;
+				$errors[] = sprintf( 'Row %d: Empty source or target URL', $row_number );
+				continue;
+			}
+
+			// Validate redirect type
+			if ( ! in_array( $redirect_type, array( 301, 302, 307, 410 ), true ) ) {
+				$redirect_type = 301; // Default to 301
+			}
+
+			// Insert redirect
+			$result = $wpdb->insert(
+				$table,
+				[
+					'source_url'    => $source_url,
+					'target_url'    => $target_url,
+					'redirect_type' => $redirect_type,
+					'is_regex'      => $is_regex ? 1 : 0,
+					'status'        => 'active',
+				],
+				[ '%s', '%s', '%d', '%d', '%s' ]
+			);
+
+			if ( false === $result ) {
+				$skipped_count++;
+				$errors[] = sprintf( 'Row %d: Database insert failed', $row_number );
+			} else {
+				$imported_count++;
+			}
+		}
+
+		fclose( $handle );
+
+		// Update regex rules flag
+		$this->update_regex_rules_flag();
+
+		// Log result
+		if ( $imported_count > 0 ) {
+			Logger::info(
+				'CSV import completed successfully',
+				[
+					'file_name'      => $file_name,
+					'row_count'      => $imported_count,
+					'skipped_count'  => $skipped_count,
+				]
+			);
+		} else {
+			Logger::error(
+				'CSV import failed: No rows imported',
+				[
+					'file_name' => $file_name,
+					'error'     => 'All rows were skipped or invalid',
+					'errors'    => $errors,
+				]
+			);
+
+			return new WP_Error(
+				'import_failed',
+				__( 'No redirects were imported. Please check the CSV format.', 'meowseo' ),
+				array( 'status' => 400 )
+			);
+		}
+
+		$response = new WP_REST_Response(
+			[
+				'success'        => true,
+				'imported_count' => $imported_count,
+				'skipped_count'  => $skipped_count,
+				'errors'         => $errors,
+			]
+		);
+		$response->header( 'Cache-Control', 'no-store' );
+
+		return $response;
 	}
 }

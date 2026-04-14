@@ -13,6 +13,7 @@ namespace MeowSEO\Modules\Redirects;
 
 use MeowSEO\Contracts\Module;
 use MeowSEO\Helpers\DB;
+use MeowSEO\Helpers\Logger;
 use MeowSEO\Options;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -42,6 +43,13 @@ class Redirects implements Module {
 	 * @var Redirects_REST
 	 */
 	private Redirects_REST $rest;
+
+	/**
+	 * Redirect chain tracking for loop detection
+	 *
+	 * @var array
+	 */
+	private array $redirect_chain = [];
 
 	/**
 	 * Constructor
@@ -99,6 +107,22 @@ class Redirects implements Module {
 
 		// Normalize URL (strip query string if configured)
 		$normalized_url = $this->normalize_url( $request_url );
+
+		// Check for redirect loop
+		if ( in_array( $normalized_url, $this->redirect_chain, true ) ) {
+			// Loop detected - log warning and stop
+			Logger::warning(
+				'Redirect loop detected',
+				[
+					'source_url' => $normalized_url,
+					'chain'      => $this->redirect_chain,
+				]
+			);
+			return;
+		}
+
+		// Add current URL to chain
+		$this->redirect_chain[] = $normalized_url;
 
 		// Step 1: Try exact match first (Requirement 7.2)
 		$redirect = DB::get_redirect_exact( $normalized_url );
@@ -165,6 +189,24 @@ class Redirects implements Module {
 		$redirect_type = absint( $redirect['redirect_type'] ?? 301 );
 		$target_url = $redirect['target_url'] ?? '';
 		$redirect_id = absint( $redirect['id'] ?? 0 );
+		$source_url = $redirect['source_url'] ?? '';
+
+		// Normalize target URL for loop detection
+		$normalized_target = $this->normalize_url( $target_url );
+
+		// Check if target URL would create a loop
+		if ( in_array( $normalized_target, $this->redirect_chain, true ) ) {
+			// Loop detected - log warning with source and target
+			Logger::warning(
+				'Redirect loop detected',
+				[
+					'source_url' => $source_url,
+					'target_url' => $target_url,
+					'chain'      => $this->redirect_chain,
+				]
+			);
+			return;
+		}
 
 		// Log hit count asynchronously (Requirement 7.6)
 		if ( $redirect_id > 0 ) {
