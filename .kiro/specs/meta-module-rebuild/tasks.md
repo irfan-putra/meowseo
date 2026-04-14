@@ -30,8 +30,8 @@ This implementation plan transforms the current basic meta tag implementation in
     - Test get_id() returns correct value
     - _Requirements: 1.1_
 
-- [ ] 3. Implement Title_Patterns class with parser and variable system
-  - [ ] 3.1 Create Title_Patterns class with variable replacement
+- [x] 3. Implement Title_Patterns class with parser and variable system
+  - [x] 3.1 Create Title_Patterns class with variable replacement
     - Define VARIABLES constant with all 10 supported variables
     - Implement `resolve(pattern, context)` method
     - Implement `replace_variables()` private method
@@ -40,34 +40,34 @@ This implementation plan transforms the current basic meta tag implementation in
     - Implement `get_default_patterns()` returning all default patterns
     - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7_
   
-  - [ ] 3.2 Implement pattern parser and pretty printer
+  - [x] 3.2 Implement pattern parser and pretty printer
     - Implement `parse(pattern)` method returning structured representation
     - Implement `print(structured)` method for round-trip
     - Implement `validate(pattern)` checking balanced braces and valid variables
     - Return error objects for invalid patterns
     - _Requirements: 12.1, 12.2, 12.3, 12.4, 12.5, 12.6_
   
-  - [ ]* 3.3 Write property test for variable replacement completeness
+  - [x] 3.3 Write property test for variable replacement completeness
     - **Property 18: Variable Replacement Completeness**
     - **Validates: Requirements 8.1, 8.4, 8.6**
   
-  - [ ]* 3.4 Write property test for missing variable handling
+  - [x] 3.4 Write property test for missing variable handling
     - **Property 19: Missing Variable Handling**
     - **Validates: Requirements 8.5**
   
-  - [ ]* 3.5 Write property test for pagination variable conditional
+  - [x] 3.5 Write property test for pagination variable conditional
     - **Property 20: Pagination Variable Conditional**
     - **Validates: Requirements 8.7**
   
-  - [ ]* 3.6 Write property test for title pattern round-trip
+  - [x] 3.6 Write property test for title pattern round-trip
     - **Property 28: Title Pattern Round-Trip**
     - **Validates: Requirements 12.1, 12.2, 12.3**
   
-  - [ ]* 3.7 Write property test for invalid pattern error handling
+  - [x] 3.7 Write property test for invalid pattern error handling
     - **Property 29: Invalid Pattern Error Handling**
     - **Validates: Requirements 12.4, 12.5, 12.6**
   
-  - [ ]* 3.8 Write unit tests for Title_Patterns
+  - [x] 3.8 Write unit tests for Title_Patterns
     - Test default patterns for all page types
     - Test variable replacement with specific examples
     - Test parser with valid and invalid patterns
@@ -135,59 +135,59 @@ This implementation plan transforms the current basic meta tag implementation in
     - Return array of language => URL mappings
     - _Requirements: 2.9_
   
-  - [ ]* 4.8 Write property test for title fallback chain completeness
+  - [ ] 4.8 Write property test for title fallback chain completeness
     - **Property 10: Title Fallback Chain Completeness**
     - **Validates: Requirements 3.1, 3.2, 3.3, 3.5, 3.6**
   
-  - [ ]* 4.9 Write property test for description fallback chain completeness
+  - [ ] 4.9 Write property test for description fallback chain completeness
     - **Property 11: Description Fallback Chain Completeness**
     - **Validates: Requirements 4.1, 4.2, 4.3, 4.4, 4.6**
   
-  - [ ]* 4.10 Write property test for description truncation with HTML stripping
+  - [ ] 4.10 Write property test for description truncation with HTML stripping
     - **Property 12: Description Truncation with HTML Stripping**
     - **Validates: Requirements 4.5**
   
-  - [ ]* 4.11 Write property test for OG image fallback chain completeness
+  - [ ] 4.11 Write property test for OG image fallback chain completeness
     - **Property 13: OG Image Fallback Chain Completeness**
     - **Validates: Requirements 5.1, 5.2, 5.3, 5.4, 5.5, 5.6**
   
-  - [ ]* 4.12 Write property test for OG image dimension validation
+  - [ ] 4.12 Write property test for OG image dimension validation
     - **Property 14: OG Image Dimension Validation**
     - **Validates: Requirements 5.3, 5.4**
   
-  - [ ]* 4.13 Write property test for OG image return structure
+  - [ ] 4.13 Write property test for OG image return structure
     - **Property 15: OG Image Return Structure**
     - **Validates: Requirements 5.7**
   
-  - [ ]* 4.14 Write property test for canonical fallback chain completeness
+  - [ ] 4.14 Write property test for canonical fallback chain completeness
     - **Property 16: Canonical Fallback Chain Completeness**
     - **Validates: Requirements 6.1, 6.2, 6.3, 6.4, 6.5**
   
-  - [ ]* 4.15 Write property test for canonical pagination stripping
+  - [ ] 4.15 Write property test for canonical pagination stripping
     - **Property 4: Canonical Pagination Stripping**
     - **Validates: Requirements 2.5, 6.6**
   
-  - [ ]* 4.16 Write property test for canonical always present
+  - [ ] 4.16 Write property test for canonical always present
     - **Property 5: Canonical Always Present**
     - **Validates: Requirements 2.5, 6.7**
   
-  - [ ]* 4.17 Write property test for robots directive merging
+  - [ ] 4.17 Write property test for robots directive merging
     - **Property 17: Robots Directive Merging**
     - **Validates: Requirements 7.1, 7.3, 7.4, 7.5, 7.6**
   
-  - [ ]* 4.18 Write property test for Google Discover directives always present
+  - [ ] 4.18 Write property test for Google Discover directives always present
     - **Property 3: Google Discover Directives Always Present**
     - **Validates: Requirements 2.4, 7.2, 7.7**
   
-  - [ ]* 4.19 Write property test for Twitter Card independence
+  - [ ] 4.19 Write property test for Twitter Card independence
     - **Property 8: Twitter Card Independence**
     - **Validates: Requirements 2.8**
   
-  - [ ]* 4.20 Write property test for conditional hreflang output
+  - [ ] 4.20 Write property test for conditional hreflang output
     - **Property 9: Conditional Hreflang Output**
     - **Validates: Requirements 2.9**
   
-  - [ ]* 4.21 Write unit tests for Meta_Resolver
+  - [ ] 4.21 Write unit tests for Meta_Resolver
     - Test each fallback chain with specific examples
     - Test edge cases: empty strings, null values, invalid IDs
     - Test helper methods: truncate_text, strip_pagination_params

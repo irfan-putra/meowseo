@@ -59,8 +59,7 @@ class Title_Patterns {
 	 * @return string Resolved pattern.
 	 */
 	public function resolve( string $pattern, array $context ): string {
-		// TODO: Implement resolve() method
-		return '';
+		return $this->replace_variables( $pattern, $context );
 	}
 
 	/**
@@ -70,8 +69,74 @@ class Title_Patterns {
 	 * @return array|object Parsed structure or error object.
 	 */
 	public function parse( string $pattern ) {
-		// TODO: Implement parse() method
-		return array();
+		$result = array();
+		$length = strlen( $pattern );
+		$i      = 0;
+		
+		while ( $i < $length ) {
+			// Check for variable start.
+			if ( $pattern[ $i ] === '{' ) {
+				// Find closing brace.
+				$close_pos = strpos( $pattern, '}', $i );
+				
+				if ( $close_pos === false ) {
+					return (object) array(
+						'error'   => true,
+						'message' => 'Unbalanced curly braces at position ' . $i,
+					);
+				}
+				
+				// Extract variable name.
+				$var_name = substr( $pattern, $i + 1, $close_pos - $i - 1 );
+				
+				// Check for nested braces (invalid).
+				if ( strpos( $var_name, '{' ) !== false ) {
+					return (object) array(
+						'error'   => true,
+						'message' => 'Unbalanced curly braces at position ' . $i,
+					);
+				}
+				
+				// Validate variable name.
+				if ( ! in_array( $var_name, self::VARIABLES, true ) ) {
+					return (object) array(
+						'error'   => true,
+						'message' => 'Unsupported variable: ' . $var_name,
+					);
+				}
+				
+				// Add variable token.
+				$result[] = array(
+					'type' => 'variable',
+					'name' => $var_name,
+				);
+				
+				$i = $close_pos + 1;
+			} else {
+				// Collect literal text until next variable or end.
+				$literal_start = $i;
+				while ( $i < $length && $pattern[ $i ] !== '{' ) {
+					// Check for unmatched closing brace.
+					if ( $pattern[ $i ] === '}' ) {
+						return (object) array(
+							'error'   => true,
+							'message' => 'Unbalanced curly braces at position ' . $i,
+						);
+					}
+					$i++;
+				}
+				
+				$literal = substr( $pattern, $literal_start, $i - $literal_start );
+				
+				// Add literal token.
+				$result[] = array(
+					'type'  => 'literal',
+					'value' => $literal,
+				);
+			}
+		}
+		
+		return $result;
 	}
 
 	/**
@@ -81,8 +146,21 @@ class Title_Patterns {
 	 * @return string Pattern string.
 	 */
 	public function print( array $structured ): string {
-		// TODO: Implement print() method
-		return '';
+		$result = '';
+		
+		foreach ( $structured as $token ) {
+			if ( ! isset( $token['type'] ) ) {
+				continue;
+			}
+			
+			if ( $token['type'] === 'variable' && isset( $token['name'] ) ) {
+				$result .= '{' . $token['name'] . '}';
+			} elseif ( $token['type'] === 'literal' && isset( $token['value'] ) ) {
+				$result .= $token['value'];
+			}
+		}
+		
+		return $result;
 	}
 
 	/**
@@ -92,8 +170,20 @@ class Title_Patterns {
 	 * @return string Pattern string.
 	 */
 	public function get_pattern_for_post_type( string $post_type ): string {
-		// TODO: Implement get_pattern_for_post_type() method
-		return '';
+		$patterns = $this->options->get( 'title_patterns', $this->get_default_patterns() );
+		
+		// Check for specific post type pattern.
+		if ( isset( $patterns[ $post_type ] ) ) {
+			return $patterns[ $post_type ];
+		}
+		
+		// Fall back to 'post' pattern for custom post types.
+		if ( isset( $patterns['post'] ) ) {
+			return $patterns['post'];
+		}
+		
+		// Final fallback.
+		return '{title} {sep} {site_name}';
 	}
 
 	/**
@@ -103,8 +193,15 @@ class Title_Patterns {
 	 * @return string Pattern string.
 	 */
 	public function get_pattern_for_page_type( string $page_type ): string {
-		// TODO: Implement get_pattern_for_page_type() method
-		return '';
+		$patterns = $this->options->get( 'title_patterns', $this->get_default_patterns() );
+		
+		// Check for specific page type pattern.
+		if ( isset( $patterns[ $page_type ] ) ) {
+			return $patterns[ $page_type ];
+		}
+		
+		// Final fallback.
+		return '{title} {sep} {site_name}';
 	}
 
 	/**
@@ -113,8 +210,18 @@ class Title_Patterns {
 	 * @return array Default patterns by page type.
 	 */
 	public function get_default_patterns(): array {
-		// TODO: Implement get_default_patterns() method
-		return array();
+		return array(
+			'post'       => '{title} {sep} {site_name}',
+			'page'       => '{title} {sep} {site_name}',
+			'homepage'   => '{site_name} {sep} {tagline}',
+			'category'   => '{term_name} Archives {sep} {site_name}',
+			'tag'        => '{term_name} Tag {sep} {site_name}',
+			'author'     => '{author_name} {sep} {site_name}',
+			'date'       => '{current_month} {current_year} Archives {sep} {site_name}',
+			'search'     => 'Search Results {sep} {site_name}',
+			'404'        => 'Page Not Found {sep} {site_name}',
+			'attachment' => '{title} {sep} {site_name}',
+		);
 	}
 
 	/**
@@ -124,7 +231,13 @@ class Title_Patterns {
 	 * @return bool|object True if valid, error object if invalid.
 	 */
 	public function validate( string $pattern ) {
-		// TODO: Implement validate() method
+		$parsed = $this->parse( $pattern );
+		
+		// If parse returned an error object, return it.
+		if ( is_object( $parsed ) && isset( $parsed->error ) ) {
+			return $parsed;
+		}
+		
 		return true;
 	}
 
@@ -136,8 +249,16 @@ class Title_Patterns {
 	 * @return string Pattern with variables replaced.
 	 */
 	private function replace_variables( string $pattern, array $context ): string {
-		// TODO: Implement replace_variables() method
-		return '';
+		// Replace each variable in the pattern.
+		foreach ( self::VARIABLES as $var_name ) {
+			$placeholder = '{' . $var_name . '}';
+			if ( strpos( $pattern, $placeholder ) !== false ) {
+				$value   = $this->get_variable_value( $var_name, $context );
+				$pattern = str_replace( $placeholder, $value, $pattern );
+			}
+		}
+		
+		return $pattern;
 	}
 
 	/**
@@ -148,7 +269,34 @@ class Title_Patterns {
 	 * @return string Variable value.
 	 */
 	private function get_variable_value( string $var_name, array $context ): string {
-		// TODO: Implement get_variable_value() method
-		return '';
+		// Handle special variables.
+		switch ( $var_name ) {
+			case 'sep':
+				return $this->options->get_separator();
+			
+			case 'site_name':
+				return get_bloginfo( 'name' );
+			
+			case 'tagline':
+				return get_bloginfo( 'description' );
+			
+			case 'current_year':
+				return gmdate( 'Y' );
+			
+			case 'current_month':
+				return gmdate( 'F' );
+			
+			case 'page':
+				// Conditional: "Page N" when paginated, empty otherwise.
+				if ( isset( $context['page_number'] ) && $context['page_number'] > 1 ) {
+					return 'Page ' . $context['page_number'];
+				}
+				return '';
+			
+			default:
+				// For all other variables, check context array.
+				// Missing variables return empty string (Requirement 8.5).
+				return isset( $context[ $var_name ] ) ? (string) $context[ $var_name ] : '';
+		}
 	}
 }
