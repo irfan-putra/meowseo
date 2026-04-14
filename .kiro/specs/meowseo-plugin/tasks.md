@@ -227,19 +227,19 @@ This implementation plan breaks down the MeowSEO WordPress SEO plugin developmen
     - Display performance summary in Gutenberg sidebar
     - _Requirements: 10.5, 10.6, 10.7_
 
-- [ ] 13. Implement Social Module for Open Graph and Twitter Cards
-  - [ ] 13.1 Create social meta tag output system
+- [x] 13. Implement Social Module for Open Graph and Twitter Cards
+  - [x] 13.1 Create social meta tag output system
     - Output Open Graph meta tags in wp_head
     - Output Twitter Card meta tags in wp_head
     - Support per-post social title, description, image overrides
     - _Requirements: 11.1, 11.2, 11.3_
 
-  - [ ] 13.2 Add social image fallback logic
+  - [x] 13.2 Add social image fallback logic
     - Fall back from per-post to featured image to global default
     - Expose social meta fields via REST API
     - _Requirements: 11.4, 11.5_
 
-- [ ] 14. Implement WooCommerce Module (conditional)
+- [-] 14. Implement WooCommerce Module (conditional)
   - [ ] 14.1 Create WooCommerce-specific SEO enhancements
     - Extend Meta module for product post type support
     - Add SEO score columns to WooCommerce product list
