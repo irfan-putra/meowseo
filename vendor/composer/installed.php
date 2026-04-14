@@ -3,7 +3,7 @@
         'name' => 'meowseo/meowseo',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '9bd358554ae5e19e3f5f681aabf4e4c00a326efa',
+        'reference' => '32492e30a9b8de67c57b67ac5bbe644a6895c680',
         'type' => 'wordpress-plugin',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -49,6 +49,15 @@
             'aliases' => array(),
             'dev_requirement' => true,
         ),
+        'giorgiosironi/eris' => array(
+            'pretty_version' => '0.14.1',
+            'version' => '0.14.1.0',
+            'reference' => 'fe4302d938c6cca1b661032da4cfe9b7a11d1009',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../giorgiosironi/eris',
+            'aliases' => array(),
+            'dev_requirement' => true,
+        ),
         'hamcrest/hamcrest-php' => array(
             'pretty_version' => 'v2.1.1',
             'version' => '2.1.1.0',
@@ -67,7 +76,7 @@
         'meowseo/meowseo' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '9bd358554ae5e19e3f5f681aabf4e4c00a326efa',
+            'reference' => '32492e30a9b8de67c57b67ac5bbe644a6895c680',
             'type' => 'wordpress-plugin',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

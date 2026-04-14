@@ -9,7 +9,8 @@
         "phpunit/phpunit": "^9.5",
         "yoast/phpunit-polyfills": "^1.0",
         "brain/monkey": "^2.6",
-        "mockery/mockery": "^1.5"
+        "mockery/mockery": "^1.5",
+        "giorgiosironi/eris": "^0.14"
     },
     "autoload": {
         "psr-4": {

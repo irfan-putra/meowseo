@@ -14,33 +14,33 @@ This implementation plan breaks down the MeowSEO WordPress SEO plugin developmen
   - Implement Installer class with dbDelta() for custom tables
   - _Requirements: 1.1, 1.4, 1.5, 1.6, 2.1, 2.2_
 
-- [ ]* 1.1 Write property test for autoloader class resolution
+- [x] 1.1 Write property test for autoloader class resolution
   - **Property 2: Autoloader resolves class names to correct file paths**
   - **Validates: Requirements 1.4**
 
-- [ ] 2. Implement Module Manager and modular loading system
+- [x] 2. Implement Module Manager and modular loading system
   - [x] 2.1 Create Module interface and Module_Manager class
     - Define Module contract with boot() and get_id() methods
     - Implement conditional module loading based on enabled settings
     - Ensure disabled modules are never loaded or instantiated
     - _Requirements: 1.2, 1.3_
 
-  - [ ]* 2.2 Write property test for module loading
+  - [x] 2.2 Write property test for module loading
     - **Property 1: Module_Manager loads exactly the enabled set**
     - **Validates: Requirements 1.2, 1.3**
 
-  - [ ]* 2.3 Write property test for Options round-trip
+  - [x] 2.3 Write property test for Options round-trip
     - **Property 3: Options round-trip preserves all values**
     - **Validates: Requirements 2.2**
 
-- [ ] 3. Create helper classes for caching and database operations
+- [x] 3. Create helper classes for caching and database operations
   - [x] 3.1 Implement Cache helper with Object Cache abstraction
     - Wrap wp_cache_* functions with meowseo_ prefix
     - Implement transient fallback when Object Cache unavailable
     - Add atomic lock support via wp_cache_add()
     - _Requirements: 14.2, 14.3_
 
-  - [ ]* 3.2 Write property test for cache key prefixing
+  - [x] 3.2 Write property test for cache key prefixing
     - **Property 19: Cache keys always use the meowseo_ prefix**
     - **Validates: Requirements 14.2**
 
@@ -50,7 +50,7 @@ This implementation plan breaks down the MeowSEO WordPress SEO plugin developmen
     - Ensure all queries use $wpdb->prepare() for security
     - _Requirements: 15.1_
 
-- [ ] 4. Implement Meta Module for SEO meta management
+- [x] 4. Implement Meta Module for SEO meta management
   - [x] 4.1 Create Meta module with postmeta storage
     - Store SEO data in wp_postmeta with meowseo_ prefix
     - Implement title, description, robots, canonical getters
@@ -58,15 +58,15 @@ This implementation plan breaks down the MeowSEO WordPress SEO plugin developmen
     - Output meta tags in wp_head hook
     - _Requirements: 3.1, 3.4, 3.5, 3.6, 3.7_
 
-  - [ ]* 4.2 Write property test for SEO meta key prefix
+  - [x] 4.2 Write property test for SEO meta key prefix
     - **Property 4: SEO meta uses consistent key prefix**
     - **Validates: Requirements 3.1, 3.4**
 
-  - [ ]* 4.3 Write property test for title fallback
+  - [x] 4.3 Write property test for title fallback
     - **Property 5: SEO title fallback produces non-empty output**
     - **Validates: Requirements 3.6**
 
-  - [ ]* 4.4 Write property test for description fallback
+  - [x] 4.4 Write property test for description fallback
     - **Property 6: Meta description fallback is bounded and HTML-stripped**
     - **Validates: Requirements 3.7**
 
@@ -76,15 +76,15 @@ This implementation plan breaks down the MeowSEO WordPress SEO plugin developmen
     - Add score computation with color indicators
     - _Requirements: 4.2, 4.3, 4.4, 4.5_
 
-  - [ ]* 4.6 Write property test for SEO score calculation
+  - [x] 4.6 Write property test for SEO score calculation
     - **Property 7: SEO score is proportional to passing checks**
     - **Validates: Requirements 4.2, 4.3**
 
-  - [ ]* 4.7 Write property test for score color mapping
+  - [x] 4.7 Write property test for score color mapping
     - **Property 8: Score color mapping is total and exhaustive**
     - **Validates: Requirements 4.4**
 
-  - [ ]* 4.8 Write property test for readability score bounds
+  - [x] 4.8 Write property test for readability score bounds
     - **Property 9: Readability score is bounded**
     - **Validates: Requirements 4.5**
 
@@ -99,7 +99,7 @@ This implementation plan breaks down the MeowSEO WordPress SEO plugin developmen
     - Support FAQPage schema from structured data
     - _Requirements: 5.1, 5.2, 5.3, 5.5, 5.7_
 
-  - [ ]* 6.2 Write property test for schema graph completeness
+  - [x] 6.2 Write property test for schema graph completeness
     - **Property 10: Schema graph contains all required types**
     - **Validates: Requirements 5.2**
 
@@ -117,11 +117,11 @@ This implementation plan breaks down the MeowSEO WordPress SEO plugin developmen
     - Support image entries for posts with featured images
     - _Requirements: 6.1, 6.2, 6.4, 6.7_
 
-  - [ ]* 7.2 Write property test for sitemap cache storage
+  - [x] 7.2 Write property test for sitemap cache storage
     - **Property 11: Sitemap cache stores file paths, not XML content**
     - **Validates: Requirements 6.2**
 
-  - [ ]* 7.3 Write property test for sitemap lock exclusivity
+  - [x] 7.3 Write property test for sitemap lock exclusivity
     - **Property 12: Sitemap lock is mutually exclusive**
     - **Validates: Requirements 6.4**
 
@@ -131,7 +131,7 @@ This implementation plan breaks down the MeowSEO WordPress SEO plugin developmen
     - Invalidate cache on post save and schedule regeneration
     - _Requirements: 6.3, 6.6_
 
-  - [ ]* 7.5 Write property test for noindex exclusion
+  - [x] 7.5 Write property test for noindex exclusion
     - **Property 13: Noindex posts are excluded from sitemaps**
     - **Validates: Requirements 6.8**
 
@@ -143,7 +143,7 @@ This implementation plan breaks down the MeowSEO WordPress SEO plugin developmen
     - Support redirect types: 301, 302, 307, 410
     - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5_
 
-  - [ ]* 8.2 Write property test for redirect matching correctness
+  - [x] 8.2 Write property test for redirect matching correctness
     - **Property 14: Redirect matching algorithm correctness**
     - **Validates: Requirements 7.2, 7.3, 7.4**
 
@@ -160,7 +160,7 @@ This implementation plan breaks down the MeowSEO WordPress SEO plugin developmen
     - Prevent synchronous database writes during requests
     - _Requirements: 8.1, 8.2_
 
-  - [ ]* 9.2 Write property test for 404 buffering
+  - [x] 9.2 Write property test for 404 buffering
     - **Property 15: 404 buffering prevents synchronous DB writes**
     - **Validates: Requirements 8.1**
 
@@ -170,7 +170,7 @@ This implementation plan breaks down the MeowSEO WordPress SEO plugin developmen
     - Preserve total hit counts across flush operations
     - _Requirements: 8.3, 8.4_
 
-  - [ ]* 9.4 Write property test for hit count preservation
+  - [x] 9.4 Write property test for hit count preservation
     - **Property 16: 404 flush preserves total hit counts**
     - **Validates: Requirements 8.3**
 
@@ -203,7 +203,7 @@ This implementation plan breaks down the MeowSEO WordPress SEO plugin developmen
     - Never expose raw credentials via REST endpoints
     - _Requirements: 10.1, 15.6_
 
-  - [ ]* 12.2 Write property test for credential encryption
+  - [x] 12.2 Write property test for credential encryption
     - **Property 21: Credential encryption round-trip is lossless**
     - **Validates: Requirements 15.6**
 
@@ -213,11 +213,11 @@ This implementation plan breaks down the MeowSEO WordPress SEO plugin developmen
     - Implement exponential backoff for HTTP 429 responses
     - _Requirements: 10.2, 10.3, 10.4_
 
-  - [ ]* 12.4 Write property test for queue processing limit
+  - [x] 12.4 Write property test for queue processing limit
     - **Property 17: GSC queue processor respects the 10-item limit**
     - **Validates: Requirements 10.3**
 
-  - [ ]* 12.5 Write property test for exponential backoff
+  - [x] 12.5 Write property test for exponential backoff
     - **Property 18: GSC exponential backoff delay is correct**
     - **Validates: Requirements 10.4**
 
@@ -338,7 +338,7 @@ This implementation plan breaks down the MeowSEO WordPress SEO plugin developmen
     - Add transient fallback when Object Cache unavailable
     - _Requirements: 14.1, 14.2, 14.3_
 
-  - [ ]* 20.2 Write property test for cached post performance
+  - [ ] 20.2 Write property test for cached post performance
     - **Property 20: Cached posts require zero DB queries on frontend**
     - **Validates: Requirements 14.1**
 
@@ -376,7 +376,7 @@ This implementation plan breaks down the MeowSEO WordPress SEO plugin developmen
     - Test 404 flush with concurrent hit simulation
     - Test WPGraphQL field registration and queries
 
-  - [ ]* 22.3 Complete property-based test implementation
+  - [ ] 22.3 Complete property-based test implementation
     - Implement all 21 correctness properties using eris/eris (PHP)
     - Add JavaScript property tests using fast-check
     - Ensure minimum 100 iterations per property test

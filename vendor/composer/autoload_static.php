@@ -12,6 +12,7 @@ class ComposerStaticInit4e1c0ad9890e1b7ab3a4c2baf19febdc
         'ce9671a430e4846b44e1c68c7611f9f5' => __DIR__ . '/..' . '/mockery/mockery/library/Mockery.php',
         'ec07570ca5a812141189b1fa81503674' => __DIR__ . '/..' . '/phpunit/phpunit/src/Framework/Assert/Functions.php',
         '051bafe20e2674435a162870efa2d2a7' => __DIR__ . '/..' . '/brain/monkey/inc/api.php',
+        'a84de8315bd92c71bcb39ff2ace7383d' => __DIR__ . '/..' . '/giorgiosironi/eris/src/Generator/functions.php',
         '7d3b315c4f303f2fc14aca642a738e50' => __DIR__ . '/..' . '/yoast/phpunit-polyfills/phpunitpolyfills-autoload.php',
     );
 
@@ -25,6 +26,10 @@ class ComposerStaticInit4e1c0ad9890e1b7ab3a4c2baf19febdc
             'Mockery\\' => 8,
             'MeowSEO\\Tests\\' => 14,
             'MeowSEO\\' => 8,
+        ),
+        'E' =>
+        array (
+            'Eris\\' => 5,
         ),
         'D' =>
         array (
@@ -53,6 +58,10 @@ class ComposerStaticInit4e1c0ad9890e1b7ab3a4c2baf19febdc
         'MeowSEO\\' =>
         array (
             0 => __DIR__ . '/../..' . '/includes',
+        ),
+        'Eris\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/giorgiosironi/eris/src',
         ),
         'Doctrine\\Instantiator\\' =>
         array (
