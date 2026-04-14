@@ -273,6 +273,7 @@ if ( ! isset( $wpdb ) ) {
 	$wpdb = new class {
 		public $posts = 'wp_posts';
 		public $postmeta = 'wp_postmeta';
+		public $prefix = 'wp_';
 
 		public function prepare( $query, ...$args ) {
 			return vsprintf( str_replace( '%s', "'%s'", str_replace( '%d', '%d', $query ) ), $args );
@@ -280,6 +281,14 @@ if ( ! isset( $wpdb ) ) {
 
 		public function get_results( $query ) {
 			return array();
+		}
+
+		public function get_var( $query ) {
+			return 0;
+		}
+
+		public function query( $query ) {
+			return 0;
 		}
 	};
 }
@@ -450,8 +459,19 @@ if ( ! function_exists( 'register_rest_route' ) ) {
 	}
 }
 
+// Global test override for current_user_can
+global $test_current_user_can_override;
+$test_current_user_can_override = null;
+
 if ( ! function_exists( 'current_user_can' ) ) {
 	function current_user_can( $capability, ...$args ) {
+		global $test_current_user_can_override;
+		
+		// Allow tests to override the capability check
+		if ( $test_current_user_can_override !== null ) {
+			return $test_current_user_can_override;
+		}
+		
 		return true;
 	}
 }
@@ -474,8 +494,19 @@ if ( ! function_exists( 'esc_url_raw' ) ) {
 	}
 }
 
+// Global test override for wp_verify_nonce
+global $test_wp_verify_nonce_override;
+$test_wp_verify_nonce_override = null;
+
 if ( ! function_exists( 'wp_verify_nonce' ) ) {
 	function wp_verify_nonce( $nonce, $action = -1 ) {
+		global $test_wp_verify_nonce_override;
+		
+		// Allow tests to override nonce verification
+		if ( $test_wp_verify_nonce_override !== null ) {
+			return $test_wp_verify_nonce_override;
+		}
+		
 		return true;
 	}
 }
@@ -523,6 +554,13 @@ if ( ! class_exists( 'WP_Error' ) ) {
 				$code = $this->get_error_code();
 			}
 			return isset( $this->errors[ $code ] ) ? $this->errors[ $code ][0] : '';
+		}
+
+		public function get_error_data( $code = '' ) {
+			if ( empty( $code ) ) {
+				$code = $this->get_error_code();
+			}
+			return isset( $this->error_data[ $code ] ) ? $this->error_data[ $code ] : null;
 		}
 	}
 }
@@ -657,5 +695,65 @@ if ( ! function_exists( 'current_time' ) ) {
 			return gmdate( 'Y-m-d H:i:s' );
 		}
 		return time();
+	}
+}
+
+
+if ( ! class_exists( 'WP_REST_Request' ) ) {
+	class WP_REST_Request {
+		private $params = array();
+		private $headers = array();
+
+		public function __construct( $method = 'GET', $route = '', $args = array() ) {
+			$this->params = $args;
+		}
+
+		public function has_param( $key ) {
+			return isset( $this->params[ $key ] );
+		}
+
+		public function get_param( $key ) {
+			return isset( $this->params[ $key ] ) ? $this->params[ $key ] : null;
+		}
+
+		public function set_param( $key, $value ) {
+			$this->params[ $key ] = $value;
+		}
+
+		public function get_header( $key ) {
+			return isset( $this->headers[ $key ] ) ? $this->headers[ $key ] : null;
+		}
+
+		public function set_header( $key, $value ) {
+			$this->headers[ $key ] = $value;
+		}
+	}
+}
+
+if ( ! class_exists( 'WP_REST_Response' ) ) {
+	class WP_REST_Response {
+		private $data = array();
+		private $headers = array();
+
+		public function __construct( $data = null, $status = 200, $headers = array() ) {
+			$this->data = $data;
+			$this->headers = $headers;
+		}
+
+		public function get_data() {
+			return $this->data;
+		}
+
+		public function set_data( $data ) {
+			$this->data = $data;
+		}
+
+		public function header( $key, $value ) {
+			$this->headers[ $key ] = $value;
+		}
+
+		public function get_headers() {
+			return $this->headers;
+		}
 	}
 }

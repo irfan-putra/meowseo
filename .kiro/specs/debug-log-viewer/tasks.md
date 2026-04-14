@@ -55,7 +55,7 @@ This implementation plan creates a centralized logging system for the MeowSEO Wo
     - **Property 12: Deduplication**
     - **Validates: Requirements 6.1**
 
-  - [x]* 3.3 Write property test for deduplication matching
+  - [x] 3.3 Write property test for deduplication matching
     - **Property 13: Deduplication Matching**
     - **Validates: Requirements 6.2**
 
@@ -69,7 +69,7 @@ This implementation plan creates a centralized logging system for the MeowSEO Wo
     - **Property 10: Log Entry Limit Invariant**
     - **Validates: Requirements 5.1, 5.4, 5.5**
 
-  - [x]* 3.6 Write property test for cleanup trigger
+  - [x] 3.6 Write property test for cleanup trigger
     - **Property 11: Cleanup Trigger**
     - **Validates: Requirements 5.2**
 
@@ -81,15 +81,15 @@ This implementation plan creates a centralized logging system for the MeowSEO Wo
     - Preserve non-sensitive values unchanged
     - _Requirements: 17.1, 17.2, 17.3, 17.4, 17.5_
 
-  - [x]* 4.2 Write property test for sensitive key redaction
+  - [x] 4.2 Write property test for sensitive key redaction
     - **Property 29: Sensitive Key Redaction**
     - **Validates: Requirements 17.1, 17.2**
 
-  - [x]* 4.3 Write property test for nested sanitization
+  - [x] 4.3 Write property test for nested sanitization
     - **Property 30: Nested Sanitization**
     - **Validates: Requirements 17.3**
 
-  - [x]* 4.4 Write property test for non-sensitive preservation
+  - [x] 4.4 Write property test for non-sensitive preservation
     - **Property 31: Non-Sensitive Preservation**
     - **Validates: Requirements 17.4**
 
@@ -101,11 +101,11 @@ This implementation plan creates a centralized logging system for the MeowSEO Wo
     - Capture error level, message, file, line number
     - _Requirements: 3.1, 3.2, 3.3_
 
-  - [ ]* 5.2 Write property test for PHP error capture
+  - [x] 5.2 Write property test for PHP error capture
     - **Property 4: PHP Error Capture**
     - **Validates: Requirements 3.2**
 
-  - [ ]* 5.3 Write property test for error field capture
+  - [x] 5.3 Write property test for error field capture
     - **Property 5: Error Field Capture**
     - **Validates: Requirements 3.3**
 
@@ -116,7 +116,7 @@ This implementation plan creates a centralized logging system for the MeowSEO Wo
     - Map E_DEPRECATED, E_USER_DEPRECATED to DEBUG
     - _Requirements: 3.5_
 
-  - [ ]* 5.5 Write property test for error level mapping
+  - [x] 5.5 Write property test for error level mapping
     - **Property 6: PHP Error Level Mapping**
     - **Validates: Requirements 3.5**
 
@@ -135,15 +135,15 @@ This implementation plan creates a centralized logging system for the MeowSEO Wo
     - Include exception class, message, file, line, stack trace in context
     - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5_
 
-  - [ ]* 6.2 Write property test for exception logging
+  - [x] 6.2 Write property test for exception logging
     - **Property 7: Exception Logging**
     - **Validates: Requirements 4.2**
 
-  - [ ]* 6.3 Write property test for exception field capture
+  - [x] 6.3 Write property test for exception field capture
     - **Property 8: Exception Field Capture**
     - **Validates: Requirements 4.3**
 
-  - [ ]* 6.4 Write property test for module boot continuation
+  - [x] 6.4 Write property test for module boot continuation
     - **Property 9: Module Boot Continuation**
     - **Validates: Requirements 4.4**
 
@@ -160,7 +160,7 @@ This implementation plan creates a centralized logging system for the MeowSEO Wo
     - Implement format_stack_trace() private method
     - _Requirements: 18.1, 18.2, 18.3, 18.4_
 
-  - [ ]* 8.2 Write property test for context parsing
+  - [x] 8.2 Write property test for context parsing
     - **Property 32: Context Parsing**
     - **Validates: Requirements 18.1**
 
@@ -173,27 +173,27 @@ This implementation plan creates a centralized logging system for the MeowSEO Wo
     - Format stack frames with file path and line number
     - _Requirements: 10.1, 10.2, 10.3, 10.4, 10.5, 10.6, 10.7, 10.8_
 
-  - [ ]* 8.4 Write property test for system info inclusion
+  - [x] 8.4 Write property test for system info inclusion
     - **Property 17: System Info Inclusion**
     - **Validates: Requirements 10.1**
 
-  - [ ]* 8.5 Write property test for module list inclusion
+  - [x] 8.5 Write property test for module list inclusion
     - **Property 18: Module List Inclusion**
     - **Validates: Requirements 10.2**
 
-  - [ ]* 8.6 Write property test for entry field inclusion
+  - [x] 8.6 Write property test for entry field inclusion
     - **Property 19: Entry Field Inclusion**
     - **Validates: Requirements 10.3**
 
-  - [ ]* 8.7 Write property test for stack trace inclusion
+  - [x] 8.7 Write property test for stack trace inclusion
     - **Property 20: Stack Trace Inclusion**
     - **Validates: Requirements 10.4**
 
-  - [ ]* 8.8 Write property test for stack frame formatting
+  - [x] 8.8 Write property test for stack frame formatting
     - **Property 21: Stack Frame Formatting**
     - **Validates: Requirements 10.5**
 
-  - [ ]* 8.9 Write property test for format-parse round-trip
+  - [x] 8.9 Write property test for format-parse round-trip
     - **Property 33: Format-Parse Round-Trip**
     - **Validates: Requirements 18.5**
 
@@ -212,15 +212,15 @@ This implementation plan creates a centralized logging system for the MeowSEO Wo
     - Return JSON with logs array, total, pages, page, per_page
     - _Requirements: 14.4, 14.5, 8.2_
 
-  - [ ]* 9.3 Write property test for REST response structure
+  - [x] 9.3 Write property test for REST response structure
     - **Property 26: REST Response Structure**
     - **Validates: Requirements 14.5**
 
-  - [ ]* 9.4 Write property test for filter matching
+  - [x] 9.4 Write property test for filter matching
     - **Property 15: Filter Matching**
     - **Validates: Requirements 8.2**
 
-  - [ ]* 9.5 Write property test for pagination
+  - [x] 9.5 Write property test for pagination
     - **Property 14: Pagination**
     - **Validates: Requirements 7.4**
 
@@ -231,7 +231,7 @@ This implementation plan creates a centralized logging system for the MeowSEO Wo
     - Return success response with deleted count
     - _Requirements: 9.4, 16.1, 16.2_
 
-  - [ ]* 9.6 Write property test for nonce verification
+  - [x] 9.6 Write property test for nonce verification
     - **Property 28: Nonce Verification**
     - **Validates: Requirements 16.1, 16.3**
 
@@ -246,7 +246,7 @@ This implementation plan creates a centralized logging system for the MeowSEO Wo
     - Return 403 Forbidden if capability check fails
     - _Requirements: 15.1, 15.2, 15.3_
 
-  - [ ]* 9.7 Write property test for capability check
+  - [x] 9.7 Write property test for capability check
     - **Property 27: Capability Check**
     - **Validates: Requirements 15.1, 15.3**
 
@@ -270,7 +270,7 @@ This implementation plan creates a centralized logging system for the MeowSEO Wo
     - Localize script with REST URL, nonce, and initial data
     - _Requirements: 7.3_
 
-- [-] 11. Implement LogViewer.js React component
+- [x] 11. Implement LogViewer.js React component
   - [x] 11.1 Create LogViewer component with state management
     - Initialize state for logs, filters, pagination, selectedIds, expandedRows
     - Implement useEffect hook to fetch logs on mount and filter changes
@@ -294,7 +294,7 @@ This implementation plan creates a centralized logging system for the MeowSEO Wo
     - Load filter state from sessionStorage on mount
     - _Requirements: 8.5_
 
-  - [ ]* 11.5 Write property test for session storage round-trip
+  - [-] 11.5 Write property test for session storage round-trip
     - **Property 16: Session Storage Round-Trip**
     - **Validates: Requirements 8.5**
 
@@ -340,7 +340,7 @@ This implementation plan creates a centralized logging system for the MeowSEO Wo
     - Sanitize access_token from context
     - _Requirements: 11.1, 11.5_
 
-  - [ ]* 13.2 Write property test for token sanitization
+  - [x] 13.2 Write property test for token sanitization
     - **Property 23: Token Sanitization**
     - **Validates: Requirements 11.5**
 
@@ -354,7 +354,7 @@ This implementation plan creates a centralized logging system for the MeowSEO Wo
     - Include job_type and processed_count in context
     - _Requirements: 11.3_
 
-  - [ ]* 13.4 Write property test for GSC context fields
+  - [x] 13.4 Write property test for GSC context fields
     - **Property 22: GSC Context Fields**
     - **Validates: Requirements 11.4**
 
@@ -369,7 +369,7 @@ This implementation plan creates a centralized logging system for the MeowSEO Wo
     - Include post_type and entry_count in context
     - _Requirements: 12.2, 12.3_
 
-  - [ ]* 14.3 Write property test for Sitemap context fields
+  - [-] 14.3 Write property test for Sitemap context fields
     - **Property 24: Sitemap Context Fields**
     - **Validates: Requirements 12.3**
 
@@ -384,7 +384,7 @@ This implementation plan creates a centralized logging system for the MeowSEO Wo
     - Include source_url and target_url in context
     - _Requirements: 13.1, 13.3_
 
-  - [ ]* 15.2 Write property test for Redirects context fields
+  - [-] 15.2 Write property test for Redirects context fields
     - **Property 25: Redirects Context Fields**
     - **Validates: Requirements 13.3**
 
