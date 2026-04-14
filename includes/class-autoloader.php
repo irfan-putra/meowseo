@@ -80,7 +80,7 @@ class Autoloader {
 		$relative_path = implode( DIRECTORY_SEPARATOR, $parts );
 
 		// Build full file path.
-		$file_path = MEOWSEO_PLUGIN_DIR . 'includes' . DIRECTORY_SEPARATOR . strtolower( $relative_path );
+		$file_path = \MEOWSEO_PATH . 'includes' . DIRECTORY_SEPARATOR . strtolower( $relative_path );
 
 		// Load the file if it exists.
 		if ( file_exists( $file_path ) ) {

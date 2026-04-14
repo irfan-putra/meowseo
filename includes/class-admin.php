@@ -131,7 +131,7 @@ class Admin {
 		}
 
 		// Enqueue the meowseo-editor asset handle (same as Gutenberg sidebar).
-		$asset_file = MEOWSEO_PLUGIN_DIR . 'build/index.asset.php';
+		$asset_file = \MEOWSEO_PATH . 'build/index.asset.php';
 
 		if ( ! file_exists( $asset_file ) ) {
 			return;
@@ -141,7 +141,7 @@ class Admin {
 
 		wp_enqueue_script(
 			'meowseo-editor',
-			MEOWSEO_PLUGIN_URL . 'build/index.js',
+			\MEOWSEO_URL . 'build/index.js',
 			$asset['dependencies'],
 			$asset['version'],
 			true
@@ -149,7 +149,7 @@ class Admin {
 
 		wp_enqueue_style(
 			'meowseo-editor',
-			MEOWSEO_PLUGIN_URL . 'build/index.css',
+			\MEOWSEO_URL . 'build/index.css',
 			array( 'wp-components' ),
 			$asset['version']
 		);

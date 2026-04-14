@@ -41,21 +41,23 @@ spl_autoload_register( function ( $class ) {
 	// Convert namespace separators to directory separators.
 	$class = str_replace( '\\', DIRECTORY_SEPARATOR, $class );
 
-	// Convert class name to file name (WordPress convention: class-{name}.php).
+	// Convert class name to file name (WordPress convention: class-{name}.php or interface-{name}.php).
 	$parts = explode( DIRECTORY_SEPARATOR, $class );
 	$last_part = array_pop( $parts );
 	
-	// Convert CamelCase to kebab-case for file name.
+	// Convert CamelCase to kebab-case and underscores to hyphens for file name.
 	$file_name = strtolower( preg_replace( '/([a-z])([A-Z])/', '$1-$2', $last_part ) );
-	$file_name = 'class-' . $file_name . '.php';
+	$file_name = str_replace( '_', '-', $file_name );
 	
-	// Rebuild path.
-	$parts[] = $file_name;
-	$file = MEOWSEO_PATH . 'includes' . DIRECTORY_SEPARATOR . implode( DIRECTORY_SEPARATOR, $parts );
+	// Try class file first, then interface file.
+	$class_file = MEOWSEO_PATH . 'includes' . DIRECTORY_SEPARATOR . implode( DIRECTORY_SEPARATOR, $parts ) . DIRECTORY_SEPARATOR . 'class-' . $file_name . '.php';
+	$interface_file = MEOWSEO_PATH . 'includes' . DIRECTORY_SEPARATOR . implode( DIRECTORY_SEPARATOR, $parts ) . DIRECTORY_SEPARATOR . 'interface-' . $file_name . '.php';
 
 	// Load file if it exists.
-	if ( file_exists( $file ) ) {
-		require_once $file;
+	if ( file_exists( $class_file ) ) {
+		require_once $class_file;
+	} elseif ( file_exists( $interface_file ) ) {
+		require_once $interface_file;
 	}
 } );
 
@@ -65,5 +67,20 @@ register_deactivation_hook( __FILE__, array( 'MeowSEO\Core\Install', 'deactivate
 
 // Initialize the plugin on plugins_loaded hook at priority 10.
 add_action( 'plugins_loaded', function() {
-	\MeowSEO\Core\MeowSEO::get_instance()->init();
+	try {
+		\MeowSEO\Plugin::instance()->boot();
+	} catch ( \Exception $e ) {
+		// Log critical initialization error.
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			error_log( 'MeowSEO: Critical initialization error: ' . $e->getMessage() );
+		}
+		// Display admin notice for critical errors.
+		add_action( 'admin_notices', function() use ( $e ) {
+			?>
+			<div class="notice notice-error is-dismissible">
+				<p><strong>MeowSEO Error:</strong> <?php echo esc_html( $e->getMessage() ); ?></p>
+			</div>
+			<?php
+		});
+	}
 }, 10 );
