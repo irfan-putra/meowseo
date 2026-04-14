@@ -127,25 +127,31 @@ if ( ! function_exists( 'wp_schedule_single_event' ) ) {
 	}
 }
 
+// In-memory options storage for testing
+global $wp_options_storage;
+if ( ! isset( $wp_options_storage ) ) {
+	$wp_options_storage = array();
+}
+
 if ( ! function_exists( 'get_option' ) ) {
 	function get_option( $option, $default = false ) {
-		static $options = array();
-		return $options[ $option ] ?? $default;
+		global $wp_options_storage;
+		return $wp_options_storage[ $option ] ?? $default;
 	}
 }
 
 if ( ! function_exists( 'update_option' ) ) {
 	function update_option( $option, $value ) {
-		static $options = array();
-		$options[ $option ] = $value;
+		global $wp_options_storage;
+		$wp_options_storage[ $option ] = $value;
 		return true;
 	}
 }
 
 if ( ! function_exists( 'delete_option' ) ) {
 	function delete_option( $option ) {
-		static $options = array();
-		unset( $options[ $option ] );
+		global $wp_options_storage;
+		unset( $wp_options_storage[ $option ] );
 		return true;
 	}
 }
@@ -154,6 +160,12 @@ if ( ! function_exists( 'delete_option' ) ) {
 global $wp_cache_storage;
 if ( ! isset( $wp_cache_storage ) ) {
 	$wp_cache_storage = array();
+}
+
+// In-memory filter storage for testing
+global $wp_filter;
+if ( ! isset( $wp_filter ) ) {
+	$wp_filter = array();
 }
 
 if ( ! function_exists( 'wp_cache_get' ) ) {
@@ -229,7 +241,59 @@ if ( ! function_exists( 'wp_schedule_event' ) ) {
 
 if ( ! function_exists( 'apply_filters' ) ) {
 	function apply_filters( $tag, $value, ...$args ) {
+		global $wp_filter;
+		if ( ! isset( $wp_filter[ $tag ] ) ) {
+			return $value;
+		}
+		// Sort by priority
+		usort( $wp_filter[ $tag ], function( $a, $b ) {
+			return $a['priority'] <=> $b['priority'];
+		} );
+		// Apply filters
+		foreach ( $wp_filter[ $tag ] as $filter ) {
+			$callback = $filter['callback'];
+			if ( is_callable( $callback ) ) {
+				$value = call_user_func_array( $callback, array_merge( array( $value ), $args ) );
+			}
+		}
 		return $value;
+	}
+}
+
+if ( ! function_exists( 'add_filter' ) ) {
+	function add_filter( $hook, $callback, $priority = 10, $accepted_args = 1 ) {
+		// Mock function - store filters for testing
+		global $wp_filter;
+		if ( ! isset( $wp_filter ) ) {
+			$wp_filter = array();
+		}
+		if ( ! isset( $wp_filter[ $hook ] ) ) {
+			$wp_filter[ $hook ] = array();
+		}
+		$wp_filter[ $hook ][] = array(
+			'callback' => $callback,
+			'priority' => $priority,
+			'accepted_args' => $accepted_args,
+		);
+		return true;
+	}
+}
+
+if ( ! function_exists( 'has_filter' ) ) {
+	function has_filter( $hook, $callback = false ) {
+		global $wp_filter;
+		if ( ! isset( $wp_filter[ $hook ] ) ) {
+			return false;
+		}
+		if ( $callback === false ) {
+			return ! empty( $wp_filter[ $hook ] );
+		}
+		foreach ( $wp_filter[ $hook ] as $filter ) {
+			if ( $filter['callback'] === $callback ) {
+				return $filter['priority'];
+			}
+		}
+		return false;
 	}
 }
 
@@ -889,10 +953,12 @@ if ( ! class_exists( 'WP_UnitTestCase' ) ) {
 			parent::setUp();
 			
 			// Reset global storage
-			global $wp_cache_storage, $wp_posts_storage, $wp_postmeta_storage;
+			global $wp_cache_storage, $wp_posts_storage, $wp_postmeta_storage, $wp_filter, $wp_options_storage;
 			$wp_cache_storage = array();
 			$wp_posts_storage = array();
 			$wp_postmeta_storage = array();
+			$wp_filter = array();
+			$wp_options_storage = array();
 			
 			// Reset test overrides
 			global $test_current_user_can_override, $test_wp_verify_nonce_override;
