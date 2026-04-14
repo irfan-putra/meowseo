@@ -9,6 +9,9 @@
 // Load Composer autoloader
 require_once __DIR__ . '/../vendor/autoload.php';
 
+// Initialize Brain\Monkey for WordPress function mocking
+require_once __DIR__ . '/../vendor/brain/monkey/inc/patchwork-loader.php';
+
 // Define WordPress constants for testing
 if ( ! defined( 'ABSPATH' ) ) {
 	define( 'ABSPATH', __DIR__ . '/../' );
@@ -85,42 +88,6 @@ if ( ! function_exists( 'trailingslashit' ) ) {
 if ( ! function_exists( 'wp_mkdir_p' ) ) {
 	function wp_mkdir_p( $target ) {
 		return mkdir( $target, 0755, true );
-	}
-}
-
-if ( ! function_exists( 'get_site_url' ) ) {
-	function get_site_url() {
-		return 'http://example.com';
-	}
-}
-
-if ( ! function_exists( 'get_post_types' ) ) {
-	function get_post_types( $args = array(), $output = 'names' ) {
-		return array( 'post', 'page' );
-	}
-}
-
-if ( ! function_exists( 'get_permalink' ) ) {
-	function get_permalink( $post ) {
-		return 'http://example.com/post-' . $post->ID;
-	}
-}
-
-if ( ! function_exists( 'get_post_thumbnail_id' ) ) {
-	function get_post_thumbnail_id( $post_id ) {
-		return 0;
-	}
-}
-
-if ( ! function_exists( 'wp_get_attachment_image_url' ) ) {
-	function wp_get_attachment_image_url( $attachment_id, $size = 'thumbnail' ) {
-		return false;
-	}
-}
-
-if ( ! function_exists( 'gmdate' ) ) {
-	function gmdate( $format, $timestamp = null ) {
-		return \gmdate( $format, $timestamp ?? time() );
 	}
 }
 
@@ -240,6 +207,56 @@ if ( ! function_exists( 'set_transient' ) ) {
 if ( ! function_exists( 'delete_transient' ) ) {
 	function delete_transient( $transient ) {
 		return true;
+	}
+}
+
+if ( ! function_exists( 'wp_schedule_event' ) ) {
+	function wp_schedule_event( $timestamp, $recurrence, $hook, $args = array() ) {
+		return true;
+	}
+}
+
+if ( ! function_exists( 'apply_filters' ) ) {
+	function apply_filters( $tag, $value, ...$args ) {
+		return $value;
+	}
+}
+
+if ( ! function_exists( 'plugins_url' ) ) {
+	function plugins_url( $path = '', $plugin = '' ) {
+		return 'http://example.com/wp-content/plugins/' . ltrim( $path, '/' );
+	}
+}
+
+// Note: get_bloginfo() is intentionally not defined here to allow Brain\Monkey to mock it in tests
+
+if ( ! function_exists( 'get_post_types' ) ) {
+	function get_post_types( $args = array(), $output = 'names' ) {
+		return array( 'post', 'page' );
+	}
+}
+
+if ( ! function_exists( 'get_permalink' ) ) {
+	function get_permalink( $post ) {
+		return 'http://example.com/post-' . ( is_object( $post ) ? $post->ID : $post );
+	}
+}
+
+if ( ! function_exists( 'get_post_thumbnail_id' ) ) {
+	function get_post_thumbnail_id( $post_id ) {
+		return 0;
+	}
+}
+
+if ( ! function_exists( 'wp_get_attachment_image_url' ) ) {
+	function wp_get_attachment_image_url( $attachment_id, $size = 'thumbnail' ) {
+		return false;
+	}
+}
+
+if ( ! function_exists( 'gmdate' ) ) {
+	function gmdate( $format, $timestamp = null ) {
+		return \gmdate( $format, $timestamp ?? time() );
 	}
 }
 

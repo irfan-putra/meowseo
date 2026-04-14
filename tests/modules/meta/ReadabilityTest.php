@@ -187,7 +187,7 @@ class ReadabilityTest extends TestCase {
 	 */
 	public function test_score_calculation_all_pass() {
 		// Content designed to pass all checks
-		$content = '<p>However, this is a short sentence. Therefore, we write clearly. Moreover, active voice is used. Finally, paragraphs stay brief.</p>';
+		$content = '<p>However, this is a short sentence. Therefore, we write clearly. Moreover, we use active voice. Finally, paragraphs stay brief.</p>';
 
 		$result = Readability::analyze( $content );
 
@@ -202,14 +202,14 @@ class ReadabilityTest extends TestCase {
 	 */
 	public function test_color_indicators() {
 		// Test green (all checks pass)
-		$content_green = '<p>However, this is short. Therefore, we continue. Moreover, it works. Finally, we finish.</p>';
+		$content_green = '<p>However, this is short. Therefore, we continue. Moreover, it works well. Finally, we finish.</p>';
 		$result = Readability::analyze( $content_green );
 		$this->assertEquals( 'green', $result['color'] );
 
-		// Test red (most checks fail)
-		$content_red = '<p>This is a test without any transition words at all and it is very long.</p>';
+		// Test red/orange (most checks fail - no transition words, long sentences)
+		$content_red = '<p>This content has no transition words whatsoever making readability poor because there are no connecting phrases between ideas which makes comprehension difficult especially when sentences become excessively long like this one that just keeps going on without proper breaks.</p>';
 		$result = Readability::analyze( $content_red );
-		$this->assertContains( $result['color'], array( 'red', 'orange' ) );
+		$this->assertContains( $result['color'], array( 'red', 'orange' ), 'Color should be red or orange for poor readability' );
 	}
 
 	/**
