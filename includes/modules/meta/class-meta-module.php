@@ -82,7 +82,8 @@ class Meta_Module implements Module {
 	 * @return void
 	 */
 	public function boot(): void {
-		// TODO: Implement boot() method
+		$this->remove_theme_title_tag();
+		$this->register_hooks();
 	}
 
 	/**
@@ -100,26 +101,94 @@ class Meta_Module implements Module {
 	 * @return void
 	 */
 	private function register_hooks(): void {
-		// TODO: Implement register_hooks() method
+		// Register wp_head hook with priority 1 for early meta tag output.
+		add_action( 'wp_head', array( $this, 'output_head_tags' ), 1 );
+
+		// Register document_title_parts filter to control title tag output.
+		add_filter( 'document_title_parts', array( $this, 'filter_document_title_parts' ) );
+
+		// Register save_post hook for classic editor meta save handling.
+		add_action( 'save_post', array( $this, 'handle_save_post' ), 10, 2 );
+
+		// Register rest_api_init hook for postmeta exposure.
+		add_action( 'rest_api_init', array( $this, 'register_rest_fields' ) );
+
+		// Register enqueue_block_editor_assets hook for Gutenberg sidebar.
+		add_action( 'enqueue_block_editor_assets', array( $this, 'enqueue_block_editor_assets' ) );
 	}
 
 	/**
 	 * Remove theme title tag support
 	 *
+	 * Prevents WordPress from outputting default title tags, allowing
+	 * the Meta_Module to control all title output.
+	 *
 	 * @return void
 	 */
 	private function remove_theme_title_tag(): void {
-		// TODO: Implement remove_theme_title_tag() method
+		remove_theme_support( 'title-tag' );
 	}
 
 	/**
 	 * Filter document title parts
 	 *
+	 * Suppresses WordPress's default title generation by returning an empty array.
+	 * The Meta_Module controls all title output via wp_head hook.
+	 *
 	 * @param array $parts Title parts.
 	 * @return array Empty array to suppress WordPress's default title generation.
 	 */
-	private function filter_document_title_parts( array $parts ): array {
-		// TODO: Implement filter_document_title_parts() method
+	public function filter_document_title_parts( array $parts ): array {
 		return array();
+	}
+
+	/**
+	 * Output head tags
+	 *
+	 * Outputs all meta tags in wp_head. This is a placeholder that will be
+	 * implemented by Meta_Output class.
+	 *
+	 * @return void
+	 */
+	public function output_head_tags(): void {
+		// TODO: Delegate to Meta_Output instance
+	}
+
+	/**
+	 * Handle save_post hook
+	 *
+	 * Handles classic editor meta save. This is a placeholder that will be
+	 * implemented by Meta_Postmeta class.
+	 *
+	 * @param int    $post_id Post ID.
+	 * @param object $post    Post object.
+	 * @return void
+	 */
+	public function handle_save_post( int $post_id, object $post ): void {
+		// TODO: Delegate to Meta_Postmeta instance
+	}
+
+	/**
+	 * Register REST fields
+	 *
+	 * Registers postmeta fields for REST API. This is a placeholder that will be
+	 * implemented by Meta_Postmeta class.
+	 *
+	 * @return void
+	 */
+	public function register_rest_fields(): void {
+		// TODO: Delegate to Meta_Postmeta instance
+	}
+
+	/**
+	 * Enqueue block editor assets
+	 *
+	 * Enqueues scripts and styles for Gutenberg sidebar. This is a placeholder
+	 * that will be implemented by Gutenberg class.
+	 *
+	 * @return void
+	 */
+	public function enqueue_block_editor_assets(): void {
+		// TODO: Delegate to Gutenberg instance
 	}
 }

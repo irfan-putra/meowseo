@@ -22,6 +22,11 @@ if ( ! defined( 'MEOWSEO_PLUGIN_DIR' ) ) {
 	define( 'MEOWSEO_PLUGIN_DIR', __DIR__ . '/../' );
 }
 
+// Define MEOWSEO_PATH constant
+if ( ! defined( 'MEOWSEO_PATH' ) ) {
+	define( 'MEOWSEO_PATH', __DIR__ . '/../' );
+}
+
 // Register custom autoloader for WordPress naming convention
 require_once MEOWSEO_PLUGIN_DIR . 'includes/class-autoloader.php';
 \MeowSEO\Autoloader::register();
