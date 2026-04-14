@@ -23,7 +23,7 @@ class Installer {
 	/**
 	 * Plugin activation hook.
 	 *
-	 * Creates custom tables and sets up initial options.
+	 * Creates custom tables, sets up initial options, and runs migrations.
 	 *
 	 * @return void
 	 */
@@ -45,6 +45,11 @@ class Installer {
 		// Initialize options if not already set.
 		$options = new Options();
 		$options->save();
+
+		// Run migrations if needed.
+		if ( Migration::is_migration_needed() ) {
+			Migration::run();
+		}
 
 		// Flush rewrite rules.
 		flush_rewrite_rules();
@@ -100,6 +105,7 @@ class Installer {
 		delete_option( 'meowseo_options' );
 		delete_option( 'meowseo_version' );
 		delete_option( 'meowseo_gsc_credentials' );
+		delete_option( 'meowseo_migration_version' );
 
 		// Delete all postmeta with meowseo_ prefix.
 		$wpdb->query( "DELETE FROM {$wpdb->postmeta} WHERE meta_key LIKE 'meowseo_%'" );
@@ -108,6 +114,26 @@ class Installer {
 		wp_clear_scheduled_hook( 'meowseo_flush_404_cron' );
 		wp_clear_scheduled_hook( 'meowseo_process_gsc_queue' );
 		wp_clear_scheduled_hook( 'meowseo_scan_links_cron' );
+	}
+
+	/**
+	 * Check and run migrations on plugin load
+	 *
+	 * This should be called on plugins_loaded hook to handle
+	 * migrations for plugin updates (not just activation).
+	 *
+	 * @return void
+	 */
+	public static function maybe_migrate(): void {
+		// Only run in admin or during AJAX requests.
+		if ( ! is_admin() && ! wp_doing_ajax() ) {
+			return;
+		}
+
+		// Check if migration is needed.
+		if ( Migration::is_migration_needed() ) {
+			Migration::run();
+		}
 	}
 
 	/**

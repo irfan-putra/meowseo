@@ -62,8 +62,11 @@ spl_autoload_register( function ( $class ) {
 } );
 
 // Register activation, deactivation, and uninstall hooks.
-register_activation_hook( __FILE__, array( 'MeowSEO\Core\Install', 'activate' ) );
-register_deactivation_hook( __FILE__, array( 'MeowSEO\Core\Install', 'deactivate' ) );
+register_activation_hook( __FILE__, array( 'MeowSEO\Installer', 'activate' ) );
+register_deactivation_hook( __FILE__, array( 'MeowSEO\Installer', 'deactivate' ) );
+
+// Check for migrations on plugins_loaded (before plugin initialization).
+add_action( 'plugins_loaded', array( 'MeowSEO\Installer', 'maybe_migrate' ), 5 );
 
 // Initialize the plugin on plugins_loaded hook at priority 10.
 add_action( 'plugins_loaded', function() {
