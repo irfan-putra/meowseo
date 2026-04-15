@@ -314,31 +314,31 @@ This implementation plan breaks down the Gutenberg Editor Integration feature in
     - Test schema validation
     - _Requirements: 13.1, 13.2, 13.3, 13.4, 13.5, 13.6, 13.7, 13.8, 13.9, 13.10_
 
-- [ ] 16. Implement Advanced tab components
-  - [ ] 16.1 Create RobotsToggles component
+- [x] 16. Implement Advanced tab components
+  - [x] 16.1 Create RobotsToggles component
     - Use useEntityPropBinding for _meowseo_robots_noindex and _meowseo_robots_nofollow
     - Display ToggleControl for noindex and nofollow
     - _Requirements: 14.1, 14.2, 14.3, 15.9, 15.10_
 
-  - [ ] 16.2 Create CanonicalURLInput component
+  - [x] 16.2 Create CanonicalURLInput component
     - Use useEntityPropBinding for _meowseo_canonical
     - Display TextControl for canonical URL
     - Display read-only resolved canonical URL
     - _Requirements: 14.4, 14.5, 14.6, 15.11_
 
-  - [ ] 16.3 Create GSCIntegration component
+  - [x] 16.3 Create GSCIntegration component
     - Display last submission timestamp from _meowseo_gsc_last_submit
     - Display "Request Indexing" button
     - Call Google Search Console API on button click
     - Require manage_options capability
     - _Requirements: 14.7, 14.8_
 
-  - [ ] 16.4 Wire Advanced tab components together
+  - [x] 16.4 Wire Advanced tab components together
     - Create AdvancedTabContent component
     - Render RobotsToggles, CanonicalURLInput, GSCIntegration
     - _Requirements: 14.1, 14.2, 14.3, 14.4, 14.5, 14.6, 14.7, 14.8_
 
-  - [ ] 16.5 Write unit tests for Advanced tab components
+  - [x] 16.5 Write unit tests for Advanced tab components
     - Test robots toggles persistence
     - Test canonical URL input and display
     - Test GSC integration button and API call
