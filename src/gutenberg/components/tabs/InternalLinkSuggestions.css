@@ -1,0 +1,114 @@
+/**
+ * InternalLinkSuggestions Component Styles
+ */
+
+.meowseo-internal-links {
+  margin-top: 20px;
+  padding: 16px;
+  background: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.meowseo-internal-links-title {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e1e1e;
+}
+
+.meowseo-internal-links-loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  color: #757575;
+  font-size: 13px;
+}
+
+.meowseo-internal-links-error {
+  padding: 12px;
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: 4px;
+  color: #856404;
+  font-size: 13px;
+}
+
+.meowseo-internal-links-empty {
+  padding: 12px;
+  color: #757575;
+  font-size: 13px;
+  font-style: italic;
+}
+
+.meowseo-internal-links-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.meowseo-internal-link-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 12px;
+  margin-bottom: 8px;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  transition: border-color 0.2s;
+}
+
+.meowseo-internal-link-item:hover {
+  border-color: #2271b1;
+}
+
+.meowseo-internal-link-item:last-child {
+  margin-bottom: 0;
+}
+
+.meowseo-internal-link-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.meowseo-internal-link-title {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: #2271b1;
+  text-decoration: none;
+  margin-bottom: 4px;
+  word-break: break-word;
+}
+
+.meowseo-internal-link-title:hover {
+  text-decoration: underline;
+}
+
+.meowseo-internal-link-url {
+  font-size: 12px;
+  color: #757575;
+  word-break: break-all;
+}
+
+.meowseo-internal-link-score {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  margin-left: 12px;
+  flex-shrink: 0;
+}
+
+.meowseo-internal-link-score-label {
+  font-size: 11px;
+  color: #757575;
+  margin-bottom: 2px;
+}
+
+.meowseo-internal-link-score-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #46b450;
+}

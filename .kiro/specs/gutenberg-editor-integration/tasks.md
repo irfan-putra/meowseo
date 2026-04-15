@@ -197,14 +197,14 @@ This implementation plan breaks down the Gutenberg Editor Integration feature in
     - Test visual indication of active tab
     - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5, 8.7_
 
-- [ ] 12. Implement General tab components
-  - [ ] 12.1 Create FocusKeywordInput component
+- [x] 12. Implement General tab components
+  - [x] 12.1 Create FocusKeywordInput component
     - Use useEntityPropBinding for _meowseo_focus_keyword
     - Display TextControl with label and help text
     - Trigger auto-save on change
     - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5, 15.5_
 
-  - [ ] 12.2 Create SerpPreview component
+  - [x] 12.2 Create SerpPreview component
     - Display SEO title, meta description, and URL
     - Support desktop and mobile preview modes
     - Implement 800ms debounce for updates
@@ -212,12 +212,12 @@ This implementation plan breaks down the Gutenberg Editor Integration feature in
     - Truncate description at 160 chars (desktop)
     - _Requirements: 10.1, 10.2, 10.3, 10.4, 10.5, 10.6, 10.7_
 
-  - [ ] 12.3 Create DirectAnswerField component
+  - [x] 12.3 Create DirectAnswerField component
     - Use useEntityPropBinding for _meowseo_direct_answer
     - Display TextareaControl with label
     - _Requirements: 15.6_
 
-  - [ ] 12.4 Create InternalLinkSuggestions component
+  - [x] 12.4 Create InternalLinkSuggestions component
     - Implement 3-second debounce for focus keyword changes
     - Skip fetch if keyword < 3 characters
     - Call /meowseo/v1/internal-links/suggestions REST endpoint
@@ -226,12 +226,12 @@ This implementation plan breaks down the Gutenberg Editor Integration feature in
     - Handle API errors gracefully
     - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5, 11.6, 11.7, 11.8, 17.2_
 
-  - [ ] 12.5 Wire General tab components together
+  - [x] 12.5 Wire General tab components together
     - Create GeneralTabContent component
     - Render SerpPreview, FocusKeywordInput, DirectAnswerField, InternalLinkSuggestions
     - _Requirements: 1.7, 9.6_
 
-  - [ ] 12.6 Write unit tests for General tab components
+  - [x] 12.6 Write unit tests for General tab components
     - Test FocusKeywordInput persistence
     - Test SerpPreview truncation and mode switching
     - Test InternalLinkSuggestions debounce and API call
