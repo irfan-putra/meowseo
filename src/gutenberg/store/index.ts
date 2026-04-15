@@ -9,6 +9,7 @@ import {
   setAnalyzing,
   setAnalysisResults,
   setActiveTab,
+  analyzeContent,
 } from './actions';
 import * as selectors from './selectors';
 
@@ -20,6 +21,7 @@ const actions = {
   setAnalyzing,
   setAnalysisResults,
   setActiveTab,
+  analyzeContent,
 };
 
 // Create the Redux store
