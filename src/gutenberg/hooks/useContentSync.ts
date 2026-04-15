@@ -18,15 +18,40 @@ export function useContentSync(): void {
   
   // Read from core/editor (ONLY place this is allowed)
   const contentData = useSelect((select: any) => {
-    const editorSelect = select('core/editor');
-    
-    return {
-      title: editorSelect.getEditedPostAttribute('title') || '',
-      content: editorSelect.getEditedPostAttribute('content') || '',
-      excerpt: editorSelect.getEditedPostAttribute('excerpt') || '',
-      postType: editorSelect.getCurrentPostType() || '',
-      permalink: editorSelect.getPermalink() || '',
-    };
+    try {
+      const editorSelect = select('core/editor');
+      
+      // Check if editor is available
+      if (!editorSelect) {
+        console.warn('MeowSEO: core/editor store not available');
+        return {
+          title: '',
+          content: '',
+          excerpt: '',
+          postType: '',
+          permalink: '',
+        };
+      }
+      
+      return {
+        title: editorSelect.getEditedPostAttribute('title') || '',
+        content: editorSelect.getEditedPostAttribute('content') || '',
+        excerpt: editorSelect.getEditedPostAttribute('excerpt') || '',
+        postType: editorSelect.getCurrentPostType() || '',
+        permalink: editorSelect.getPermalink() || '',
+      };
+    } catch (error) {
+      // Requirement 17.5: Log error to console
+      console.error('MeowSEO: Error reading from core/editor:', error);
+      // Requirement 17.3: Fallback to empty values
+      return {
+        title: '',
+        content: '',
+        excerpt: '',
+        postType: '',
+        permalink: '',
+      };
+    }
   }, []);
   
   // 800ms debounce

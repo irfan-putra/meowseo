@@ -5,9 +5,11 @@
  * The focus keyword is used by the SEO analysis to check if content is optimized
  * for the target keyword.
  * 
- * Requirements: 9.1, 9.2, 9.3, 9.4, 9.5, 15.5
+ * Optimized with React.memo for performance.
+ * Requirements: 9.1, 9.2, 9.3, 9.4, 9.5, 15.5, 16.7
  */
 
+import { memo } from '@wordpress/element';
 import { TextControl } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 import { useEntityPropBinding } from '../../hooks/useEntityPropBinding';
@@ -24,8 +26,9 @@ import { useEntityPropBinding } from '../../hooks/useEntityPropBinding';
  * - 9.4: Trigger WordPress auto-save on change
  * - 9.5: Display previously saved focus keyword on reload
  * - 15.5: Persist focus keyword to _meowseo_focus_keyword
+ * - 16.7: Use React.memo for pure components
  */
-const FocusKeywordInput: React.FC = () => {
+const FocusKeywordInput: React.FC = memo(() => {
   // Use useEntityPropBinding for automatic postmeta persistence
   // Requirements: 9.2, 9.3, 9.4, 9.5, 15.5
   const [focusKeyword, setFocusKeyword] = useEntityPropBinding('_meowseo_focus_keyword');
@@ -39,6 +42,6 @@ const FocusKeywordInput: React.FC = () => {
       placeholder={__('e.g., wordpress seo', 'meowseo')}
     />
   );
-};
+});
 
 export default FocusKeywordInput;

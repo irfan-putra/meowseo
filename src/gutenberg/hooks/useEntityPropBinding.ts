@@ -36,20 +36,53 @@ export function useEntityPropBinding(
 ): [string, (value: string) => void] {
   // Get current post type and ID from core/editor
   const { postType, postId } = useSelect((select: any) => {
-    const editorSelect = select('core/editor');
-    return {
-      postType: editorSelect.getCurrentPostType(),
-      postId: editorSelect.getCurrentPostId(),
-    };
+    try {
+      const editorSelect = select('core/editor');
+      
+      // Check if editor is available
+      if (!editorSelect) {
+        console.warn('MeowSEO: core/editor store not available in useEntityPropBinding');
+        return {
+          postType: 'post',
+          postId: 0,
+        };
+      }
+      
+      return {
+        postType: editorSelect.getCurrentPostType() || 'post',
+        postId: editorSelect.getCurrentPostId() || 0,
+      };
+    } catch (error) {
+      // Requirement 17.5: Log error to console
+      console.error('MeowSEO: Error reading post type/ID from core/editor:', error);
+      // Requirement 17.3: Fallback to default values
+      return {
+        postType: 'post',
+        postId: 0,
+      };
+    }
   }, []);
   
   // Use WordPress's useEntityProp for automatic persistence
-  const [meta, setMeta] = useEntityProp(
-    'postType',
-    postType,
-    'meta',
-    postId
-  );
+  let meta: any = {};
+  let setMeta: any = () => {};
+  
+  try {
+    [meta, setMeta] = useEntityProp(
+      'postType',
+      postType,
+      'meta',
+      postId
+    );
+  } catch (error) {
+    // Requirement 17.5: Log error to console
+    console.error('MeowSEO: Error using useEntityProp:', error);
+    // Requirement 17.3: Fallback to empty object and no-op function
+    meta = {};
+    setMeta = () => {
+      console.warn('MeowSEO: setMeta called but useEntityProp failed');
+    };
+  }
   
   // Extract the specific meta value, fallback to empty string
   // Requirements: 15.11, 17.3 - Handle null/undefined with empty string fallback
@@ -59,7 +92,12 @@ export function useEntityPropBinding(
   // Requirements: 15.1, 15.2 - Use Entity_Prop for postmeta operations and trigger auto-save
   const setValue = useCallback(
     (newValue: string) => {
-      setMeta({ ...meta, [metaKey]: newValue });
+      try {
+        setMeta({ ...meta, [metaKey]: newValue });
+      } catch (error) {
+        // Requirement 17.5: Log error to console
+        console.error('MeowSEO: Error setting postmeta:', error);
+      }
     },
     [meta, metaKey, setMeta]
   );

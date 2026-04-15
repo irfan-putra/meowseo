@@ -5,10 +5,11 @@
  * Supports desktop and mobile preview modes with appropriate truncation rules.
  * Updates are debounced by 800ms to prevent excessive re-renders.
  * 
- * Requirements: 10.1, 10.2, 10.3, 10.4, 10.5, 10.6, 10.7
+ * Optimized with React.memo and useCallback for performance.
+ * Requirements: 10.1, 10.2, 10.3, 10.4, 10.5, 10.6, 10.7, 16.7, 16.8
  */
 
-import { useState, useEffect } from '@wordpress/element';
+import { useState, useEffect, memo, useCallback, useMemo } from '@wordpress/element';
 import { Button, ButtonGroup } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 import { useEntityPropBinding } from '../../hooks/useEntityPropBinding';
@@ -37,8 +38,10 @@ const truncateText = (text: string, maxLength: number): string => {
  * - 10.5: Truncate description at 160 chars (desktop)
  * - 10.6: Update preview when SEO title or description changes
  * - 10.7: Update display format when preview mode changes
+ * - 16.7: Use React.memo for pure components
+ * - 16.8: Use useCallback for event handlers
  */
-const SerpPreview: React.FC = () => {
+const SerpPreview: React.FC = memo(() => {
   const [mode, setMode] = useState<PreviewMode>('desktop');
   const [debouncedTitle, setDebouncedTitle] = useState('');
   const [debouncedDescription, setDebouncedDescription] = useState('');
@@ -49,14 +52,30 @@ const SerpPreview: React.FC = () => {
   
   // Get permalink from core/editor via store
   const permalink = useSelect((select: any) => {
-    const editorSelect = select('core/editor');
-    return editorSelect?.getPermalink() || '';
+    try {
+      const editorSelect = select('core/editor');
+      if (!editorSelect) {
+        return '';
+      }
+      return editorSelect.getPermalink() || '';
+    } catch (error) {
+      console.error('MeowSEO: Error reading permalink:', error);
+      return '';
+    }
   }, []);
   
   // Get post title as fallback
   const postTitle = useSelect((select: any) => {
-    const editorSelect = select('core/editor');
-    return editorSelect?.getEditedPostAttribute('title') || '';
+    try {
+      const editorSelect = select('core/editor');
+      if (!editorSelect) {
+        return '';
+      }
+      return editorSelect.getEditedPostAttribute('title') || '';
+    } catch (error) {
+      console.error('MeowSEO: Error reading post title:', error);
+      return '';
+    }
   }, []);
   
   // Requirement 10.3: Implement 800ms debounce for updates
@@ -76,18 +95,28 @@ const SerpPreview: React.FC = () => {
     return () => clearTimeout(timeoutId);
   }, [seoDescription]);
   
-  // Requirement 10.4: Truncate title at 60 chars (desktop)
-  // Requirement 10.5: Truncate description at 160 chars (desktop)
-  const displayTitle = mode === 'desktop' 
-    ? truncateText(debouncedTitle, 60)
-    : truncateText(debouncedTitle, 78); // Mobile allows slightly more
+  // Requirement 16.8: Use useCallback for event handlers
+  const handleModeChange = useCallback((newMode: PreviewMode) => {
+    setMode(newMode);
+  }, []);
   
-  const displayDescription = mode === 'desktop'
-    ? truncateText(debouncedDescription, 160)
-    : truncateText(debouncedDescription, 120); // Mobile shows less
+  // Memoize truncated values to prevent recalculation on every render
+  const displayTitle = useMemo(() => {
+    return mode === 'desktop' 
+      ? truncateText(debouncedTitle, 60)
+      : truncateText(debouncedTitle, 78); // Mobile allows slightly more
+  }, [mode, debouncedTitle]);
+  
+  const displayDescription = useMemo(() => {
+    return mode === 'desktop'
+      ? truncateText(debouncedDescription, 160)
+      : truncateText(debouncedDescription, 120); // Mobile shows less
+  }, [mode, debouncedDescription]);
   
   // Format URL for display (remove protocol)
-  const displayUrl = permalink.replace(/^https?:\/\//, '');
+  const displayUrl = useMemo(() => {
+    return permalink.replace(/^https?:\/\//, '');
+  }, [permalink]);
   
   return (
     <div className="meowseo-serp-preview">
@@ -99,14 +128,14 @@ const SerpPreview: React.FC = () => {
         <ButtonGroup>
           <Button
             variant={mode === 'desktop' ? 'primary' : 'secondary'}
-            onClick={() => setMode('desktop')}
+            onClick={() => handleModeChange('desktop')}
             size="small"
           >
             {__('Desktop', 'meowseo')}
           </Button>
           <Button
             variant={mode === 'mobile' ? 'primary' : 'secondary'}
-            onClick={() => setMode('mobile')}
+            onClick={() => handleModeChange('mobile')}
             size="small"
           >
             {__('Mobile', 'meowseo')}
@@ -128,6 +157,6 @@ const SerpPreview: React.FC = () => {
       </div>
     </div>
   );
-};
+});
 
 export default SerpPreview;

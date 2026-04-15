@@ -4,10 +4,11 @@
  * Renders only the active tab content with lazy loading for code splitting.
  * Preserves state of all tabs by keeping them mounted but hidden.
  * 
- * Requirements: 8.3, 8.4, 8.6, 16.3
+ * Optimized with React.memo for performance.
+ * Requirements: 8.3, 8.4, 8.6, 16.3, 16.7
  */
 
-import { lazy, Suspense } from '@wordpress/element';
+import { lazy, Suspense, memo } from '@wordpress/element';
 import { useSelect } from '@wordpress/data';
 import { Spinner } from '@wordpress/components';
 import { STORE_NAME } from '../store';
@@ -19,12 +20,30 @@ const SocialTabContent = lazy(() => import('./tabs/SocialTabContent'));
 const SchemaTabContent = lazy(() => import('./tabs/SchemaTabContent'));
 const AdvancedTabContent = lazy(() => import('./tabs/AdvancedTabContent'));
 
-export const TabContent: React.FC = () => {
+/**
+ * TabContent Component
+ * 
+ * Requirement 16.7: Use React.memo for pure components
+ */
+export const TabContent: React.FC = memo(() => {
   const { activeTab } = useSelect((select) => {
-    const store = select(STORE_NAME) as any;
-    return {
-      activeTab: store.getActiveTab(),
-    };
+    try {
+      const store = select(STORE_NAME) as any;
+      if (!store) {
+        console.warn('MeowSEO: meowseo/data store not available in TabContent');
+        return {
+          activeTab: 'general' as const,
+        };
+      }
+      return {
+        activeTab: store.getActiveTab(),
+      };
+    } catch (error) {
+      console.error('MeowSEO: Error reading from meowseo/data store:', error);
+      return {
+        activeTab: 'general' as const,
+      };
+    }
   }, []);
 
   return (
@@ -74,4 +93,4 @@ export const TabContent: React.FC = () => {
       </Suspense>
     </div>
   );
-};
+});

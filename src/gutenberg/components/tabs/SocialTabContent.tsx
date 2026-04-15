@@ -4,10 +4,11 @@
  * Main content for the Social tab, including Facebook and Twitter sub-tabs.
  * Allows customization of social media metadata for optimal sharing appearance.
  * 
- * Requirements: 12.1, 12.9
+ * Optimized with React.memo and useCallback for performance.
+ * Requirements: 12.1, 12.9, 16.7, 16.8
  */
 
-import { useState } from '@wordpress/element';
+import { useState, memo, useCallback } from '@wordpress/element';
 import { Button, ButtonGroup } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 import FacebookSubTab from './FacebookSubTab';
@@ -22,10 +23,17 @@ type SocialSubTab = 'facebook' | 'twitter';
  * Requirements:
  * - 12.1: Display Facebook and Twitter sub-tabs
  * - 12.9: Implement sub-tab navigation
+ * - 16.7: Use React.memo for pure components
+ * - 16.8: Use useCallback for event handlers
  */
-const SocialTabContent: React.FC = () => {
+const SocialTabContent: React.FC = memo(() => {
   // Requirement 12.9: Implement sub-tab navigation
   const [activeSubTab, setActiveSubTab] = useState<SocialSubTab>('facebook');
+  
+  // Requirement 16.8: Use useCallback for event handlers
+  const handleSubTabChange = useCallback((subTab: SocialSubTab) => {
+    setActiveSubTab(subTab);
+  }, []);
   
   return (
     <div className="meowseo-social-tab">
@@ -34,13 +42,13 @@ const SocialTabContent: React.FC = () => {
         <ButtonGroup>
           <Button
             variant={activeSubTab === 'facebook' ? 'primary' : 'secondary'}
-            onClick={() => setActiveSubTab('facebook')}
+            onClick={() => handleSubTabChange('facebook')}
           >
             {__('Facebook', 'meowseo')}
           </Button>
           <Button
             variant={activeSubTab === 'twitter' ? 'primary' : 'secondary'}
-            onClick={() => setActiveSubTab('twitter')}
+            onClick={() => handleSubTabChange('twitter')}
           >
             {__('Twitter', 'meowseo')}
           </Button>
@@ -54,6 +62,6 @@ const SocialTabContent: React.FC = () => {
       </div>
     </div>
   );
-};
+});
 
 export default SocialTabContent;

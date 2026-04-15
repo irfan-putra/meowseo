@@ -1,0 +1,33 @@
+/**
+ * ErrorBoundary Styles
+ */
+
+.meowseo-error-boundary {
+  padding: 20px;
+  background-color: #fff;
+  border: 1px solid #dcdcde;
+  border-radius: 4px;
+  margin: 16px;
+}
+
+.meowseo-error-boundary-content {
+  text-align: center;
+}
+
+.meowseo-error-boundary-content h3 {
+  color: #dc3232;
+  margin-top: 0;
+  margin-bottom: 12px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.meowseo-error-boundary-content p {
+  color: #50575e;
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+
+.meowseo-error-boundary-content button {
+  margin-top: 8px;
+}

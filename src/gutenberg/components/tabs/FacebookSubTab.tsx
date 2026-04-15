@@ -29,18 +29,37 @@ const FacebookSubTab: React.FC = () => {
   
   // Get post title and excerpt as fallbacks
   const { postTitle, postExcerpt } = useSelect((select: any) => {
-    const editorSelect = select('core/editor');
-    return {
-      postTitle: editorSelect?.getEditedPostAttribute('title') || '',
-      postExcerpt: editorSelect?.getEditedPostAttribute('excerpt') || '',
-    };
+    try {
+      const editorSelect = select('core/editor');
+      if (!editorSelect) {
+        return {
+          postTitle: '',
+          postExcerpt: '',
+        };
+      }
+      return {
+        postTitle: editorSelect.getEditedPostAttribute('title') || '',
+        postExcerpt: editorSelect.getEditedPostAttribute('excerpt') || '',
+      };
+    } catch (error) {
+      console.error('MeowSEO: Error reading post title/excerpt:', error);
+      return {
+        postTitle: '',
+        postExcerpt: '',
+      };
+    }
   }, []);
   
   // Get image URL from image ID
   const imageUrl = useSelect((select: any) => {
-    if (!ogImageId) return '';
-    const media = select('core').getMedia(parseInt(ogImageId));
-    return media?.source_url || '';
+    try {
+      if (!ogImageId) return '';
+      const media = select('core').getMedia(parseInt(ogImageId));
+      return media?.source_url || '';
+    } catch (error) {
+      console.error('MeowSEO: Error reading media:', error);
+      return '';
+    }
   }, [ogImageId]);
   
   // Use fallbacks for preview

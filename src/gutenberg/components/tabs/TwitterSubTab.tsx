@@ -38,11 +38,25 @@ const TwitterSubTab: React.FC = () => {
   
   // Get post title and excerpt as fallbacks
   const { postTitle, postExcerpt } = useSelect((select: any) => {
-    const editorSelect = select('core/editor');
-    return {
-      postTitle: editorSelect?.getEditedPostAttribute('title') || '',
-      postExcerpt: editorSelect?.getEditedPostAttribute('excerpt') || '',
-    };
+    try {
+      const editorSelect = select('core/editor');
+      if (!editorSelect) {
+        return {
+          postTitle: '',
+          postExcerpt: '',
+        };
+      }
+      return {
+        postTitle: editorSelect.getEditedPostAttribute('title') || '',
+        postExcerpt: editorSelect.getEditedPostAttribute('excerpt') || '',
+      };
+    } catch (error) {
+      console.error('MeowSEO: Error reading post title/excerpt:', error);
+      return {
+        postTitle: '',
+        postExcerpt: '',
+      };
+    }
   }, []);
   
   // Determine if toggle is enabled (check for '1' or 'true')
@@ -55,9 +69,14 @@ const TwitterSubTab: React.FC = () => {
   
   // Get image URL from image ID
   const imageUrl = useSelect((select: any) => {
-    if (!effectiveImageId) return '';
-    const media = select('core').getMedia(parseInt(effectiveImageId));
-    return media?.source_url || '';
+    try {
+      if (!effectiveImageId) return '';
+      const media = select('core').getMedia(parseInt(effectiveImageId));
+      return media?.source_url || '';
+    } catch (error) {
+      console.error('MeowSEO: Error reading media:', error);
+      return '';
+    }
   }, [effectiveImageId]);
   
   // Use fallbacks for preview

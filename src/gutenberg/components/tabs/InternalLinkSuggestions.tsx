@@ -45,8 +45,16 @@ const InternalLinkSuggestions: React.FC = () => {
   
   // Get current post ID
   const postId = useSelect((select: any) => {
-    const editorSelect = select('core/editor');
-    return editorSelect?.getCurrentPostId() || 0;
+    try {
+      const editorSelect = select('core/editor');
+      if (!editorSelect) {
+        return 0;
+      }
+      return editorSelect.getCurrentPostId() || 0;
+    } catch (error) {
+      console.error('MeowSEO: Error reading post ID:', error);
+      return 0;
+    }
   }, []);
   
   // Requirement 11.2: Implement 3-second debounce for focus keyword changes

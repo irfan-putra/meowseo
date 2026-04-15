@@ -28,11 +28,25 @@ const GSCIntegration: React.FC = () => {
   
   // Get current post ID and permalink
   const { postId, permalink } = useSelect((select: any) => {
-    const editorSelect = select('core/editor');
-    return {
-      postId: editorSelect.getCurrentPostId(),
-      permalink: editorSelect.getPermalink(),
-    };
+    try {
+      const editorSelect = select('core/editor');
+      if (!editorSelect) {
+        return {
+          postId: 0,
+          permalink: '',
+        };
+      }
+      return {
+        postId: editorSelect.getCurrentPostId() || 0,
+        permalink: editorSelect.getPermalink() || '',
+      };
+    } catch (error) {
+      console.error('MeowSEO: Error reading post ID/permalink:', error);
+      return {
+        postId: 0,
+        permalink: '',
+      };
+    }
   }, []);
   
   // Local state for loading and error handling

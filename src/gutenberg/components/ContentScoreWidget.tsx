@@ -4,9 +4,11 @@
  * Displays SEO and readability scores with color-coded indicators
  * and provides an analyze button to trigger content analysis.
  * 
- * Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 5.1, 5.2, 5.3, 5.4, 5.5
+ * Optimized with React.memo and useCallback for performance.
+ * Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 5.1, 5.2, 5.3, 5.4, 5.5, 16.7, 16.8
  */
 
+import { memo, useCallback } from '@wordpress/element';
 import { useSelect, useDispatch } from '@wordpress/data';
 import { Button, Spinner } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
@@ -29,21 +31,44 @@ const getScoreColor = (score: number): string => {
   }
 };
 
-export const ContentScoreWidget: React.FC = () => {
+/**
+ * ContentScoreWidget Component
+ * 
+ * Requirement 16.7: Use React.memo for pure components
+ */
+export const ContentScoreWidget: React.FC = memo(() => {
   const { seoScore, readabilityScore, isAnalyzing } = useSelect((select) => {
-    const store = select(STORE_NAME) as any;
-    return {
-      seoScore: store.getSeoScore(),
-      readabilityScore: store.getReadabilityScore(),
-      isAnalyzing: store.getIsAnalyzing(),
-    };
+    try {
+      const store = select(STORE_NAME) as any;
+      if (!store) {
+        console.warn('MeowSEO: meowseo/data store not available in ContentScoreWidget');
+        return {
+          seoScore: 0,
+          readabilityScore: 0,
+          isAnalyzing: false,
+        };
+      }
+      return {
+        seoScore: store.getSeoScore(),
+        readabilityScore: store.getReadabilityScore(),
+        isAnalyzing: store.getIsAnalyzing(),
+      };
+    } catch (error) {
+      console.error('MeowSEO: Error reading from meowseo/data store:', error);
+      return {
+        seoScore: 0,
+        readabilityScore: 0,
+        isAnalyzing: false,
+      };
+    }
   }, []);
 
   const { analyzeContent } = useDispatch(STORE_NAME) as any;
 
-  const handleAnalyze = () => {
+  // Requirement 16.8: Use useCallback for event handlers
+  const handleAnalyze = useCallback(() => {
     analyzeContent();
-  };
+  }, [analyzeContent]);
 
   return (
     <div className="meowseo-content-score-widget">
@@ -92,4 +117,4 @@ export const ContentScoreWidget: React.FC = () => {
       </div>
     </div>
   );
-};
+});

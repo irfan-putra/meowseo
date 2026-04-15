@@ -10,8 +10,10 @@
 import { registerPlugin } from '@wordpress/plugins';
 import { PluginSidebar } from './utils/plugin-sidebar-compat';
 import { Sidebar } from './components';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { configureApiFetch } from './utils/api-config';
 import './store'; // Register the meowseo/data Redux store
+import './components/ErrorBoundary.css';
 
 // Configure apiFetch with nonce for secure REST API calls
 // Requirements: 18.1, 18.2
@@ -31,7 +33,9 @@ registerPlugin('meowseo-sidebar', {
 				title="MeowSEO"
 				icon="chart-line"
 			>
-				<Sidebar />
+				<ErrorBoundary>
+					<Sidebar />
+				</ErrorBoundary>
 			</PluginSidebar>
 		);
 	},

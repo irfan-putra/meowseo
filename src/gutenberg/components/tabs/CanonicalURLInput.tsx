@@ -29,9 +29,17 @@ const CanonicalURLInput: React.FC = () => {
   // Get the post's permalink as the default/resolved canonical URL
   // Requirement: 14.6
   const resolvedCanonical = useSelect((select: any) => {
-    const editorSelect = select('core/editor');
-    const permalink = editorSelect.getPermalink();
-    return canonical || permalink || '';
+    try {
+      const editorSelect = select('core/editor');
+      if (!editorSelect) {
+        return canonical || '';
+      }
+      const permalink = editorSelect.getPermalink() || '';
+      return canonical || permalink;
+    } catch (error) {
+      console.error('MeowSEO: Error reading permalink for canonical URL:', error);
+      return canonical || '';
+    }
   }, [canonical]);
   
   return (

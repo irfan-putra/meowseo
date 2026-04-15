@@ -23,10 +23,23 @@ export const Sidebar: React.FC = () => {
 
   // Read activeTab from meowseo/data store (NOT from core/editor)
   const { activeTab } = useSelect((select) => {
-    const store = select(STORE_NAME) as any;
-    return {
-      activeTab: store.getActiveTab(),
-    };
+    try {
+      const store = select(STORE_NAME) as any;
+      if (!store) {
+        console.warn('MeowSEO: meowseo/data store not available');
+        return {
+          activeTab: 'general' as const,
+        };
+      }
+      return {
+        activeTab: store.getActiveTab(),
+      };
+    } catch (error) {
+      console.error('MeowSEO: Error reading from meowseo/data store:', error);
+      return {
+        activeTab: 'general' as const,
+      };
+    }
   }, []);
 
   return (
