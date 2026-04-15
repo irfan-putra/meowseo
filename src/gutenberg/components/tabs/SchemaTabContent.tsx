@@ -4,7 +4,7 @@
  * Main content for the Schema tab with lazy-loaded schema forms.
  * Validates schema configuration before saving.
  * 
- * Requirements: 13.3, 13.9, 13.10, 16.4
+ * Requirements: 9.1, 9.2, 9.3, 9.4, 9.5, 9.6, 20.3, 20.4, 20.5
  */
 
 import { lazy, Suspense } from '@wordpress/element';
@@ -12,6 +12,7 @@ import { Spinner } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 import { useEntityPropBinding } from '../../hooks/useEntityPropBinding';
 import SchemaTypeSelector from './schema/SchemaTypeSelector';
+import SpeakableToggle from './schema/SpeakableToggle';
 
 // Lazy load schema forms for code splitting (Requirement 16.4)
 const ArticleForm = lazy(() => import('./schema/ArticleForm'));
@@ -24,7 +25,7 @@ const ProductForm = lazy(() => import('./schema/ProductForm'));
  * Validate schema configuration against selected schema type
  * 
  * Requirements:
- * - 13.10: Validate schema configuration before saving
+ * - 9.6: Validate schema configuration before saving
  */
 const validateSchemaConfig = (schemaType: string, configJson: string): boolean => {
   if (!schemaType || !configJson) {
@@ -38,6 +39,8 @@ const validateSchemaConfig = (schemaType: string, configJson: string): boolean =
     switch (schemaType) {
       case 'Article':
         return typeof config.headline === 'string';
+      case 'WebPage':
+        return true; // WebPage doesn't require additional config
       case 'FAQPage':
         return Array.isArray(config.questions);
       case 'HowTo':
@@ -58,10 +61,15 @@ const validateSchemaConfig = (schemaType: string, configJson: string): boolean =
  * SchemaTabContent Component
  * 
  * Requirements:
- * - 13.3: Display form specific to selected schema type
- * - 13.9: Persist schema configuration to postmeta
- * - 13.10: Validate schema configuration before saving
- * - 16.4: Lazy load schema forms based on selected type
+ * - 9.1: Display schema type selector
+ * - 9.2: Show FAQ editor when FAQPage selected
+ * - 9.3: Show HowTo editor when HowTo selected
+ * - 9.4: Show LocalBusiness fields when LocalBusiness selected
+ * - 9.5: Save schema type to _meowseo_schema_type postmeta
+ * - 9.6: Save schema configuration to _meowseo_schema_config postmeta
+ * - 20.3: Provide toggle to mark block as speakable
+ * - 20.4: Add id="meowseo-direct-answer" to marked block
+ * - 20.5: Save block ID to _meowseo_speakable_block postmeta
  */
 const SchemaTabContent: React.FC = () => {
   const [schemaType] = useEntityPropBinding('_meowseo_schema_type');
@@ -103,6 +111,15 @@ const SchemaTabContent: React.FC = () => {
       )}
       
       {renderSchemaForm()}
+      
+      {/* Speakable content toggle for Article schema */}
+      {(schemaType === 'Article' || schemaType === '') && (
+        <>
+          <hr style={{ margin: '20px 0' }} />
+          <h3>{__('Voice Assistant Support', 'meowseo')}</h3>
+          <SpeakableToggle />
+        </>
+      )}
     </div>
   );
 };

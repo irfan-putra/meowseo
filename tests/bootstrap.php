@@ -1019,3 +1019,264 @@ if ( ! class_exists( 'WP_UnitTestCase' ) ) {
 		}
 	}
 }
+
+// Mock WordPress conditional functions for Breadcrumbs testing
+if ( ! function_exists( 'is_404' ) ) {
+	function is_404() {
+		return false;
+	}
+}
+
+if ( ! function_exists( 'is_search' ) ) {
+	function is_search() {
+		return false;
+	}
+}
+
+if ( ! function_exists( 'is_archive' ) ) {
+	function is_archive() {
+		return false;
+	}
+}
+
+if ( ! function_exists( 'is_page' ) ) {
+	function is_page() {
+		return false;
+	}
+}
+
+if ( ! function_exists( 'is_single' ) ) {
+	function is_single() {
+		return false;
+	}
+}
+
+if ( ! function_exists( 'is_category' ) ) {
+	function is_category() {
+		return false;
+	}
+}
+
+if ( ! function_exists( 'is_tag' ) ) {
+	function is_tag() {
+		return false;
+	}
+}
+
+if ( ! function_exists( 'is_tax' ) ) {
+	function is_tax() {
+		return false;
+	}
+}
+
+if ( ! function_exists( 'is_date' ) ) {
+	function is_date() {
+		return false;
+	}
+}
+
+if ( ! function_exists( 'is_year' ) ) {
+	function is_year() {
+		return false;
+	}
+}
+
+if ( ! function_exists( 'is_month' ) ) {
+	function is_month() {
+		return false;
+	}
+}
+
+if ( ! function_exists( 'is_day' ) ) {
+	function is_day() {
+		return false;
+	}
+}
+
+if ( ! function_exists( 'is_author' ) ) {
+	function is_author() {
+		return false;
+	}
+}
+
+if ( ! function_exists( 'is_post_type_archive' ) ) {
+	function is_post_type_archive() {
+		return false;
+	}
+}
+
+if ( ! function_exists( 'get_post' ) ) {
+	function get_post( $post = null, $output = OBJECT, $filter = 'raw' ) {
+		return null;
+	}
+}
+
+if ( ! function_exists( 'get_the_category' ) ) {
+	function get_the_category( $post_id = 0 ) {
+		return array();
+	}
+}
+
+if ( ! function_exists( 'get_category_link' ) ) {
+	function get_category_link( $category_id ) {
+		return 'https://example.com/category/';
+	}
+}
+
+if ( ! function_exists( 'get_permalink' ) ) {
+	function get_permalink( $post = 0, $leavename = false ) {
+		return 'https://example.com/post/';
+	}
+}
+
+if ( ! function_exists( 'get_post_ancestors' ) ) {
+	function get_post_ancestors( $post_id ) {
+		return array();
+	}
+}
+
+if ( ! function_exists( 'get_the_title' ) ) {
+	function get_the_title( $post = 0 ) {
+		return 'Post Title';
+	}
+}
+
+if ( ! function_exists( 'get_queried_object' ) ) {
+	function get_queried_object() {
+		return null;
+	}
+}
+
+if ( ! function_exists( 'get_term_link' ) ) {
+	function get_term_link( $term, $taxonomy = '' ) {
+		return 'https://example.com/term/';
+	}
+}
+
+if ( ! function_exists( 'get_the_time' ) ) {
+	function get_the_time( $format = '', $post = null ) {
+		return '2024-01-01';
+	}
+}
+
+if ( ! function_exists( 'get_year_link' ) ) {
+	function get_year_link( $year ) {
+		return 'https://example.com/year/';
+	}
+}
+
+if ( ! function_exists( 'get_month_link' ) ) {
+	function get_month_link( $year, $month ) {
+		return 'https://example.com/month/';
+	}
+}
+
+if ( ! function_exists( 'get_day_link' ) ) {
+	function get_day_link( $year, $month, $day ) {
+		return 'https://example.com/day/';
+	}
+}
+
+if ( ! function_exists( 'get_author_posts_url' ) ) {
+	function get_author_posts_url( $author_id, $author_nicename = '' ) {
+		return 'https://example.com/author/';
+	}
+}
+
+if ( ! function_exists( 'get_post_type_archive_link' ) ) {
+	function get_post_type_archive_link( $post_type ) {
+		return 'https://example.com/archive/';
+	}
+}
+
+if ( ! function_exists( 'get_post_type_object' ) ) {
+	function get_post_type_object( $post_type ) {
+		return null;
+	}
+}
+
+if ( ! function_exists( 'get_search_query' ) ) {
+	function get_search_query( $escaped = true ) {
+		return 'search query';
+	}
+}
+
+if ( ! function_exists( 'get_search_link' ) ) {
+	function get_search_link( $query = '' ) {
+		return 'https://example.com/?s=search';
+	}
+}
+
+if ( ! function_exists( 'home_url' ) ) {
+	function home_url( $path = '', $scheme = null ) {
+		return 'https://example.com/';
+	}
+}
+
+if ( ! function_exists( 'get_site_url' ) ) {
+	function get_site_url( $blog_id = null, $path = '', $scheme = null ) {
+		return 'https://example.com/';
+	}
+}
+
+if ( ! function_exists( 'get_bloginfo' ) ) {
+	function get_bloginfo( $show = '' ) {
+		switch ( $show ) {
+			case 'name':
+				return 'Test Site';
+			case 'description':
+				return 'Test Description';
+			case 'language':
+				return 'en-US';
+			default:
+				return '';
+		}
+	}
+}
+
+if ( ! function_exists( 'apply_filters' ) ) {
+	function apply_filters( $hook, $value ) {
+		return $value;
+	}
+}
+
+if ( ! function_exists( 'shortcode_atts' ) ) {
+	function shortcode_atts( $pairs, $atts, $shortcode = '' ) {
+		$atts = (array) $atts;
+		$out = array();
+		foreach ( $pairs as $name => $default ) {
+			if ( array_key_exists( $name, $atts ) ) {
+				$out[ $name ] = $atts[ $name ];
+			} else {
+				$out[ $name ] = $default;
+			}
+		}
+		return $out;
+	}
+}
+
+if ( ! function_exists( 'add_shortcode' ) ) {
+	function add_shortcode( $tag, $callback ) {
+		global $shortcode_tags;
+		if ( ! isset( $shortcode_tags ) ) {
+			$shortcode_tags = array();
+		}
+		$shortcode_tags[ $tag ] = $callback;
+	}
+}
+
+if ( ! function_exists( 'sanitize_html_class' ) ) {
+	function sanitize_html_class( $class, $fallback = '' ) {
+		// Strip out any %-encoded octets.
+		$sanitized = preg_replace( '|%[a-fA-F0-9][a-fA-F0-9]|', '', $class );
+
+		// Limit to A-Z, a-z, 0-9, '_', '-'.
+		$sanitized = preg_replace( '/[^A-Za-z0-9_-]/', '', $sanitized );
+
+		if ( '' === $sanitized && $fallback ) {
+			return sanitize_html_class( $fallback );
+		}
+
+		return $sanitized;
+	}
+}

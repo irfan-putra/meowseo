@@ -534,6 +534,51 @@ class REST_API {
 				'type'              => 'boolean',
 				'sanitize_callback' => 'rest_sanitize_boolean',
 			),
+			// Schema settings (Requirement 19.1).
+			'meowseo_schema_organization_name' => array(
+				'type'              => 'string',
+				'sanitize_callback' => 'sanitize_text_field',
+			),
+			'meowseo_schema_organization_logo' => array(
+				'type'              => 'string',
+				'sanitize_callback' => 'esc_url_raw',
+			),
+			'meowseo_schema_organization_logo_id' => array(
+				'type'              => 'integer',
+				'sanitize_callback' => 'absint',
+			),
+			'meowseo_schema_social_profiles' => array(
+				'type'              => 'object',
+				'sanitize_callback' => array( $this, 'sanitize_social_profiles' ),
+			),
+			// Sitemap settings (Requirement 19.1).
+			'meowseo_sitemap_enabled' => array(
+				'type'              => 'boolean',
+				'sanitize_callback' => 'rest_sanitize_boolean',
+			),
+			'meowseo_sitemap_post_types' => array(
+				'type'              => 'array',
+				'items'             => array(
+					'type' => 'string',
+				),
+				'sanitize_callback' => array( $this, 'sanitize_post_types' ),
+			),
+			'meowseo_sitemap_news_enabled' => array(
+				'type'              => 'boolean',
+				'sanitize_callback' => 'rest_sanitize_boolean',
+			),
+			'meowseo_sitemap_video_enabled' => array(
+				'type'              => 'boolean',
+				'sanitize_callback' => 'rest_sanitize_boolean',
+			),
+			'meowseo_sitemap_max_urls' => array(
+				'type'              => 'integer',
+				'sanitize_callback' => 'absint',
+			),
+			'meowseo_sitemap_cache_ttl' => array(
+				'type'              => 'integer',
+				'sanitize_callback' => 'absint',
+			),
 		);
 
 		// Add WooCommerce-specific settings if WooCommerce is active (Requirement 2.5).
@@ -674,5 +719,73 @@ class REST_API {
 		);
 
 		return array_values( array_intersect( $modules, $valid_modules ) );
+	}
+
+	/**
+	 * Sanitize social profiles
+	 *
+	 * Security: Sanitizes all user input (Requirement 19.2).
+	 *
+	 * @since 1.0.0
+	 * @param array|object $profiles Social profile URLs.
+	 * @return array Sanitized social profiles.
+	 */
+	public function sanitize_social_profiles( $profiles ): array {
+		if ( is_object( $profiles ) ) {
+			$profiles = (array) $profiles;
+		}
+
+		if ( ! is_array( $profiles ) ) {
+			return array();
+		}
+
+		$sanitized = array();
+		$valid_keys = array( 'facebook', 'twitter', 'instagram', 'linkedin', 'youtube' );
+
+		foreach ( $profiles as $key => $url ) {
+			$key = sanitize_key( $key );
+			
+			// Only allow valid social network keys.
+			if ( ! in_array( $key, $valid_keys, true ) ) {
+				continue;
+			}
+
+			// Sanitize URL.
+			$url = esc_url_raw( $url );
+			if ( ! empty( $url ) ) {
+				$sanitized[ $key ] = $url;
+			}
+		}
+
+		return $sanitized;
+	}
+
+	/**
+	 * Sanitize post types array
+	 *
+	 * Security: Validates post types exist (Requirement 19.2).
+	 *
+	 * @since 1.0.0
+	 * @param array $post_types Post type names.
+	 * @return array Sanitized post types.
+	 */
+	public function sanitize_post_types( $post_types ): array {
+		if ( ! is_array( $post_types ) ) {
+			return array();
+		}
+
+		$sanitized = array();
+		$valid_post_types = get_post_types( array( 'public' => true ), 'names' );
+
+		foreach ( $post_types as $post_type ) {
+			$post_type = sanitize_key( $post_type );
+			
+			// Only allow valid public post types.
+			if ( isset( $valid_post_types[ $post_type ] ) ) {
+				$sanitized[] = $post_type;
+			}
+		}
+
+		return array_values( $sanitized );
 	}
 }

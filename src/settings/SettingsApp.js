@@ -275,6 +275,218 @@ const SettingsApp = () => {
 							</PanelRow>
 						</PanelBody>
 					)}
+
+				{enabledModules.includes('schema') && (
+					<PanelBody
+						title={__('Schema / Structured Data Settings', 'meowseo')}
+						initialOpen={false}
+					>
+						<PanelRow>
+							<TextControl
+								label={__('Organization Name', 'meowseo')}
+								value={settings.meowseo_schema_organization_name || ''}
+								onChange={(value) =>
+									updateSetting('meowseo_schema_organization_name', value)
+								}
+								help={__(
+									'Your organization or company name for schema markup.',
+									'meowseo'
+								)}
+							/>
+						</PanelRow>
+
+						<PanelRow>
+							<TextControl
+								label={__('Organization Logo URL', 'meowseo')}
+								value={settings.meowseo_schema_organization_logo || ''}
+								onChange={(value) =>
+									updateSetting('meowseo_schema_organization_logo', value)
+								}
+								help={__(
+									'URL to your organization logo image.',
+									'meowseo'
+								)}
+							/>
+						</PanelRow>
+
+						<PanelRow>
+							<div style={{ width: '100%' }}>
+								<h4>{__('Social Profiles', 'meowseo')}</h4>
+								<p className="description">
+									{__(
+										'Add your social media profile URLs for schema markup.',
+										'meowseo'
+									)}
+								</p>
+
+								<TextControl
+									label={__('Facebook', 'meowseo')}
+									value={settings.meowseo_schema_social_profiles?.facebook || ''}
+									onChange={(value) => {
+										const profiles = settings.meowseo_schema_social_profiles || {};
+										updateSetting('meowseo_schema_social_profiles', {
+											...profiles,
+											facebook: value,
+										});
+									}}
+									placeholder="https://facebook.com/yourpage"
+								/>
+
+								<TextControl
+									label={__('Twitter', 'meowseo')}
+									value={settings.meowseo_schema_social_profiles?.twitter || ''}
+									onChange={(value) => {
+										const profiles = settings.meowseo_schema_social_profiles || {};
+										updateSetting('meowseo_schema_social_profiles', {
+											...profiles,
+											twitter: value,
+										});
+									}}
+									placeholder="https://twitter.com/yourhandle"
+								/>
+
+								<TextControl
+									label={__('Instagram', 'meowseo')}
+									value={settings.meowseo_schema_social_profiles?.instagram || ''}
+									onChange={(value) => {
+										const profiles = settings.meowseo_schema_social_profiles || {};
+										updateSetting('meowseo_schema_social_profiles', {
+											...profiles,
+											instagram: value,
+										});
+									}}
+									placeholder="https://instagram.com/yourprofile"
+								/>
+
+								<TextControl
+									label={__('LinkedIn', 'meowseo')}
+									value={settings.meowseo_schema_social_profiles?.linkedin || ''}
+									onChange={(value) => {
+										const profiles = settings.meowseo_schema_social_profiles || {};
+										updateSetting('meowseo_schema_social_profiles', {
+											...profiles,
+											linkedin: value,
+										});
+									}}
+									placeholder="https://linkedin.com/company/yourcompany"
+								/>
+							</div>
+						</PanelRow>
+					</PanelBody>
+				)}
+
+				{enabledModules.includes('sitemap') && (
+					<PanelBody
+						title={__('XML Sitemap Settings', 'meowseo')}
+						initialOpen={false}
+					>
+						<PanelRow>
+							<CheckboxControl
+								label={__('Enable XML Sitemap', 'meowseo')}
+								checked={settings.meowseo_sitemap_enabled !== false}
+								onChange={(value) =>
+									updateSetting('meowseo_sitemap_enabled', value)
+								}
+								help={__(
+									'Generate XML sitemaps for search engines.',
+									'meowseo'
+								)}
+							/>
+						</PanelRow>
+
+						{settings.meowseo_sitemap_enabled !== false && (
+							<>
+								<PanelRow>
+									<CheckboxControl
+										label={__('Enable Google News Sitemap', 'meowseo')}
+										checked={settings.meowseo_sitemap_news_enabled || false}
+										onChange={(value) =>
+											updateSetting('meowseo_sitemap_news_enabled', value)
+										}
+										help={__(
+											'Generate a Google News sitemap for recent posts.',
+											'meowseo'
+										)}
+									/>
+								</PanelRow>
+
+								<PanelRow>
+									<CheckboxControl
+										label={__('Enable Video Sitemap', 'meowseo')}
+										checked={settings.meowseo_sitemap_video_enabled || false}
+										onChange={(value) =>
+											updateSetting('meowseo_sitemap_video_enabled', value)
+										}
+										help={__(
+											'Generate a video sitemap for posts with video embeds.',
+											'meowseo'
+										)}
+									/>
+								</PanelRow>
+
+								<PanelRow>
+									<TextControl
+										label={__('Maximum URLs per Sitemap', 'meowseo')}
+										type="number"
+										value={settings.meowseo_sitemap_max_urls || 1000}
+										onChange={(value) =>
+											updateSetting('meowseo_sitemap_max_urls', parseInt(value, 10))
+										}
+										help={__(
+											'Maximum number of URLs per sitemap file (default: 1000).',
+											'meowseo'
+										)}
+										min={100}
+										max={50000}
+									/>
+								</PanelRow>
+
+								<PanelRow>
+									<TextControl
+										label={__('Cache TTL (seconds)', 'meowseo')}
+										type="number"
+										value={settings.meowseo_sitemap_cache_ttl || 86400}
+										onChange={(value) =>
+											updateSetting('meowseo_sitemap_cache_ttl', parseInt(value, 10))
+										}
+										help={__(
+											'How long to cache sitemap files (default: 86400 = 24 hours).',
+											'meowseo'
+										)}
+										min={3600}
+										max={604800}
+									/>
+								</PanelRow>
+
+								<PanelRow>
+									<div style={{ width: '100%' }}>
+										<h4>{__('Post Types in Sitemap', 'meowseo')}</h4>
+										<p className="description">
+											{__(
+												'Select which post types to include in the sitemap.',
+												'meowseo'
+											)}
+										</p>
+										{['post', 'page'].map((postType) => (
+											<CheckboxControl
+												key={postType}
+												label={postType === 'post' ? __('Posts', 'meowseo') : __('Pages', 'meowseo')}
+												checked={(settings.meowseo_sitemap_post_types || ['post', 'page']).includes(postType)}
+												onChange={(checked) => {
+													const postTypes = settings.meowseo_sitemap_post_types || ['post', 'page'];
+													const newPostTypes = checked
+														? [...postTypes, postType]
+														: postTypes.filter((pt) => pt !== postType);
+													updateSetting('meowseo_sitemap_post_types', newPostTypes);
+												}}
+											/>
+										))}
+									</div>
+								</PanelRow>
+							</>
+						)}
+					</PanelBody>
+				)}
 			</Panel>
 
 			<div style={{ marginTop: '20px' }}>

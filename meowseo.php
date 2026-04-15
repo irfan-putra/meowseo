@@ -87,3 +87,21 @@ add_action( 'plugins_loaded', function() {
 		});
 	}
 }, 10 );
+
+// Register WP-CLI commands.
+if ( defined( 'WP_CLI' ) && WP_CLI ) {
+	add_action( 'plugins_loaded', function() {
+		try {
+			$plugin = \MeowSEO\Plugin::instance();
+			$options = $plugin->get_options();
+			
+			$cli_commands = new \MeowSEO\CLI\CLI_Commands( $options );
+			$cli_commands->register();
+		} catch ( \Exception $e ) {
+			// Log CLI registration error.
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( 'MeowSEO: Failed to register WP-CLI commands: ' . $e->getMessage() );
+			}
+		}
+	}, 20 ); // Priority 20 to ensure plugin is booted first
+}

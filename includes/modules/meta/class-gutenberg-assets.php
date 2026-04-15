@@ -195,6 +195,14 @@ class Gutenberg_Assets {
 				'sanitize_callback' => array( $this, 'sanitize_schema_config' ),
 			),
 
+			// Speakable content
+			'_meowseo_speakable_block' => array(
+				'type'              => 'string',
+				'description'       => 'Block ID marked as speakable content',
+				'default'           => '',
+				'sanitize_callback' => 'sanitize_text_field',
+			),
+
 			// Advanced tab
 			'_meowseo_robots_noindex' => array(
 				'type'              => 'boolean',
