@@ -268,46 +268,46 @@ This implementation plan breaks down the Gutenberg Editor Integration feature in
     - Test preview card updates
     - _Requirements: 12.2, 12.3, 12.4, 12.5, 12.6, 12.7, 12.8, 12.9_
 
-- [ ] 15. Implement Schema tab components
-  - [ ] 15.1 Create SchemaTypeSelector component
+- [x] 15. Implement Schema tab components
+  - [x] 15.1 Create SchemaTypeSelector component
     - Display SelectControl with 5 schema types: Article, FAQPage, HowTo, LocalBusiness, Product
     - Use useEntityPropBinding for _meowseo_schema_type
     - _Requirements: 13.1, 13.2_
 
-  - [ ] 15.2 Create ArticleForm component
+  - [x] 15.2 Create ArticleForm component
     - Use useEntityPropBinding for _meowseo_schema_config
     - Display inputs for headline, datePublished, dateModified, author
     - _Requirements: 13.4, 13.9_
 
-  - [ ] 15.3 Create FAQPageForm component
+  - [x] 15.3 Create FAQPageForm component
     - Use useEntityPropBinding for _meowseo_schema_config
     - Display repeatable question and answer fields
     - Add/remove question pairs
     - _Requirements: 13.5, 13.9_
 
-  - [ ] 15.4 Create HowToForm component
+  - [x] 15.4 Create HowToForm component
     - Use useEntityPropBinding for _meowseo_schema_config
     - Display repeatable step fields with name, text, optional image
     - Add/remove steps
     - _Requirements: 13.6, 13.9_
 
-  - [ ] 15.5 Create LocalBusinessForm component
+  - [x] 15.5 Create LocalBusinessForm component
     - Use useEntityPropBinding for _meowseo_schema_config
     - Display inputs for name, address (street, locality, region, postal, country), telephone, opening hours, optional geo coordinates
     - _Requirements: 13.7, 13.9_
 
-  - [ ] 15.6 Create ProductForm component
+  - [x] 15.6 Create ProductForm component
     - Use useEntityPropBinding for _meowseo_schema_config
     - Display inputs for name, description, SKU, price, currency, availability
     - _Requirements: 13.8, 13.9_
 
-  - [ ] 15.7 Wire Schema tab components together
+  - [x] 15.7 Wire Schema tab components together
     - Create SchemaTabContent component
     - Lazy load schema forms based on selected type
     - Validate schema configuration before saving
     - _Requirements: 13.3, 13.9, 13.10, 16.4_
 
-  - [ ] 15.8 Write unit tests for Schema tab components
+  - [x] 15.8 Write unit tests for Schema tab components
     - Test schema type selection
     - Test each schema form (Article, FAQPage, HowTo, LocalBusiness, Product)
     - Test repeatable fields (add/remove)

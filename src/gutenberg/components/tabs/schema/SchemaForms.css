@@ -1,0 +1,67 @@
+/**
+ * Schema Forms Styles
+ * 
+ * Styles for schema form components
+ */
+
+.meowseo-schema-tab {
+  padding: 16px;
+}
+
+.meowseo-schema-form {
+  margin-top: 16px;
+}
+
+.meowseo-schema-help {
+  color: #757575;
+  font-style: italic;
+  margin: 16px 0;
+}
+
+.meowseo-schema-validation-error {
+  background-color: #f0f0f0;
+  border-left: 4px solid #cc1818;
+  padding: 12px;
+  margin: 16px 0;
+  color: #cc1818;
+}
+
+.meowseo-faq-item,
+.meowseo-howto-step {
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.meowseo-faq-item h4,
+.meowseo-howto-step h4 {
+  margin-top: 0;
+  margin-bottom: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e1e1e;
+}
+
+.meowseo-faq-item .components-base-control,
+.meowseo-howto-step .components-base-control {
+  margin-bottom: 12px;
+}
+
+.meowseo-faq-item .components-button,
+.meowseo-howto-step .components-button {
+  margin-top: 8px;
+}
+
+.meowseo-schema-form > .components-button {
+  margin-top: 16px;
+}
+
+.meowseo-schema-form h3 {
+  margin-top: 24px;
+  margin-bottom: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e1e1e;
+}
