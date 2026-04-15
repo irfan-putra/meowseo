@@ -238,17 +238,17 @@ This implementation plan breaks down the Gutenberg Editor Integration feature in
     - Test DirectAnswerField persistence
     - _Requirements: 9.1, 9.2, 9.3, 9.4, 10.1, 10.2, 10.3, 10.4, 10.5, 10.6, 10.7, 11.1, 11.2, 11.3, 11.4, 11.5, 11.6, 11.7, 11.8_
 
-- [ ] 13. Checkpoint - Ensure all tests pass
+- [x] 13. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 14. Implement Social tab components
-  - [ ] 14.1 Create FacebookSubTab component
+- [x] 14. Implement Social tab components
+  - [x] 14.1 Create FacebookSubTab component
     - Use useEntityPropBinding for _meowseo_og_title, _meowseo_og_description, _meowseo_og_image_id
     - Display TextControl for title, TextareaControl for description, MediaUpload for image
     - Display Facebook preview card
     - _Requirements: 12.2, 12.4, 12.8_
 
-  - [ ] 14.2 Create TwitterSubTab component
+  - [x] 14.2 Create TwitterSubTab component
     - Use useEntityPropBinding for _meowseo_twitter_title, _meowseo_twitter_description, _meowseo_twitter_image_id, _meowseo_use_og_for_twitter
     - Display TextControl for title, TextareaControl for description, MediaUpload for image
     - Display "Use Open Graph for Twitter" toggle
@@ -256,12 +256,12 @@ This implementation plan breaks down the Gutenberg Editor Integration feature in
     - Display Twitter preview card
     - _Requirements: 12.3, 12.5, 12.6, 12.7, 12.8_
 
-  - [ ] 14.3 Wire Social tab components together
+  - [x] 14.3 Wire Social tab components together
     - Create SocialTabContent component with Facebook and Twitter sub-tabs
     - Implement sub-tab navigation
     - _Requirements: 12.1, 12.9_
 
-  - [ ] 14.4 Write unit tests for Social tab components
+  - [x] 14.4 Write unit tests for Social tab components
     - Test Facebook inputs and persistence
     - Test Twitter inputs and persistence
     - Test "Use Open Graph for Twitter" toggle behavior
