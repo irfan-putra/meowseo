@@ -58,14 +58,15 @@ class Internal_Links_REST {
 			)
 		);
 
-		// GET /meowseo/v1/internal-links/suggestions - Get link suggestions for a post.
+		// POST /meowseo/v1/internal-links/suggestions - Get link suggestions for a post.
+		// Requirement 18.6: Sanitize all user input before storage.
 		register_rest_route(
 			self::NAMESPACE,
 			'/internal-links/suggestions',
 			array(
-				'methods'             => 'GET',
+				'methods'             => 'POST',
 				'callback'            => array( $this, 'get_link_suggestions' ),
-				'permission_callback' => array( $this, 'check_edit_posts' ),
+				'permission_callback' => array( $this, 'check_edit_posts_and_nonce' ),
 				'args'                => array(
 					'post_id' => array(
 						'type'              => 'integer',
@@ -73,6 +74,22 @@ class Internal_Links_REST {
 						'sanitize_callback' => 'absint',
 						'validate_callback' => function ( $param ) {
 							return $param > 0;
+						},
+					),
+					'keyword' => array(
+						'type'              => 'string',
+						'required'          => true,
+						'sanitize_callback' => 'sanitize_text_field',
+						'validate_callback' => function ( $param ) {
+							return strlen( $param ) >= 3;
+						},
+					),
+					'limit'   => array(
+						'type'              => 'integer',
+						'default'           => 5,
+						'sanitize_callback' => 'absint',
+						'validate_callback' => function ( $param ) {
+							return $param > 0 && $param <= 20;
 						},
 					),
 				),
@@ -128,12 +145,15 @@ class Internal_Links_REST {
 	 *
 	 * Returns suggested internal links based on keyword overlap.
 	 * Requirement 9.4: Surface link suggestions based on keyword overlap.
+	 * Requirement 18.6: Sanitize all user input before storage.
 	 *
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response|WP_Error Response object or error.
 	 */
 	public function get_link_suggestions( WP_REST_Request $request ) {
 		$post_id = $request->get_param( 'post_id' );
+		$keyword = $request->get_param( 'keyword' );
+		$limit   = $request->get_param( 'limit' ) ?: 5;
 
 		// Verify post exists.
 		$post = get_post( $post_id );
@@ -159,8 +179,8 @@ class Internal_Links_REST {
 			);
 		}
 
-		// Get link suggestions.
-		$suggestions = $internal_links_module->get_link_suggestions( $post_id );
+		// Get link suggestions with keyword and limit.
+		$suggestions = $internal_links_module->get_link_suggestions( $post_id, $keyword, $limit );
 
 		$response = new WP_REST_Response(
 			array(
@@ -223,5 +243,37 @@ class Internal_Links_REST {
 	 */
 	public function check_edit_posts(): bool {
 		return current_user_can( 'edit_posts' );
+	}
+
+	/**
+	 * Check if user has edit_posts capability and valid nonce.
+	 *
+	 * Requirements:
+	 * - 18.3: REST API endpoints verify nonce before processing
+	 * - 18.4: REST API endpoints require edit_post capability for postmeta updates
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return bool|WP_Error True if authorized, WP_Error otherwise.
+	 */
+	public function check_edit_posts_and_nonce( WP_REST_Request $request ) {
+		if ( ! current_user_can( 'edit_posts' ) ) {
+			return new WP_Error(
+				'rest_forbidden',
+				__( 'You do not have permission to perform this action.', 'meowseo' ),
+				array( 'status' => 403 )
+			);
+		}
+
+		// Verify nonce from request header.
+		$nonce = $request->get_header( 'X-WP-Nonce' );
+		if ( ! $nonce || ! wp_verify_nonce( $nonce, 'wp_rest' ) ) {
+			return new WP_Error(
+				'rest_cookie_invalid_nonce',
+				__( 'Invalid nonce.', 'meowseo' ),
+				array( 'status' => 403 )
+			);
+		}
+
+		return true;
 	}
 }

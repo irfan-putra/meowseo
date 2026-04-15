@@ -68,6 +68,13 @@ class Meta_Module implements Module {
 	private Robots_Txt $robots_txt;
 
 	/**
+	 * Gutenberg_Assets instance
+	 *
+	 * @var Gutenberg_Assets
+	 */
+	private Gutenberg_Assets $gutenberg_assets;
+
+	/**
 	 * Constructor
 	 *
 	 * Instantiates all module components with proper dependency injection.
@@ -94,6 +101,9 @@ class Meta_Module implements Module {
 
 		// Initialize Robots_Txt for virtual robots.txt management.
 		$this->robots_txt = new Robots_Txt( $this->options );
+
+		// Initialize Gutenberg_Assets for editor integration.
+		$this->gutenberg_assets = new Gutenberg_Assets();
 	}
 
 	/**
@@ -109,6 +119,9 @@ class Meta_Module implements Module {
 		
 		// Register Robots_Txt filter hook.
 		$this->robots_txt->register();
+
+		// Initialize Gutenberg_Assets hooks.
+		$this->gutenberg_assets->init();
 	}
 
 	/**
@@ -207,12 +220,12 @@ class Meta_Module implements Module {
 	/**
 	 * Enqueue block editor assets
 	 *
-	 * Enqueues scripts and styles for Gutenberg sidebar. This is a placeholder
-	 * that will be implemented by Gutenberg class.
+	 * Delegates to Gutenberg_Assets instance to enqueue scripts and styles
+	 * for Gutenberg sidebar.
 	 *
 	 * @return void
 	 */
 	public function enqueue_block_editor_assets(): void {
-		// TODO: Delegate to Gutenberg instance
+		$this->gutenberg_assets->enqueue_editor_assets();
 	}
 }

@@ -4,13 +4,18 @@
  * Entry point for the Gutenberg sidebar plugin.
  * This file registers the plugin and initializes the Redux store.
  * 
- * Requirements: 1.1, 1.2
+ * Requirements: 1.1, 1.2, 18.1, 18.2
  */
 
 import { registerPlugin } from '@wordpress/plugins';
 import { PluginSidebar } from './utils/plugin-sidebar-compat';
 import { Sidebar } from './components';
+import { configureApiFetch } from './utils/api-config';
 import './store'; // Register the meowseo/data Redux store
+
+// Configure apiFetch with nonce for secure REST API calls
+// Requirements: 18.1, 18.2
+configureApiFetch();
 
 /**
  * Register the MeowSEO sidebar plugin
