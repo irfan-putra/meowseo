@@ -123,7 +123,7 @@ class Plugin {
 			// Initialize Admin interface (only in admin context).
 			if ( is_admin() ) {
 				try {
-					$this->admin = new Admin( $this->options );
+					$this->admin = new Admin( $this->options, $this->module_manager );
 					$this->admin->boot();
 				} catch ( \Exception $e ) {
 					// Log admin initialization error but don't break the plugin.

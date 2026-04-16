@@ -2,7 +2,45 @@
 
 ## Overview
 
-The WooCommerce module provides SEO enhancements specific to WooCommerce product pages. It is conditionally loaded only when WooCommerce is active (`class_exists('WooCommerce')`).
+The WooCommerce module provides SEO enhancements specific to WooCommerce product pages. It is conditionally loaded only when WooCommerce is active and enabled in settings.
+
+## Module Infrastructure (Requirement 20)
+
+### Conditional Loading (Requirements 20.1, 20.2)
+
+The module is loaded by the Module_Manager only when:
+1. WooCommerce plugin is active (`class_exists('WooCommerce')`)
+2. The module is enabled in plugin settings
+
+When either condition is not met, the module is not instantiated.
+
+### Module Interface Implementation (Requirement 20.4)
+
+The WooCommerce module implements the `MeowSEO\Contracts\Module` interface with two required methods:
+
+```php
+public function boot(): void
+public function get_id(): string
+```
+
+### Module ID (Requirement 20.5)
+
+The module returns `'woocommerce'` as its module ID via the `get_id()` method.
+
+### Hook Registration After WooCommerce Initialization (Requirement 20.3)
+
+The module registers hooks only after WooCommerce has fully initialized:
+
+1. The `boot()` method is called by Module_Manager during plugin initialization
+2. `boot()` checks if WooCommerce is active
+3. If active, `boot()` registers the `register_hooks()` method on the `'woocommerce_loaded'` action
+4. When WooCommerce fires the `'woocommerce_loaded'` action, `register_hooks()` is called
+5. All module hooks are registered at this point, ensuring WooCommerce is fully initialized
+
+This ensures that:
+- WooCommerce classes and functions are available when hooks are registered
+- No race conditions occur between module initialization and WooCommerce initialization
+- The module can safely use WooCommerce APIs in its hooks
 
 ## Features
 
@@ -61,16 +99,13 @@ includes/modules/woocommerce/
 └── README.md              # This file
 ```
 
-### Conditional Loading
+### Boot Sequence
 
-The Module_Manager checks for WooCommerce before instantiating the module:
-
-```php
-// Special handling for WooCommerce module - only load if WooCommerce is active.
-if ( 'woocommerce' === $module_id && ! class_exists( 'WooCommerce' ) ) {
-    return false;
-}
-```
+1. **Plugin Initialization**: Plugin_Manager calls `boot()` on all enabled modules
+2. **WooCommerce Check**: Module checks if WooCommerce is active
+3. **Hook Registration**: Module registers `register_hooks()` on `'woocommerce_loaded'` action
+4. **WooCommerce Loaded**: When WooCommerce fires `'woocommerce_loaded'`, `register_hooks()` is called
+5. **Hooks Active**: All module hooks are now registered and active
 
 ### Hooks Registered
 
@@ -92,6 +127,17 @@ This option should be exposed in the plugin settings UI when WooCommerce is acti
 
 ## Integration Points
 
+### Module_Manager
+
+The Module_Manager handles conditional loading:
+
+```php
+// Special handling for WooCommerce module - only load if WooCommerce is active.
+if ( 'woocommerce' === $module_id && ! class_exists( 'WooCommerce' ) ) {
+    return false;
+}
+```
+
 ### Meta Module
 
 The WooCommerce module depends on the Meta module for:
@@ -111,6 +157,11 @@ The Sitemap_Generator applies the `meowseo_sitemap_posts` filter, allowing the W
 
 ## Requirements Validation
 
+- ✅ **Requirement 20.1**: Module loads automatically when WooCommerce is active and enabled in settings
+- ✅ **Requirement 20.2**: Module does not load when WooCommerce is not active
+- ✅ **Requirement 20.3**: Hooks are registered only after WooCommerce initialization (via `'woocommerce_loaded'` action)
+- ✅ **Requirement 20.4**: Module implements the Module interface
+- ✅ **Requirement 20.5**: Module returns "woocommerce" as module ID
 - ✅ **Requirement 12.1**: Meta module extends to product post type (automatic via `get_post_types()`)
 - ✅ **Requirement 12.2**: Product JSON-LD output (Schema_Builder's `build_product()` method)
 - ✅ **Requirement 12.3**: Sitemap filtering for out-of-stock products
@@ -122,6 +173,7 @@ The Sitemap_Generator applies the `meowseo_sitemap_posts` filter, allowing the W
 - SEO score computation in list table uses cached analysis when available
 - Sitemap filtering uses WooCommerce's native `is_in_stock()` method
 - No additional database queries beyond what Meta and Schema modules already perform
+- Hooks are registered only after WooCommerce is fully initialized, preventing race conditions
 
 ## Future Enhancements
 

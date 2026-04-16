@@ -46,8 +46,8 @@ class WPGraphQL {
 	/**
 	 * Register WPGraphQL fields
 	 *
-	 * Registers seo field on all queryable post types.
-	 * Requirement: 13.5
+	 * Registers seo field on all queryable post types and taxonomies.
+	 * Requirements: 19.1, 19.2, 19.3, 19.4, 19.5
 	 *
 	 * @since 1.0.0
 	 * @return void
@@ -73,6 +73,9 @@ class WPGraphQL {
 
 			// Register seo field on all queryable post types.
 			$this->register_post_type_fields();
+
+			// Register seo field on all queryable taxonomies.
+			$this->register_taxonomy_fields();
 		} catch ( \Exception $e ) {
 			// Log error but don't break WPGraphQL.
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
@@ -213,23 +216,48 @@ class WPGraphQL {
 				array(
 					'type'        => 'MeowSeoData',
 					'description' => __( 'SEO meta data for this post', 'meowseo' ),
-					'resolve'     => array( $this, 'resolve_seo_field' ),
+					'resolve'     => array( $this, 'resolve_seo_field_for_post' ),
 				)
 			);
 		}
 	}
 
 	/**
-	 * Resolve seo field
+	 * Register seo field on all queryable taxonomies
+	 *
+	 * Requirements: 19.3
+	 *
+	 * @since 1.0.0
+	 * @return void
+	 */
+	private function register_taxonomy_fields(): void {
+		// Get all WPGraphQL allowed taxonomies.
+		$taxonomies = \WPGraphQL::get_allowed_taxonomies();
+
+		foreach ( $taxonomies as $taxonomy ) {
+			register_graphql_field(
+				$taxonomy,
+				'seo',
+				array(
+					'type'        => 'MeowSeoData',
+					'description' => __( 'SEO meta data for this taxonomy term', 'meowseo' ),
+					'resolve'     => array( $this, 'resolve_seo_field_for_term' ),
+				)
+			);
+		}
+	}
+
+	/**
+	 * Resolve seo field for posts
 	 *
 	 * Returns all SEO data for a post.
-	 * Requirement: 13.5
+	 * Requirements: 19.4, 19.5
 	 *
 	 * @since 1.0.0
 	 * @param \WP_Post $post Post object.
 	 * @return array|null SEO data array or null.
 	 */
-	public function resolve_seo_field( $post ): ?array {
+	public function resolve_seo_field_for_post( $post ): ?array {
 		if ( ! isset( $post->ID ) ) {
 			return null;
 		}
@@ -280,6 +308,82 @@ class WPGraphQL {
 			// Log error and return null to prevent GraphQL query failure.
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 				error_log( 'MeowSEO: Error resolving SEO field for post ' . $post_id . ': ' . $e->getMessage() );
+			}
+			return null;
+		}
+	}
+
+	/**
+	 * Resolve seo field for taxonomy terms
+	 *
+	 * Returns all SEO data for a taxonomy term.
+	 * Requirements: 19.3, 19.4, 19.5
+	 *
+	 * @since 1.0.0
+	 * @param \WP_Term $term Term object.
+	 * @return array|null SEO data array or null.
+	 */
+	public function resolve_seo_field_for_term( $term ): ?array {
+		if ( ! isset( $term->term_id ) ) {
+			return null;
+		}
+
+		$term_id = $term->term_id;
+
+		try {
+			// Get meta module if active.
+			$meta_module = $this->module_manager->get_module( 'meta' );
+			$social_module = $this->module_manager->get_module( 'social' );
+			$schema_module = $this->module_manager->get_module( 'schema' );
+
+			$data = array();
+
+			// Get SEO meta if meta module is active.
+			// Note: Term-specific methods may not be available yet, so we use term meta directly.
+			if ( $meta_module ) {
+				$data['title']       = get_term_meta( $term_id, 'meowseo_title', true ) ?: '';
+				$data['description'] = get_term_meta( $term_id, 'meowseo_description', true ) ?: '';
+				$data['robots']      = get_term_meta( $term_id, 'meowseo_robots', true ) ?: '';
+				$data['canonical']   = get_term_meta( $term_id, 'meowseo_canonical', true ) ?: '';
+			}
+
+			// Get social meta if social module is active.
+			if ( $social_module ) {
+				$social_title = get_term_meta( $term_id, 'meowseo_social_title', true ) ?: '';
+				$social_description = get_term_meta( $term_id, 'meowseo_social_description', true ) ?: '';
+				$social_image = get_term_meta( $term_id, 'meowseo_social_image_id', true );
+				$social_image_url = '';
+
+				if ( ! empty( $social_image ) ) {
+					$social_image_url = wp_get_attachment_image_url( (int) $social_image, 'full' ) ?: '';
+				}
+
+				$data['openGraph'] = array(
+					'title'       => $social_title,
+					'description' => $social_description,
+					'image'       => $social_image_url,
+					'type'        => 'website',
+					'url'         => get_term_link( $term_id ) ?: '',
+				);
+				$data['twitterCard'] = array(
+					'card'        => 'summary_large_image',
+					'title'       => $social_title,
+					'description' => $social_description,
+					'image'       => $social_image_url,
+				);
+			}
+
+			// Get schema JSON-LD if schema module is active.
+			// Note: Schema module may not support terms yet, so we return empty string.
+			if ( $schema_module ) {
+				$data['schemaJsonLd'] = get_term_meta( $term_id, 'meowseo_schema_json', true ) ?: '';
+			}
+
+			return $data;
+		} catch ( \Exception $e ) {
+			// Log error and return null to prevent GraphQL query failure.
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( 'MeowSEO: Error resolving SEO field for term ' . $term_id . ': ' . $e->getMessage() );
 			}
 			return null;
 		}

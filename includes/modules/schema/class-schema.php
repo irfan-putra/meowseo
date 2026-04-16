@@ -532,36 +532,8 @@ class Schema implements Module {
 		// Register shortcode [meowseo_breadcrumbs].
 		\add_shortcode( 'meowseo_breadcrumbs', array( $this, 'breadcrumb_shortcode_callback' ) );
 
-		// Register global template function meowseo_breadcrumbs().
-		if ( ! \function_exists( 'meowseo_breadcrumbs' ) ) {
-			/**
-			 * Display breadcrumbs in theme templates
-			 *
-			 * @since 1.0.0
-			 * @param string $css_class Optional CSS class for the nav element.
-			 * @param string $separator Optional separator between breadcrumbs (default: ' › ').
-			 * @return void
-			 */
-			function meowseo_breadcrumbs( string $css_class = '', string $separator = ' › ' ): void {
-				// Get the Schema module instance to access breadcrumbs.
-				$plugin = \MeowSEO\Plugin::instance();
-				$module_manager = $plugin->get_module_manager();
-				
-				if ( ! $module_manager ) {
-					return;
-				}
-
-				// Get the Schema module.
-				$schema_module = $module_manager->get_module( 'schema' );
-				
-				if ( ! $schema_module ) {
-					return;
-				}
-
-				// Call the breadcrumb rendering method.
-				echo $schema_module->render_breadcrumbs( $css_class, $separator ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-			}
-		}
+		// Register global template function meowseo_breadcrumbs() - declared at global scope to avoid redeclaration errors.
+		// See meowseo_breadcrumbs() function declaration at end of file.
 	}
 
 	/**
@@ -603,5 +575,38 @@ class Schema implements Module {
 		}
 
 		return $this->breadcrumbs->render( $css_class, $separator );
+	}
+}
+
+/**
+ * Display breadcrumbs in theme templates
+ *
+ * Global template function for displaying breadcrumbs.
+ * Requirement 8.9: THE Breadcrumbs SHALL provide template function meowseo_breadcrumbs()
+ *
+ * @since 1.0.0
+ * @param string $css_class Optional CSS class for the nav element.
+ * @param string $separator Optional separator between breadcrumbs (default: ' › ').
+ * @return void
+ */
+if ( ! function_exists( 'meowseo_breadcrumbs' ) ) {
+	function meowseo_breadcrumbs( string $css_class = '', string $separator = ' › ' ): void {
+		// Get the Schema module instance to access breadcrumbs.
+		$plugin = \MeowSEO\Plugin::instance();
+		$module_manager = $plugin->get_module_manager();
+		
+		if ( ! $module_manager ) {
+			return;
+		}
+
+		// Get the Schema module.
+		$schema_module = $module_manager->get_module( 'schema' );
+		
+		if ( ! $schema_module ) {
+			return;
+		}
+
+		// Call the breadcrumb rendering method.
+		echo $schema_module->render_breadcrumbs( $css_class, $separator ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	}
 }

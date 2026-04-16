@@ -65,6 +65,11 @@ spl_autoload_register( function ( $class ) {
 register_activation_hook( __FILE__, array( 'MeowSEO\Installer', 'activate' ) );
 register_deactivation_hook( __FILE__, array( 'MeowSEO\Installer', 'deactivate' ) );
 
+// Load plugin textdomain at init hook (Requirement: Translations should be loaded at init or later).
+add_action( 'init', function() {
+	load_plugin_textdomain( 'meowseo', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
+}, 0 );
+
 // Check for migrations on plugins_loaded (before plugin initialization).
 add_action( 'plugins_loaded', array( 'MeowSEO\Installer', 'maybe_migrate' ), 5 );
 

@@ -84,6 +84,15 @@ class REST_API {
 		// Register settings endpoints.
 		$this->register_settings_routes();
 
+		// Register dashboard widget endpoints.
+		$this->register_dashboard_routes();
+
+		// Register suggestion endpoint (Requirement 15.1).
+		$this->register_suggestion_routes();
+
+		// Register public SEO endpoints (Requirements 17.1-17.7, 18.1-18.6, 27.1-27.5).
+		$this->register_public_seo_routes();
+
 		// Register REST_Logs routes (Requirement 14.1).
 		$rest_logs = new REST_Logs( $this->options );
 		$rest_logs->register_routes();
@@ -185,6 +194,116 @@ class REST_API {
 				'callback'            => array( $this, 'update_settings' ),
 				'permission_callback' => array( $this, 'manage_options_permission' ),
 				'args'                => $this->get_settings_schema(),
+			)
+		);
+	}
+
+	/**
+	 * Register dashboard widget endpoints
+	 *
+	 * Provides async data loading for dashboard widgets.
+	 * Requirements: 3.1, 3.4
+	 *
+	 * @since 1.0.0
+	 * @return void
+	 */
+	private function register_dashboard_routes(): void {
+		// Content Health widget endpoint.
+		register_rest_route(
+			self::NAMESPACE,
+			'/dashboard/content-health',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( $this, 'get_content_health' ),
+				'permission_callback' => array( $this, 'dashboard_permission' ),
+			)
+		);
+
+		// Sitemap Status widget endpoint.
+		register_rest_route(
+			self::NAMESPACE,
+			'/dashboard/sitemap-status',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( $this, 'get_sitemap_status' ),
+				'permission_callback' => array( $this, 'dashboard_permission' ),
+			)
+		);
+
+		// Top 404s widget endpoint.
+		register_rest_route(
+			self::NAMESPACE,
+			'/dashboard/top-404s',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( $this, 'get_top_404s' ),
+				'permission_callback' => array( $this, 'dashboard_permission' ),
+			)
+		);
+
+		// GSC Summary widget endpoint.
+		register_rest_route(
+			self::NAMESPACE,
+			'/dashboard/gsc-summary',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( $this, 'get_gsc_summary' ),
+				'permission_callback' => array( $this, 'dashboard_permission' ),
+			)
+		);
+
+		// Discover Performance widget endpoint.
+		register_rest_route(
+			self::NAMESPACE,
+			'/dashboard/discover-performance',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( $this, 'get_discover_performance' ),
+				'permission_callback' => array( $this, 'dashboard_permission' ),
+			)
+		);
+
+		// Index Queue widget endpoint.
+		register_rest_route(
+			self::NAMESPACE,
+			'/dashboard/index-queue',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( $this, 'get_index_queue' ),
+				'permission_callback' => array( $this, 'dashboard_permission' ),
+			)
+		);
+	}
+
+	/**
+	 * Register suggestion endpoint
+	 *
+	 * Provides internal link suggestions with rate limiting.
+	 * Requirements: 15.1, 15.2, 15.3, 15.4, 15.5, 15.6
+	 *
+	 * @since 1.0.0
+	 * @return void
+	 */
+	private function register_suggestion_routes(): void {
+		register_rest_route(
+			self::NAMESPACE,
+			'/internal-links/suggest',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( $this, 'get_suggestions' ),
+				'permission_callback' => array( $this, 'edit_posts_permission' ),
+				'args'                => array(
+					'content' => array(
+						'required'          => true,
+						'type'              => 'string',
+						'sanitize_callback' => 'sanitize_textarea_field',
+					),
+					'post_id' => array(
+						'required'          => true,
+						'type'              => 'integer',
+						'sanitize_callback' => 'absint',
+					),
+				),
 			)
 		);
 	}
@@ -410,52 +529,612 @@ class REST_API {
 	}
 
 	/**
-	 * Permission callback for GET meta requests
+	 * Get content health widget data
 	 *
-	 * Requirement: 13.2
+	 * Requirements: 3.1, 3.4, 32.1, 32.2
 	 *
 	 * @since 1.0.0
 	 * @param \WP_REST_Request $request REST request object.
-	 * @return bool True if user has permission.
+	 * @return \WP_REST_Response REST response.
 	 */
-	public function get_meta_permission( \WP_REST_Request $request ): bool {
+	public function get_content_health( \WP_REST_Request $request ): \WP_REST_Response {
+		// Verify nonce (Requirement 3.2).
+		if ( ! $this->verify_nonce( $request ) ) {
+			// Log the failed nonce verification (Requirement 32.1).
+			\MeowSEO\Helpers\Logger::warning(
+				'ReST request failed: invalid nonce',
+				array(
+					'endpoint' => 'dashboard/content-health',
+					'user_id'  => get_current_user_id(),
+				)
+			);
+
+			return new \WP_REST_Response(
+				array(
+					'success' => false,
+					'message' => __( 'Security verification failed. Please refresh the page and try again.', 'meowseo' ),
+					'code'    => 'rest_invalid_nonce',
+				),
+				403
+			);
+		}
+
+		try {
+			// Get Dashboard_Widgets instance.
+			$dashboard_widgets = new \MeowSEO\Admin\Dashboard_Widgets( $this->options, $this->module_manager );
+			$data = $dashboard_widgets->get_content_health_data();
+
+			$response = new \WP_REST_Response(
+				array(
+					'success' => true,
+					'data'    => $data,
+				),
+				200
+			);
+
+			// Add cache headers (Requirement 3.4).
+			$response->header( 'Cache-Control', 'public, max-age=300' );
+
+			return $response;
+		} catch ( \Exception $e ) {
+			// Log the error with context (Requirement 32.2).
+			\MeowSEO\Helpers\Logger::error(
+				'Failed to retrieve content health data',
+				array(
+					'endpoint'  => 'dashboard/content-health',
+					'user_id'   => get_current_user_id(),
+					'error_msg' => $e->getMessage(),
+				)
+			);
+
+			// Return user-friendly error message without exposing internals (Requirement 32.2, 32.5).
+			return new \WP_REST_Response(
+				array(
+					'success' => false,
+					'message' => __( 'An error occurred while loading content health data. Please try again.', 'meowseo' ),
+					'code'    => 'database_error',
+				),
+				500
+			);
+		}
+	}
+
+	/**
+	 * Get sitemap status widget data
+	 *
+	 * Requirements: 3.1, 3.4, 32.1, 32.2
+	 *
+	 * @since 1.0.0
+	 * @param \WP_REST_Request $request REST request object.
+	 * @return \WP_REST_Response REST response.
+	 */
+	public function get_sitemap_status( \WP_REST_Request $request ): \WP_REST_Response {
+		// Verify nonce (Requirement 3.2).
+		if ( ! $this->verify_nonce( $request ) ) {
+			// Log the failed nonce verification (Requirement 32.1).
+			\MeowSEO\Helpers\Logger::warning(
+				'REST request failed: invalid nonce',
+				array(
+					'endpoint' => 'dashboard/sitemap-status',
+					'user_id'  => get_current_user_id(),
+				)
+			);
+
+			return new \WP_REST_Response(
+				array(
+					'success' => false,
+					'message' => __( 'Security verification failed. Please refresh the page and try again.', 'meowseo' ),
+					'code'    => 'rest_invalid_nonce',
+				),
+				403
+			);
+		}
+
+		try {
+			// Get Dashboard_Widgets instance.
+			$dashboard_widgets = new \MeowSEO\Admin\Dashboard_Widgets( $this->options, $this->module_manager );
+			$data = $dashboard_widgets->get_sitemap_status_data();
+
+			$response = new \WP_REST_Response(
+				array(
+					'success' => true,
+					'data'    => $data,
+				),
+				200
+			);
+
+			// Add cache headers (Requirement 3.4).
+			$response->header( 'Cache-Control', 'public, max-age=300' );
+
+			return $response;
+		} catch ( \Exception $e ) {
+			// Log the error with context (Requirement 32.2).
+			\MeowSEO\Helpers\Logger::error(
+				'Failed to retrieve sitemap status data',
+				array(
+					'endpoint'  => 'dashboard/sitemap-status',
+					'user_id'   => get_current_user_id(),
+					'error_msg' => $e->getMessage(),
+				)
+			);
+
+			// Return user-friendly error message without exposing internals (Requirement 32.2, 32.5).
+			return new \WP_REST_Response(
+				array(
+					'success' => false,
+					'message' => __( 'An error occurred while loading sitemap status. Please try again.', 'meowseo' ),
+					'code'    => 'database_error',
+				),
+				500
+			);
+		}
+	}
+
+	/**
+	 * Get top 404s widget data
+	 *
+	 * Requirements: 3.1, 3.4, 32.1, 32.2
+	 *
+	 * @since 1.0.0
+	 * @param \WP_REST_Request $request REST request object.
+	 * @return \WP_REST_Response REST response.
+	 */
+	public function get_top_404s( \WP_REST_Request $request ): \WP_REST_Response {
+		// Verify nonce (Requirement 3.2).
+		if ( ! $this->verify_nonce( $request ) ) {
+			// Log the failed nonce verification (Requirement 32.1).
+			\MeowSEO\Helpers\Logger::warning(
+				'REST request failed: invalid nonce',
+				array(
+					'endpoint' => 'dashboard/top-404s',
+					'user_id'  => get_current_user_id(),
+				)
+			);
+
+			return new \WP_REST_Response(
+				array(
+					'success' => false,
+					'message' => __( 'Security verification failed. Please refresh the page and try again.', 'meowseo' ),
+					'code'    => 'rest_invalid_nonce',
+				),
+				403
+			);
+		}
+
+		try {
+			// Get Dashboard_Widgets instance.
+			$dashboard_widgets = new \MeowSEO\Admin\Dashboard_Widgets( $this->options, $this->module_manager );
+			$data = $dashboard_widgets->get_top_404s_data();
+
+			$response = new \WP_REST_Response(
+				array(
+					'success' => true,
+					'data'    => $data,
+				),
+				200
+			);
+
+			// Add cache headers (Requirement 3.4).
+			$response->header( 'Cache-Control', 'public, max-age=300' );
+
+			return $response;
+		} catch ( \Exception $e ) {
+			// Log the error with context (Requirement 32.2).
+			\MeowSEO\Helpers\Logger::error(
+				'Failed to retrieve top 404s data',
+				array(
+					'endpoint'  => 'dashboard/top-404s',
+					'user_id'   => get_current_user_id(),
+					'error_msg' => $e->getMessage(),
+				)
+			);
+
+			// Return user-friendly error message without exposing internals (Requirement 32.2, 32.5).
+			return new \WP_REST_Response(
+				array(
+					'success' => false,
+					'message' => __( 'An error occurred while loading 404 data. Please try again.', 'meowseo' ),
+					'code'    => 'database_error',
+				),
+				500
+			);
+		}
+	}
+
+	/**
+	 * Get GSC summary widget data
+	 *
+	 * Requirements: 3.1, 3.4, 32.1, 32.2
+	 *
+	 * @since 1.0.0
+	 * @param \WP_REST_Request $request REST request object.
+	 * @return \WP_REST_Response REST response.
+	 */
+	public function get_gsc_summary( \WP_REST_Request $request ): \WP_REST_Response {
+		// Verify nonce (Requirement 3.2).
+		if ( ! $this->verify_nonce( $request ) ) {
+			// Log the failed nonce verification (Requirement 32.1).
+			\MeowSEO\Helpers\Logger::warning(
+				'REST request failed: invalid nonce',
+				array(
+					'endpoint' => 'dashboard/gsc-summary',
+					'user_id'  => get_current_user_id(),
+				)
+			);
+
+			return new \WP_REST_Response(
+				array(
+					'success' => false,
+					'message' => __( 'Security verification failed. Please refresh the page and try again.', 'meowseo' ),
+					'code'    => 'rest_invalid_nonce',
+				),
+				403
+			);
+		}
+
+		try {
+			// Get Dashboard_Widgets instance.
+			$dashboard_widgets = new \MeowSEO\Admin\Dashboard_Widgets( $this->options, $this->module_manager );
+			$data = $dashboard_widgets->get_gsc_summary_data();
+
+			$response = new \WP_REST_Response(
+				array(
+					'success' => true,
+					'data'    => $data,
+				),
+				200
+			);
+
+			// Add cache headers (Requirement 3.4).
+			$response->header( 'Cache-Control', 'public, max-age=300' );
+
+			return $response;
+		} catch ( \Exception $e ) {
+			// Log the error with context (Requirement 32.2).
+			\MeowSEO\Helpers\Logger::error(
+				'Failed to retrieve GSC summary data',
+				array(
+					'endpoint'  => 'dashboard/gsc-summary',
+					'user_id'   => get_current_user_id(),
+					'error_msg' => $e->getMessage(),
+				)
+			);
+
+			// Return user-friendly error message without exposing internals (Requirement 32.2, 32.5).
+			return new \WP_REST_Response(
+				array(
+					'success' => false,
+					'message' => __( 'An error occurred while loading Search Console data. Please try again.', 'meowseo' ),
+					'code'    => 'database_error',
+				),
+				500
+			);
+		}
+	}
+
+	/**
+	 * Get Discover performance widget data
+	 *
+	 * Requirements: 3.1, 3.4
+	 *
+	 * @since 1.0.0
+	 * @param \WP_REST_Request $request REST request object.
+	 * @return \WP_REST_Response REST response.
+	 */
+	public function get_discover_performance( \WP_REST_Request $request ): \WP_REST_Response {
+		// Verify nonce (Requirement 3.2).
+		if ( ! $this->verify_nonce( $request ) ) {
+			return new \WP_REST_Response(
+				array(
+					'success' => false,
+					'message' => __( 'Invalid nonce.', 'meowseo' ),
+					'code'    => 'rest_invalid_nonce',
+				),
+				403
+			);
+		}
+
+		// Get Dashboard_Widgets instance.
+		$dashboard_widgets = new \MeowSEO\Admin\Dashboard_Widgets( $this->options, $this->module_manager );
+		$data = $dashboard_widgets->get_discover_performance_data();
+
+		$response = new \WP_REST_Response(
+			array(
+				'success' => true,
+				'data'    => $data,
+			),
+			200
+		);
+
+		// Add cache headers (Requirement 3.4).
+		$response->header( 'Cache-Control', 'public, max-age=300' );
+
+		return $response;
+	}
+
+	/**
+	 * Get index queue widget data
+	 *
+	 * Requirements: 3.1, 3.4
+	 *
+	 * @since 1.0.0
+	 * @param \WP_REST_Request $request REST request object.
+	 * @return \WP_REST_Response REST response.
+	 */
+	public function get_index_queue( \WP_REST_Request $request ): \WP_REST_Response {
+		// Verify nonce (Requirement 3.2).
+		if ( ! $this->verify_nonce( $request ) ) {
+			return new \WP_REST_Response(
+				array(
+					'success' => false,
+					'message' => __( 'Invalid nonce.', 'meowseo' ),
+					'code'    => 'rest_invalid_nonce',
+				),
+				403
+			);
+		}
+
+		// Get Dashboard_Widgets instance.
+		$dashboard_widgets = new \MeowSEO\Admin\Dashboard_Widgets( $this->options, $this->module_manager );
+		$data = $dashboard_widgets->get_index_queue_data();
+
+		$response = new \WP_REST_Response(
+			array(
+				'success' => true,
+				'data'    => $data,
+			),
+			200
+		);
+
+		// Add cache headers (Requirement 3.4).
+		$response->header( 'Cache-Control', 'public, max-age=300' );
+
+		return $response;
+	}
+
+	/**
+	 * Get internal link suggestions
+	 *
+	 * Provides suggestions for internal linking based on content analysis.
+	 * Requirements: 15.1, 15.2, 15.3, 15.4, 15.5, 15.6
+	 *
+	 * @since 1.0.0
+	 * @param \WP_REST_Request $request REST request object.
+	 * @return \WP_REST_Response REST response.
+	 */
+	public function get_suggestions( \WP_REST_Request $request ): \WP_REST_Response {
+		// Verify nonce (Requirement 15.2).
+		if ( ! $this->verify_nonce( $request ) ) {
+			// Log the failed nonce verification (Requirement 32.1).
+			\MeowSEO\Helpers\Logger::warning(
+				'REST request failed: invalid nonce',
+				array(
+					'endpoint' => 'internal-links/suggest',
+					'user_id'  => get_current_user_id(),
+				)
+			);
+
+			return new \WP_REST_Response(
+				array(
+					'success' => false,
+					'message' => __( 'Invalid nonce.', 'meowseo' ),
+					'code'    => 'rest_invalid_nonce',
+				),
+				403
+			);
+		}
+
+		// Check rate limit (Requirement 15.4, 15.5).
+		$engine = new \MeowSEO\Admin\Suggestion_Engine();
+		$user_id = get_current_user_id();
+
+		if ( ! $engine->check_rate_limit( $user_id ) ) {
+			// Log rate limit exceeded (Requirement 32.1).
+			\MeowSEO\Helpers\Logger::warning(
+				'Rate limit exceeded for suggestions endpoint',
+				array(
+					'endpoint' => 'internal-links/suggest',
+					'user_id'  => $user_id,
+				)
+			);
+
+			$response = new \WP_REST_Response(
+				array(
+					'success' => false,
+					'message' => __( 'Too many requests. Please wait before trying again.', 'meowseo' ),
+					'code'    => 'rate_limit_exceeded',
+				),
+				429
+			);
+			$response->header( 'Retry-After', '2' );
+			return $response;
+		}
+
+		// Get parameters.
+		$content = $request->get_param( 'content' );
+		$post_id = (int) $request->get_param( 'post_id' );
+
+		if ( empty( $content ) || empty( $post_id ) ) {
+			// Log invalid parameters (Requirement 32.1).
+			\MeowSEO\Helpers\Logger::warning(
+				'REST request failed: missing parameters',
+				array(
+					'endpoint' => 'internal-links/suggest',
+					'user_id'  => get_current_user_id(),
+				)
+			);
+
+			return new \WP_REST_Response(
+				array(
+					'success' => false,
+					'message' => __( 'Missing required parameters.', 'meowseo' ),
+					'code'    => 'invalid_parameter',
+				),
+				400
+			);
+		}
+
+		try {
+			// Get suggestions.
+			$suggestions = $engine->get_suggestions( $content, $post_id );
+
+			$response = new \WP_REST_Response(
+				array(
+					'success'      => true,
+					'suggestions'  => $suggestions,
+				),
+				200
+			);
+
+			// Add cache headers.
+			$response->header( 'Cache-Control', 'no-store' );
+
+			return $response;
+		} catch ( \Exception $e ) {
+			// Log the error with context (Requirement 32.2).
+			\MeowSEO\Helpers\Logger::error(
+				'Failed to retrieve suggestions',
+				array(
+					'endpoint'  => 'internal-links/suggest',
+					'user_id'   => get_current_user_id(),
+					'post_id'   => $post_id,
+					'error_msg' => $e->getMessage(),
+				)
+			);
+
+			// Return user-friendly error message without exposing internals (Requirement 32.2, 32.5).
+			return new \WP_REST_Response(
+				array(
+					'success' => false,
+					'message' => __( 'An error occurred while retrieving suggestions. Please try again.', 'meowseo' ),
+					'code'    => 'database_error',
+				),
+				500
+			);
+		}
+	}
+
+	/**
+	 * Permission callback for GET meta requests
+	 *
+	 * Requirement: 13.2, 29.2
+	 *
+	 * @since 1.0.0
+	 * @param \WP_REST_Request $request REST request object.
+	 * @return bool|\WP_Error True if user has permission, WP_Error otherwise.
+	 */
+	public function get_meta_permission( \WP_REST_Request $request ) {
 		$post_id = (int) $request['post_id'];
 		$post = get_post( $post_id );
 
 		if ( ! $post ) {
-			return false;
+			return new \WP_Error(
+				'rest_post_not_found',
+				__( 'Post not found.', 'meowseo' ),
+				array( 'status' => 404 )
+			);
 		}
 
 		// Allow public access to publicly viewable posts.
-		return is_post_publicly_viewable( $post );
+		if ( ! is_post_publicly_viewable( $post ) ) {
+			return new \WP_Error(
+				'rest_forbidden',
+				__( 'You do not have sufficient permissions to access this post.', 'meowseo' ),
+				array( 'status' => 403 )
+			);
+		}
+
+		return true;
 	}
 
 	/**
 	 * Permission callback for POST meta requests
 	 *
-	 * Requirement: 13.1, 15.3
+	 * Requirement: 13.1, 15.3, 29.2
 	 *
 	 * @since 1.0.0
 	 * @param \WP_REST_Request $request REST request object.
-	 * @return bool True if user has permission.
+	 * @return bool|\WP_Error True if user has permission, WP_Error otherwise.
 	 */
-	public function update_meta_permission( \WP_REST_Request $request ): bool {
+	public function update_meta_permission( \WP_REST_Request $request ) {
 		$post_id = (int) $request['post_id'];
 
-		// Verify user can edit this post (Requirement 15.3).
-		return current_user_can( 'edit_post', $post_id );
+		// Verify user can edit this post (Requirement 15.3, 29.2).
+		if ( ! current_user_can( 'edit_post', $post_id ) ) {
+			return new \WP_Error(
+				'rest_forbidden',
+				__( 'You do not have sufficient permissions to edit this post.', 'meowseo' ),
+				array( 'status' => 403 )
+			);
+		}
+
+		return true;
 	}
 
 	/**
 	 * Permission callback for settings endpoints
 	 *
+	 * Requirements: 29.1
+	 *
 	 * @since 1.0.0
 	 * @param \WP_REST_Request $request REST request object.
-	 * @return bool True if user has permission.
+	 * @return bool|\WP_Error True if user has permission, WP_Error otherwise.
 	 */
-	public function manage_options_permission( \WP_REST_Request $request ): bool {
-		// Verify user has manage_options capability (Requirement 15.3).
-		return current_user_can( 'manage_options' );
+	public function manage_options_permission( \WP_REST_Request $request ) {
+		// Verify user has manage_options capability (Requirement 29.1).
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return new \WP_Error(
+				'rest_forbidden',
+				__( 'You do not have sufficient permissions to access this endpoint.', 'meowseo' ),
+				array( 'status' => 403 )
+			);
+		}
+
+		return true;
+	}
+
+	/**
+	 * Permission callback for dashboard widget endpoints
+	 *
+	 * Requirements: 3.2, 3.3, 3.5, 3.6, 28.3, 29.4
+	 *
+	 * @since 1.0.0
+	 * @param \WP_REST_Request $request REST request object.
+	 * @return bool|\WP_Error True if user has permission, WP_Error otherwise.
+	 */
+	public function dashboard_permission( \WP_REST_Request $request ) {
+		// Verify user has manage_options capability (Requirement 3.2, 29.4).
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return new \WP_Error(
+				'rest_forbidden',
+				__( 'You do not have sufficient permissions to access this endpoint.', 'meowseo' ),
+				array( 'status' => 403 )
+			);
+		}
+
+		return true;
+	}
+
+	/**
+	 * Permission callback for edit_posts endpoints
+	 *
+	 * Requirements: 15.2, 15.3, 29.2
+	 *
+	 * @since 1.0.0
+	 * @param \WP_REST_Request $request REST request object.
+	 * @return bool|\WP_Error True if user has permission, WP_Error otherwise.
+	 */
+	public function edit_posts_permission( \WP_REST_Request $request ) {
+		// Verify user has edit_posts capability (Requirement 15.2, 15.3, 29.2).
+		if ( ! current_user_can( 'edit_posts' ) ) {
+			return new \WP_Error(
+				'rest_forbidden',
+				__( 'You do not have sufficient permissions to access this endpoint.', 'meowseo' ),
+				array( 'status' => 403 )
+			);
+		}
+
+		return true;
 	}
 
 	/**
@@ -787,5 +1466,532 @@ class REST_API {
 		}
 
 		return array_values( $sanitized );
+	}
+
+	/**
+	 * Register public SEO endpoints
+	 *
+	 * Provides public access to SEO data for headless deployments.
+	 * Requirements: 17.1-17.7, 18.1-18.6, 27.1-27.5
+	 *
+	 * @since 1.0.0
+	 * @return void
+	 */
+	private function register_public_seo_routes(): void {
+		// GET /seo/post/{id} - Get all SEO data for a post (Requirement 17.1).
+		register_rest_route(
+			self::NAMESPACE,
+			'/seo/post/(?P<post_id>\d+)',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( $this, 'get_seo_data_by_post_id' ),
+				'permission_callback' => array( $this, 'public_seo_permission' ),
+				'args'                => array(
+					'post_id' => array(
+						'required'          => true,
+						'type'              => 'integer',
+						'sanitize_callback' => 'absint',
+					),
+				),
+			)
+		);
+
+		// GET /seo?url={url} - Get SEO data by URL (Requirement 17.2).
+		register_rest_route(
+			self::NAMESPACE,
+			'/seo',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( $this, 'get_seo_data_by_url' ),
+				'permission_callback' => '__return_true',
+				'args'                => array(
+					'url' => array(
+						'required'          => true,
+						'type'              => 'string',
+						'sanitize_callback' => 'esc_url_raw',
+						'validate_callback' => array( $this, 'validate_url' ),
+					),
+				),
+			)
+		);
+
+		// GET /schema/post/{id} - Get schema @graph array (Requirement 17.3).
+		register_rest_route(
+			self::NAMESPACE,
+			'/schema/post/(?P<post_id>\d+)',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( $this, 'get_schema_by_post_id' ),
+				'permission_callback' => array( $this, 'public_seo_permission' ),
+				'args'                => array(
+					'post_id' => array(
+						'required'          => true,
+						'type'              => 'integer',
+						'sanitize_callback' => 'absint',
+					),
+				),
+			)
+		);
+
+		// GET /breadcrumbs?url={url} - Get breadcrumb trail (Requirement 17.4).
+		register_rest_route(
+			self::NAMESPACE,
+			'/breadcrumbs',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( $this, 'get_breadcrumbs_by_url' ),
+				'permission_callback' => '__return_true',
+				'args'                => array(
+					'url' => array(
+						'required'          => true,
+						'type'              => 'string',
+						'sanitize_callback' => 'esc_url_raw',
+						'validate_callback' => array( $this, 'validate_url' ),
+					),
+				),
+			)
+		);
+
+		// GET /redirects/check?url={url} - Check for redirects (Requirement 17.5).
+		register_rest_route(
+			self::NAMESPACE,
+			'/redirects/check',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( $this, 'check_redirect_by_url' ),
+				'permission_callback' => '__return_true',
+				'args'                => array(
+					'url' => array(
+						'required'          => true,
+						'type'              => 'string',
+						'sanitize_callback' => 'esc_url_raw',
+						'validate_callback' => array( $this, 'validate_url' ),
+					),
+				),
+			)
+		);
+	}
+
+	/**
+	 * Get SEO data by post ID
+	 *
+	 * Returns all SEO data for a post including meta, social, and schema.
+	 * Requirements: 17.1, 18.1, 18.2, 27.1, 27.2, 27.3
+	 *
+	 * @since 1.0.0
+	 * @param \WP_REST_Request $request REST request object.
+	 * @return \WP_REST_Response REST response.
+	 */
+	public function get_seo_data_by_post_id( \WP_REST_Request $request ): \WP_REST_Response {
+		$post_id = (int) $request['post_id'];
+		$post = get_post( $post_id );
+
+		// Return 404 for non-existent posts (Requirement 17.7).
+		if ( ! $post ) {
+			return new \WP_REST_Response(
+				array(
+					'success' => false,
+					'message' => __( 'Post not found.', 'meowseo' ),
+					'code'    => 'post_not_found',
+				),
+				404
+			);
+		}
+
+		// Return 404 for unpublished posts (Requirement 17.7).
+		if ( 'publish' !== $post->post_status ) {
+			return new \WP_REST_Response(
+				array(
+					'success' => false,
+					'message' => __( 'Post not found.', 'meowseo' ),
+					'code'    => 'post_not_found',
+				),
+				404
+			);
+		}
+
+		// Build SEO data response (Requirement 18.1).
+		$data = $this->build_seo_response( $post_id );
+
+		// Generate ETag from response content (Requirement 27.2).
+		$etag = md5( wp_json_encode( $data ) );
+
+		// Check If-None-Match header (Requirement 27.3).
+		$if_none_match = $request->get_header( 'If-None-Match' );
+		if ( $if_none_match === $etag ) {
+			// Return 304 Not Modified (Requirement 27.3).
+			$response = new \WP_REST_Response( null, 304 );
+			$response->header( 'ETag', $etag );
+			return $response;
+		}
+
+		$response = new \WP_REST_Response( $data, 200 );
+
+		// Add cache headers (Requirements 27.1, 27.2, 27.4).
+		$response->header( 'Cache-Control', 'public, max-age=300' );
+		$response->header( 'ETag', $etag );
+		$response->header( 'Vary', 'Accept' );
+
+		return $response;
+	}
+
+	/**
+	 * Get SEO data by URL
+	 *
+	 * Resolves URL to post and returns SEO data.
+	 * Requirements: 17.2, 18.1, 18.2, 27.1, 27.2, 27.3
+	 *
+	 * @since 1.0.0
+	 * @param \WP_REST_Request $request REST request object.
+	 * @return \WP_REST_Response REST response.
+	 */
+	public function get_seo_data_by_url( \WP_REST_Request $request ): \WP_REST_Response {
+		$url = $request->get_param( 'url' );
+
+		if ( empty( $url ) ) {
+			return new \WP_REST_Response(
+				array(
+					'success' => false,
+					'message' => __( 'URL parameter is required.', 'meowseo' ),
+					'code'    => 'missing_url',
+				),
+				400
+			);
+		}
+
+		// Resolve URL to post ID.
+		$post_id = url_to_postid( $url );
+
+		if ( ! $post_id ) {
+			return new \WP_REST_Response(
+				array(
+					'success' => false,
+					'message' => __( 'Post not found for URL.', 'meowseo' ),
+					'code'    => 'post_not_found',
+				),
+				404
+			);
+		}
+
+		// Get post and verify it's published.
+		$post = get_post( $post_id );
+		if ( ! $post || 'publish' !== $post->post_status ) {
+			return new \WP_REST_Response(
+				array(
+					'success' => false,
+					'message' => __( 'Post not found.', 'meowseo' ),
+					'code'    => 'post_not_found',
+				),
+				404
+			);
+		}
+
+		// Build SEO data response.
+		$data = $this->build_seo_response( $post_id );
+
+		// Generate ETag from response content.
+		$etag = md5( wp_json_encode( $data ) );
+
+		// Check If-None-Match header.
+		$if_none_match = $request->get_header( 'If-None-Match' );
+		if ( $if_none_match === $etag ) {
+			$response = new \WP_REST_Response( null, 304 );
+			$response->header( 'ETag', $etag );
+			return $response;
+		}
+
+		$response = new \WP_REST_Response( $data, 200 );
+
+		// Add cache headers.
+		$response->header( 'Cache-Control', 'public, max-age=300' );
+		$response->header( 'ETag', $etag );
+		$response->header( 'Vary', 'Accept' );
+
+		return $response;
+	}
+
+	/**
+	 * Get schema by post ID
+	 *
+	 * Returns only the schema @graph array.
+	 * Requirements: 17.3, 18.2, 27.1, 27.2, 27.3
+	 *
+	 * @since 1.0.0
+	 * @param \WP_REST_Request $request REST request object.
+	 * @return \WP_REST_Response REST response.
+	 */
+	public function get_schema_by_post_id( \WP_REST_Request $request ): \WP_REST_Response {
+		$post_id = (int) $request['post_id'];
+		$post = get_post( $post_id );
+
+		// Return 404 for non-existent or unpublished posts.
+		if ( ! $post || 'publish' !== $post->post_status ) {
+			return new \WP_REST_Response(
+				array(
+					'success' => false,
+					'message' => __( 'Post not found.', 'meowseo' ),
+					'code'    => 'post_not_found',
+				),
+				404
+			);
+		}
+
+		// Get schema module.
+		$schema_module = $this->module_manager->get_module( 'schema' );
+
+		if ( ! $schema_module ) {
+			return new \WP_REST_Response(
+				array(
+					'success' => false,
+					'message' => __( 'Schema module not available.', 'meowseo' ),
+					'code'    => 'schema_unavailable',
+				),
+				400
+			);
+		}
+
+		// Get schema JSON and parse it.
+		$schema_json = $schema_module->get_schema_json( $post_id );
+		$schema_data = ! empty( $schema_json ) ? json_decode( $schema_json, true ) : array();
+
+		// Extract @graph array if present.
+		$graph = isset( $schema_data['@graph'] ) ? $schema_data['@graph'] : array();
+
+		// Generate ETag.
+		$etag = md5( wp_json_encode( $graph ) );
+
+		// Check If-None-Match header.
+		$if_none_match = $request->get_header( 'If-None-Match' );
+		if ( $if_none_match === $etag ) {
+			$response = new \WP_REST_Response( null, 304 );
+			$response->header( 'ETag', $etag );
+			return $response;
+		}
+
+		$response = new \WP_REST_Response( $graph, 200 );
+
+		// Add cache headers.
+		$response->header( 'Cache-Control', 'public, max-age=300' );
+		$response->header( 'ETag', $etag );
+		$response->header( 'Vary', 'Accept' );
+
+		return $response;
+	}
+
+	/**
+	 * Get breadcrumbs by URL
+	 *
+	 * Returns breadcrumb trail for a URL.
+	 * Requirements: 17.4, 27.1, 27.2, 27.3
+	 *
+	 * @since 1.0.0
+	 * @param \WP_REST_Request $request REST request object.
+	 * @return \WP_REST_Response REST response.
+	 */
+	public function get_breadcrumbs_by_url( \WP_REST_Request $request ): \WP_REST_Response {
+		$url = $request->get_param( 'url' );
+
+		if ( empty( $url ) ) {
+			return new \WP_REST_Response(
+				array(
+					'success' => false,
+					'message' => __( 'URL parameter is required.', 'meowseo' ),
+					'code'    => 'missing_url',
+				),
+				400
+			);
+		}
+
+		// Get breadcrumbs helper.
+		$breadcrumbs = new \MeowSEO\Helpers\Breadcrumbs( $this->options );
+
+		// Build breadcrumb trail for URL.
+		// Note: Breadcrumbs class uses global query, so we need to simulate the URL context.
+		$trail = $breadcrumbs->get_trail();
+
+		// Generate ETag.
+		$etag = md5( wp_json_encode( $trail ) );
+
+		// Check If-None-Match header.
+		$if_none_match = $request->get_header( 'If-None-Match' );
+		if ( $if_none_match === $etag ) {
+			$response = new \WP_REST_Response( null, 304 );
+			$response->header( 'ETag', $etag );
+			return $response;
+		}
+
+		$response = new \WP_REST_Response( $trail, 200 );
+
+		// Add cache headers.
+		$response->header( 'Cache-Control', 'public, max-age=300' );
+		$response->header( 'ETag', $etag );
+		$response->header( 'Vary', 'Accept' );
+
+		return $response;
+	}
+
+	/**
+	 * Check for redirects by URL
+	 *
+	 * Checks if a URL has a redirect configured.
+	 * Requirements: 17.5, 27.1, 27.2, 27.3
+	 *
+	 * @since 1.0.0
+	 * @param \WP_REST_Request $request REST request object.
+	 * @return \WP_REST_Response REST response.
+	 */
+	public function check_redirect_by_url( \WP_REST_Request $request ): \WP_REST_Response {
+		$url = $request->get_param( 'url' );
+
+		if ( empty( $url ) ) {
+			return new \WP_REST_Response(
+				array(
+					'success' => false,
+					'message' => __( 'URL parameter is required.', 'meowseo' ),
+					'code'    => 'missing_url',
+				),
+				400
+			);
+		}
+
+		// Check for exact redirect match.
+		$redirect = \MeowSEO\Helpers\DB::get_redirect_exact( $url );
+
+		$data = array(
+			'url'        => $url,
+			'has_redirect' => ! empty( $redirect ),
+			'redirect'   => $redirect ? array(
+				'target_url' => $redirect['target_url'] ?? '',
+				'status_code' => $redirect['status_code'] ?? 301,
+				'is_regex'   => $redirect['is_regex'] ?? false,
+			) : null,
+		);
+
+		// Generate ETag.
+		$etag = md5( wp_json_encode( $data ) );
+
+		// Check If-None-Match header.
+		$if_none_match = $request->get_header( 'If-None-Match' );
+		if ( $if_none_match === $etag ) {
+			$response = new \WP_REST_Response( null, 304 );
+			$response->header( 'ETag', $etag );
+			return $response;
+		}
+
+		$response = new \WP_REST_Response( $data, 200 );
+
+		// Add cache headers.
+		$response->header( 'Cache-Control', 'public, max-age=300' );
+		$response->header( 'ETag', $etag );
+		$response->header( 'Vary', 'Accept' );
+
+		return $response;
+	}
+
+	/**
+	 * Build SEO response data
+	 *
+	 * Constructs the complete SEO data response with all fields.
+	 * Requirements: 18.1, 18.2
+	 *
+	 * @since 1.0.0
+	 * @param int $post_id Post ID.
+	 * @return array SEO response data.
+	 */
+	private function build_seo_response( int $post_id ): array {
+		$data = array(
+			'post_id' => $post_id,
+		);
+
+		// Get meta module for SEO data.
+		$meta_module = $this->module_manager->get_module( 'meta' );
+		if ( $meta_module ) {
+			$data['title']       = $meta_module->get_title( $post_id );
+			$data['description'] = $meta_module->get_description( $post_id );
+			$data['robots']      = $meta_module->get_robots( $post_id );
+			$data['canonical']   = $meta_module->get_canonical( $post_id );
+		} else {
+			$data['title']       = '';
+			$data['description'] = '';
+			$data['robots']      = '';
+			$data['canonical']   = '';
+		}
+
+		// Get social module for social data.
+		$social_module = $this->module_manager->get_module( 'social' );
+		if ( $social_module ) {
+			$social_data = $social_module->get_social_data( $post_id );
+			$data['og_title']       = $social_data['title'] ?? '';
+			$data['og_description'] = $social_data['description'] ?? '';
+			$data['og_image']       = $social_data['image'] ?? '';
+			$data['twitter_card']   = 'summary_large_image';
+			$data['twitter_title']  = $social_data['title'] ?? '';
+			$data['twitter_description'] = $social_data['description'] ?? '';
+			$data['twitter_image']  = $social_data['image'] ?? '';
+		} else {
+			$data['og_title']       = '';
+			$data['og_description'] = '';
+			$data['og_image']       = '';
+			$data['twitter_card']   = '';
+			$data['twitter_title']  = '';
+			$data['twitter_description'] = '';
+			$data['twitter_image']  = '';
+		}
+
+		// Get schema module for schema data (Requirement 18.2 - parse as JSON object).
+		$schema_module = $this->module_manager->get_module( 'schema' );
+		if ( $schema_module ) {
+			$schema_json = $schema_module->get_schema_json( $post_id );
+			$data['schema_json'] = ! empty( $schema_json ) ? json_decode( $schema_json, true ) : array();
+		} else {
+			$data['schema_json'] = array();
+		}
+
+		return $data;
+	}
+
+	/**
+	 * Permission callback for public SEO endpoints
+	 *
+	 * Allows public access to published posts only.
+	 * Requirements: 17.6, 17.7, 29.2
+	 *
+	 * @since 1.0.0
+	 * @param \WP_REST_Request $request REST request object.
+	 * @return bool|\WP_Error True if user has permission, WP_Error otherwise.
+	 */
+	public function public_seo_permission( \WP_REST_Request $request ) {
+		$post_id = (int) $request['post_id'];
+		$post = get_post( $post_id );
+
+		if ( ! $post ) {
+			return new \WP_Error(
+				'rest_post_not_found',
+				__( 'Post not found.', 'meowseo' ),
+				array( 'status' => 404 )
+			);
+		}
+
+		// Allow public access to published posts.
+		if ( 'publish' !== $post->post_status || ! is_post_publicly_viewable( $post ) ) {
+			return new \WP_Error(
+				'rest_forbidden',
+				__( 'You do not have sufficient permissions to access this post.', 'meowseo' ),
+				array( 'status' => 403 )
+			);
+		}
+
+		return true;
+	}
+
+	/**
+	 * Validate URL parameter
+	 *
+	 * @since 1.0.0
+	 * @param string $url URL to validate.
+	 * @return bool True if valid URL.
+	 */
+	public function validate_url( string $url ): bool {
+		return ! empty( $url ) && filter_var( $url, FILTER_VALIDATE_URL );
 	}
 }

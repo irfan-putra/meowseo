@@ -237,8 +237,10 @@ class Breadcrumbs {
 	 * Build trail for archive page
 	 *
 	 * Generates breadcrumb trail for archive pages: Home → Archive
+	 * Includes product_cat taxonomy with Shop page for WooCommerce.
 	 *
 	 * Requirement 8.4: THE Breadcrumbs SHALL generate correct trails for archives with Home → Archive
+	 * Requirement 23.5: THE WooCommerce_Module SHALL include product_cat taxonomy in breadcrumbs
 	 *
 	 * @since 1.0.0
 	 * @return array Breadcrumb trail array.
@@ -268,6 +270,24 @@ class Breadcrumbs {
 					'label' => $term->name,
 					'url'   => get_term_link( $term ),
 				);
+			}
+		} elseif ( is_tax( 'product_cat' ) ) {
+			// Handle WooCommerce product category (Requirement 23.5)
+			$term = get_queried_object();
+			if ( $term ) {
+				// Add Shop page link if available
+				if ( function_exists( 'wc_get_page_id' ) ) {
+					$shop_page_id = wc_get_page_id( 'shop' );
+					if ( $shop_page_id ) {
+						$trail[] = array(
+							'label' => get_the_title( $shop_page_id ),
+							'url'   => get_permalink( $shop_page_id ),
+						);
+					}
+				}
+
+				// Add category hierarchy
+				$this->add_product_category_hierarchy( $trail, $term );
 			}
 		} elseif ( is_tax() ) {
 			$term = get_queried_object();
@@ -386,6 +406,49 @@ class Breadcrumbs {
 		);
 
 		return $trail;
+	}
+
+	/**
+	 * Add product category hierarchy to breadcrumb trail
+	 *
+	 * Adds parent categories and the current category to the breadcrumb trail.
+	 * Handles WooCommerce product_cat taxonomy hierarchy.
+	 *
+	 * @since 1.0.0
+	 * @param array  $trail Reference to the breadcrumb trail array.
+	 * @param object $term  The current term object.
+	 * @return void
+	 */
+	private function add_product_category_hierarchy( array &$trail, object $term ): void {
+		// Get parent categories if any
+		$parents = array();
+		$parent_id = $term->parent;
+
+		while ( $parent_id ) {
+			$parent = get_term( $parent_id, 'product_cat' );
+			if ( ! $parent || is_wp_error( $parent ) ) {
+				break;
+			}
+			$parents[] = $parent;
+			$parent_id = $parent->parent;
+		}
+
+		// Reverse to get from root to current
+		$parents = array_reverse( $parents );
+
+		// Add parent categories to trail
+		foreach ( $parents as $parent ) {
+			$trail[] = array(
+				'label' => $parent->name,
+				'url'   => get_term_link( $parent, 'product_cat' ),
+			);
+		}
+
+		// Add current category
+		$trail[] = array(
+			'label' => $term->name,
+			'url'   => get_term_link( $term, 'product_cat' ),
+		);
 	}
 
 	/**

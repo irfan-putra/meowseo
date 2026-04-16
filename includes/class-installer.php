@@ -51,6 +51,9 @@ class Installer {
 			Migration::run();
 		}
 
+		// Add database indexes for suggestion engine performance.
+		self::ensure_post_indexes();
+
 		// Flush rewrite rules.
 		flush_rewrite_rules();
 	}
@@ -238,5 +241,33 @@ CREATE TABLE {$prefix}meowseo_logs (
 ";
 
 		return $schema;
+	}
+
+	/**
+	 * Ensure database indexes exist on wp_posts table for suggestion engine performance.
+	 *
+	 * Requirement: 26.2 - THE Suggestion_Engine SHALL use database indexes on post_title and post_content
+	 *
+	 * @return void
+	 */
+	private static function ensure_post_indexes(): void {
+		global $wpdb;
+
+		// Check if indexes already exist.
+		$indexes = $wpdb->get_results(
+			"SHOW INDEX FROM {$wpdb->posts} WHERE Key_name IN ('idx_post_title', 'idx_post_content')"
+		);
+
+		$existing_indexes = wp_list_pluck( $indexes, 'Key_name' );
+
+		// Add post_title index if it doesn't exist.
+		if ( ! in_array( 'idx_post_title', $existing_indexes, true ) ) {
+			$wpdb->query( "ALTER TABLE {$wpdb->posts} ADD INDEX idx_post_title (post_title(191))" );
+		}
+
+		// Add post_content index if it doesn't exist.
+		if ( ! in_array( 'idx_post_content', $existing_indexes, true ) ) {
+			$wpdb->query( "ALTER TABLE {$wpdb->posts} ADD INDEX idx_post_content (post_content(191))" );
+		}
 	}
 }

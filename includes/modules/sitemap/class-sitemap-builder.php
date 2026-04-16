@@ -297,6 +297,9 @@ class Sitemap_Builder {
 			'lastmod' => $this->format_date( $post->post_modified_gmt ),
 		);
 
+		// Add default priority based on post type
+		$entry['priority'] = 'page' === $post->post_type ? '0.8' : '0.6';
+
 		// Add featured image if present (Requirement 15.1)
 		$thumbnail_id = get_post_thumbnail_id( $post->ID );
 		if ( $thumbnail_id ) {
@@ -321,6 +324,16 @@ class Sitemap_Builder {
 		$xml = "\t<url>\n";
 		$xml .= "\t\t<loc>" . esc_url( $entry['loc'] ) . "</loc>\n";
 		$xml .= "\t\t<lastmod>" . $entry['lastmod'] . "</lastmod>\n";
+
+		// Add priority if present
+		if ( isset( $entry['priority'] ) && ! empty( $entry['priority'] ) ) {
+			$xml .= "\t\t<priority>" . esc_attr( $entry['priority'] ) . "</priority>\n";
+		}
+
+		// Add changefreq if present
+		if ( isset( $entry['changefreq'] ) && ! empty( $entry['changefreq'] ) ) {
+			$xml .= "\t\t<changefreq>" . esc_attr( $entry['changefreq'] ) . "</changefreq>\n";
+		}
 
 		if ( isset( $entry['image'] ) && ! empty( $entry['image'] ) ) {
 			$xml .= "\t\t<image:image>\n";
