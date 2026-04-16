@@ -283,7 +283,7 @@ This implementation plan breaks down the Redirects Module, 404 Monitor, and Goog
     - Verify batch processing aggregates hits accurately
     - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 8.1, 8.2, 8.3, 8.4, 8.5, 8.6_
 
-  - [x] 17.3 Test GSC queue with rate limiting
+  - [ ] 17.3 Test GSC queue with rate limiting
     - Enqueue 20+ jobs and process batch
     - Simulate HTTP 429 response and verify exponential backoff
     - Verify retry_after calculation is correct
