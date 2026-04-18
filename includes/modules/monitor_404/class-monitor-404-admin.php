@@ -55,7 +55,7 @@ class Monitor_404_Admin {
 	 * @return void
 	 */
 	public function boot(): void {
-		add_action( 'admin_menu', array( $this, 'register_menu' ) );
+		// Menu registration is handled by Admin class to prevent duplicates
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
 		add_action( 'wp_ajax_meowseo_create_redirect_from_404', array( $this, 'handle_create_redirect' ) );
 		add_action( 'wp_ajax_meowseo_ignore_404_url', array( $this, 'handle_ignore_url' ) );

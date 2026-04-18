@@ -36,35 +36,61 @@ class Gutenberg_Assets {
 	 * nonce, post ID, and REST URL.
 	 */
 	public function enqueue_editor_assets(): void {
-		$asset_file = include plugin_dir_path( __FILE__ ) . '../../../build/gutenberg.asset.php';
+		$build_path = MEOWSEO_PATH . 'build/';
+		$build_url  = MEOWSEO_URL . 'build/';
+		$asset_file_path = $build_path . 'gutenberg.asset.php';
 
-		// Enqueue JavaScript bundle
-		wp_enqueue_script(
-			'meowseo-gutenberg',
-			plugins_url( 'build/gutenberg.js', dirname( __FILE__, 3 ) ),
-			$asset_file['dependencies'],
-			$asset_file['version'],
-			true
-		);
+		// Check if asset file exists, use fallback dependencies if missing
+		if ( file_exists( $asset_file_path ) ) {
+			$asset_file = include $asset_file_path;
+		} else {
+			$this->log_asset_error( 'build/gutenberg.asset.php', $asset_file_path );
+			// Fallback dependencies for Gutenberg editor
+			$asset_file = array(
+				'dependencies' => array( 'wp-blocks', 'wp-element', 'wp-editor', 'wp-components', 'wp-data', 'wp-plugins', 'wp-edit-post', 'wp-i18n' ),
+				'version'      => '1.0.0',
+			);
+		}
 
-		// Enqueue CSS bundle
-		wp_enqueue_style(
-			'meowseo-gutenberg',
-			plugins_url( 'build/index.css', dirname( __FILE__, 3 ) ),
-			array( 'wp-components' ),
-			$asset_file['version']
-		);
+		// Check if JavaScript bundle (build/gutenberg.js) exists before enqueueing
+		$js_file_path = $build_path . 'gutenberg.js';
+		if ( file_exists( $js_file_path ) ) {
+			// Enqueue JavaScript bundle
+			wp_enqueue_script(
+				'meowseo-gutenberg',
+				$build_url . 'gutenberg.js',
+				$asset_file['dependencies'],
+				$asset_file['version'],
+				true
+			);
 
-		// Localize script data
-		wp_localize_script(
-			'meowseo-gutenberg',
-			'meowseoData',
-			array(
-				'nonce'   => wp_create_nonce( 'wp_rest' ),
-				'postId'  => get_the_ID(),
-				'restUrl' => rest_url( 'meowseo/v1' ),
-			)
-		);
+			// Localize script data
+			wp_localize_script(
+				'meowseo-gutenberg',
+				'meowseoData',
+				array(
+					'nonce'   => wp_create_nonce( 'wp_rest' ),
+					'postId'  => get_the_ID(),
+					'restUrl' => rest_url( 'meowseo/v1' ),
+				)
+			);
+		} else {
+			$this->log_asset_error( 'build/gutenberg.js', $js_file_path );
+		}
+
+		// Check if CSS bundle exists before enqueueing
+		$css_file_path = $build_path . 'gutenberg.css';
+		if ( file_exists( $css_file_path ) ) {
+			// Enqueue CSS bundle
+			wp_enqueue_style(
+				'meowseo-gutenberg',
+				$build_url . 'gutenberg.css',
+				array( 'wp-components' ),
+				$asset_file['version']
+			);
+		} else {
+			$this->log_asset_error( 'build/gutenberg.css', $css_file_path );
+		}
 	}
 
 	/**
@@ -261,5 +287,47 @@ class Gutenberg_Assets {
 		$sanitized = wp_json_encode( $decoded );
 
 		return $sanitized !== false ? $sanitized : '';
+	}
+
+	/**
+	 * Log asset loading errors
+	 *
+	 * Centralized error logging for missing asset files.
+	 * Logs to WordPress debug log and stores admin notice in transient.
+	 *
+	 * @param string $file_name Relative file name (e.g., 'build/gutenberg.js').
+	 * @param string $file_path Absolute file path for debugging.
+	 */
+	private function log_asset_error( string $file_name, string $file_path ): void {
+		// Log to WordPress debug log
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			// Use @ to suppress any potential errors from error_log in test environments
+			@error_log(
+				sprintf(
+					'MeowSEO: Missing asset file %s (expected at: %s). Please run npm run build to generate asset files.',
+					$file_name,
+					$file_path
+				)
+			);
+		}
+
+		// Store admin notice in transient for display (only if function exists)
+		if ( function_exists( 'get_transient' ) && function_exists( 'set_transient' ) ) {
+			$notices = @get_transient( 'meowseo_asset_errors' );
+			if ( ! is_array( $notices ) ) {
+				$notices = array();
+			}
+
+			$notice_key = md5( $file_path );
+			if ( ! isset( $notices[ $notice_key ] ) ) {
+				$notices[ $notice_key ] = array(
+					'file_name' => $file_name,
+					'file_path' => $file_path,
+					'timestamp' => time(),
+				);
+				$expiration = defined( 'DAY_IN_SECONDS' ) ? DAY_IN_SECONDS : 86400;
+				@set_transient( 'meowseo_asset_errors', $notices, $expiration );
+			}
+		}
 	}
 }

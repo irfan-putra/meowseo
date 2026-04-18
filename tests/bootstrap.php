@@ -1117,6 +1117,12 @@ if ( ! function_exists( 'wp_verify_nonce' ) ) {
 	}
 }
 
+if ( ! function_exists( 'get_current_user_id' ) ) {
+	function get_current_user_id() {
+		return 1; // Default test user ID
+	}
+}
+
 // Define WordPress constants
 if ( ! defined( 'OBJECT' ) ) {
 	define( 'OBJECT', 'OBJECT' );

@@ -8,20 +8,20 @@
  */
 
 import { render } from '@wordpress/element';
+import ErrorBoundary from './components/ErrorBoundary';
 import SettingsApp from './settings/SettingsApp';
 
 // Import styles
 import './editor.css';
 
-// Render settings app
+// Render settings app with error boundary
 const settingsRoot = document.getElementById( 'meowseo-settings-root' );
 
 if ( settingsRoot ) {
-	try {
-		render( <SettingsApp />, settingsRoot );
-	} catch ( error ) {
-		console.error( 'MeowSEO: Error rendering settings app', error );
-		settingsRoot.innerHTML =
-			'<div class="notice notice-error"><p>MeowSEO: Failed to load settings interface. Please check the browser console for details.</p></div>';
-	}
+	render(
+		<ErrorBoundary>
+			<SettingsApp />
+		</ErrorBoundary>,
+		settingsRoot
+	);
 }

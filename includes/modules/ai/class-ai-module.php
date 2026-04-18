@@ -91,27 +91,39 @@ class AI_Module implements Module {
 	 * @since 1.0.0
 	 *
 	 * @param Options $options Options instance.
+	 * @throws \Exception If dependency instantiation fails.
 	 */
 	public function __construct( Options $options ) {
 		$this->options = $options;
 
-		// Initialize dependencies.
-		// Note: These classes will be implemented in subsequent tasks.
-		// For now, we check if they exist before instantiating.
-		if ( class_exists( AI_Provider_Manager::class ) ) {
+		// Initialize dependencies with proper error handling.
+		try {
+			// Instantiate Provider Manager first (no dependencies).
 			$this->provider_manager = new AI_Provider_Manager( $options );
-		}
 
-		if ( class_exists( AI_Generator::class ) ) {
+			// Instantiate Generator (depends on Provider Manager).
 			$this->generator = new AI_Generator( $this->provider_manager, $options );
-		}
 
-		if ( class_exists( AI_Settings::class ) ) {
+			// Instantiate Settings (depends on Provider Manager).
 			$this->settings = new AI_Settings( $options, $this->provider_manager );
-		}
 
-		if ( class_exists( AI_REST::class ) ) {
+			// Instantiate REST (depends on Generator and Provider Manager).
 			$this->rest = new AI_REST( $this->generator, $this->provider_manager );
+		} catch ( \Exception $e ) {
+			// Log the error with full context.
+			Logger::error(
+				'Failed to initialize AI module dependencies',
+				array(
+					'exception_class' => get_class( $e ),
+					'exception_message' => $e->getMessage(),
+					'file' => $e->getFile(),
+					'line' => $e->getLine(),
+					'stack_trace' => $e->getTraceAsString(),
+				)
+			);
+
+			// Re-throw to allow Module_Manager to handle gracefully.
+			throw $e;
 		}
 	}
 

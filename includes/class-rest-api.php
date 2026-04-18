@@ -382,12 +382,23 @@ class REST_API {
 	public function update_meta( \WP_REST_Request $request ): \WP_REST_Response {
 		$post_id = (int) $request['post_id'];
 
-		// Verify nonce (Requirement 15.2).
+		// Verify nonce (Requirement 15.2, 2.19).
 		if ( ! $this->verify_nonce( $request ) ) {
+			// Log the failed nonce verification (Requirement 2.19).
+			\MeowSEO\Helpers\Logger::warning(
+				'REST request failed: invalid nonce',
+				array(
+					'endpoint' => 'meta/update',
+					'post_id'  => $post_id,
+					'user_id'  => get_current_user_id(),
+				)
+			);
+
 			return new \WP_REST_Response(
 				array(
 					'success' => false,
-					'message' => __( 'Invalid nonce.', 'meowseo' ),
+					'message' => __( 'Security verification failed. Please refresh the page and try again.', 'meowseo' ),
+					'code'    => 'rest_invalid_nonce',
 				),
 				403
 			);
@@ -466,12 +477,22 @@ class REST_API {
 	 * @return \WP_REST_Response REST response.
 	 */
 	public function update_settings( \WP_REST_Request $request ): \WP_REST_Response {
-		// Verify nonce (Requirement 15.2).
+		// Verify nonce (Requirement 15.2, 2.19).
 		if ( ! $this->verify_nonce( $request ) ) {
+			// Log the failed nonce verification (Requirement 2.19).
+			\MeowSEO\Helpers\Logger::warning(
+				'REST request failed: invalid nonce',
+				array(
+					'endpoint' => 'settings/update',
+					'user_id'  => get_current_user_id(),
+				)
+			);
+
 			return new \WP_REST_Response(
 				array(
 					'success' => false,
-					'message' => __( 'Invalid nonce.', 'meowseo' ),
+					'message' => __( 'Security verification failed. Please refresh the page and try again.', 'meowseo' ),
+					'code'    => 'rest_invalid_nonce',
 				),
 				403
 			);
@@ -822,12 +843,21 @@ class REST_API {
 	 * @return \WP_REST_Response REST response.
 	 */
 	public function get_discover_performance( \WP_REST_Request $request ): \WP_REST_Response {
-		// Verify nonce (Requirement 3.2).
+		// Verify nonce (Requirement 3.2, 2.19).
 		if ( ! $this->verify_nonce( $request ) ) {
+			// Log the failed nonce verification (Requirement 2.19).
+			\MeowSEO\Helpers\Logger::warning(
+				'REST request failed: invalid nonce',
+				array(
+					'endpoint' => 'dashboard/discover-performance',
+					'user_id'  => get_current_user_id(),
+				)
+			);
+
 			return new \WP_REST_Response(
 				array(
 					'success' => false,
-					'message' => __( 'Invalid nonce.', 'meowseo' ),
+					'message' => __( 'Security verification failed. Please refresh the page and try again.', 'meowseo' ),
 					'code'    => 'rest_invalid_nonce',
 				),
 				403
@@ -862,12 +892,21 @@ class REST_API {
 	 * @return \WP_REST_Response REST response.
 	 */
 	public function get_index_queue( \WP_REST_Request $request ): \WP_REST_Response {
-		// Verify nonce (Requirement 3.2).
+		// Verify nonce (Requirement 3.2, 2.19).
 		if ( ! $this->verify_nonce( $request ) ) {
+			// Log the failed nonce verification (Requirement 2.19).
+			\MeowSEO\Helpers\Logger::warning(
+				'REST request failed: invalid nonce',
+				array(
+					'endpoint' => 'dashboard/index-queue',
+					'user_id'  => get_current_user_id(),
+				)
+			);
+
 			return new \WP_REST_Response(
 				array(
 					'success' => false,
-					'message' => __( 'Invalid nonce.', 'meowseo' ),
+					'message' => __( 'Security verification failed. Please refresh the page and try again.', 'meowseo' ),
 					'code'    => 'rest_invalid_nonce',
 				),
 				403

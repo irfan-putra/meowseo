@@ -175,7 +175,8 @@ class Redirects_REST {
 				'default'           => 301,
 				'sanitize_callback' => 'absint',
 				'validate_callback' => function( $value ) {
-					return in_array( (int) $value, array( 301, 302, 307, 410, 451 ), true );
+					// Strict allowlist validation (Requirement 2.18)
+					return in_array( (int) $value, array( 301, 302, 307, 308 ), true );
 				},
 			),
 			'is_regex'      => array(
@@ -284,7 +285,7 @@ class Redirects_REST {
 	/**
 	 * Create redirect
 	 *
-	 * Requirements: 16.1, 16.6, 6.1, 6.2, 6.3, 6.4
+	 * Requirements: 16.1, 16.6, 6.1, 6.2, 6.3, 6.4, 2.18
 	 *
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response|WP_Error Response object or error.
@@ -298,6 +299,12 @@ class Redirects_REST {
 			'is_regex'      => $request->get_param( 'is_regex' ) ? 1 : 0,
 			'is_active'     => 1,
 		);
+
+		// Strict redirect type validation (Requirement 2.18)
+		$strict_validation_error = $this->validate_redirect_type_strict( $data['redirect_type'] );
+		if ( is_wp_error( $strict_validation_error ) ) {
+			return $strict_validation_error;
+		}
 
 		// Validate redirect data (Requirement 6.1, 6.2, 6.3, 6.4)
 		$validation_error = $this->validate_redirect_data( $data );
@@ -398,7 +405,15 @@ class Redirects_REST {
 		}
 
 		if ( $request->has_param( 'redirect_type' ) ) {
-			$data['redirect_type'] = $request->get_param( 'redirect_type' );
+			$redirect_type = $request->get_param( 'redirect_type' );
+			
+			// Strict redirect type validation (Requirement 2.18)
+			$strict_validation_error = $this->validate_redirect_type_strict( $redirect_type );
+			if ( is_wp_error( $strict_validation_error ) ) {
+				return $strict_validation_error;
+			}
+			
+			$data['redirect_type'] = $redirect_type;
 			$format[] = '%d';
 		}
 
@@ -579,6 +594,46 @@ class Redirects_REST {
 			return new WP_Error(
 				'same_source_target',
 				__( 'Source URL and target URL cannot be the same.', 'meowseo' ),
+				array( 'status' => 400 )
+			);
+		}
+
+		return true;
+	}
+
+	/**
+	 * Validate redirect type with strict allowlist
+	 *
+	 * Enforces strict validation of redirect_type parameter against security allowlist.
+	 * Only allows standard HTTP redirect codes: 301, 302, 307, 308.
+	 * Requirement 2.18: Prevent potential SQL injection via strict validation.
+	 *
+	 * @param int $redirect_type Redirect type to validate.
+	 * @return true|WP_Error True if valid, WP_Error otherwise.
+	 */
+	private function validate_redirect_type_strict( int $redirect_type ) {
+		// Define strict allowlist (Requirement 2.18)
+		$allowlist = array( 301, 302, 307, 308 );
+
+		// Validate against allowlist
+		if ( ! in_array( $redirect_type, $allowlist, true ) ) {
+			// Log validation failure (Requirement 2.18)
+			Logger::warning(
+				'Invalid redirect type rejected',
+				array(
+					'redirect_type' => $redirect_type,
+					'allowlist'     => $allowlist,
+					'user_id'       => function_exists( 'get_current_user_id' ) ? get_current_user_id() : 0,
+					'ip_address'    => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
+				)
+			);
+
+			return new WP_Error(
+				'invalid_redirect_type_strict',
+				sprintf(
+					__( 'Invalid redirect type. For security reasons, only the following redirect types are allowed: %s', 'meowseo' ),
+					implode( ', ', $allowlist )
+				),
 				array( 'status' => 400 )
 			);
 		}
@@ -817,9 +872,12 @@ class Redirects_REST {
 				continue;
 			}
 
-			// Validate redirect type
-			if ( ! in_array( $redirect_type, array( 301, 302, 307, 410, 451 ), true ) ) {
-				$redirect_type = 301; // Default to 301
+			// Validate redirect type with strict allowlist (Requirement 2.18)
+			$allowlist = array( 301, 302, 307, 308 );
+			if ( ! in_array( $redirect_type, $allowlist, true ) ) {
+				$skipped_count++;
+				$errors[] = sprintf( 'Row %d: Invalid redirect type %d (must be one of: %s)', $row_number, $redirect_type, implode( ', ', $allowlist ) );
+				continue;
 			}
 
 			// Insert redirect

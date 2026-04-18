@@ -68,6 +68,7 @@ class Sitemap_Cache {
 	 * Creates directory with proper permissions and adds .htaccess
 	 * to deny direct access (Requirement 4.1).
 	 * Implements Requirement 13.4 for directory creation error logging.
+	 * Implements Requirement 2.14 for parent directory validation.
 	 *
 	 * @return bool True on success, false on failure.
 	 */
@@ -76,17 +77,53 @@ class Sitemap_Cache {
 			return true;
 		}
 
-		// Create directory with wp_mkdir_p (Requirement 13.4).
-		if ( ! wp_mkdir_p( $this->cache_dir ) ) {
+		// Requirement 2.14: Validate parent directory is writable before creation
+		// Check if parent directory is writable before attempting mkdir
+		if ( is_writable( dirname( $this->cache_dir ) ) ) {
+			// Parent is writable, proceed with mkdir
+			if ( ! wp_mkdir_p( $this->cache_dir ) ) {
+				$parent_dir = dirname( $this->cache_dir );
+				Logger::error(
+					'Sitemap cache directory creation failed',
+					array(
+						'directory'   => $this->cache_dir,
+						'error'       => 'wp_mkdir_p() failed',
+						'permissions' => is_writable( $parent_dir ) ? 'writable' : 'not writable',
+						'parent_dir'  => $parent_dir,
+						'disk_space'  => disk_free_space( $parent_dir ) !== false 
+							? size_format( disk_free_space( $parent_dir ) )
+							: 'unknown',
+					)
+				);
+				return false;
+			}
+		} else {
+			// Parent is not writable
+			$parent_dir = dirname( $this->cache_dir );
+			
 			Logger::error(
-				'Sitemap cache directory creation failed',
+				'Sitemap cache parent directory is not writable',
 				array(
-					'directory'   => $this->cache_dir,
-					'error'       => 'wp_mkdir_p() failed',
-					'permissions' => is_writable( dirname( $this->cache_dir ) ) ? 'writable' : 'not writable',
-					'parent_dir'  => dirname( $this->cache_dir ),
+					'parent_dir'  => $parent_dir,
+					'cache_dir'   => $this->cache_dir,
+					'error'       => 'Parent directory exists but is not writable',
+					'permissions' => substr( sprintf( '%o', fileperms( $parent_dir ) ), -4 ),
+					'owner'       => function_exists( 'posix_getpwuid' ) && function_exists( 'fileowner' ) 
+						? posix_getpwuid( fileowner( $parent_dir ) )['name'] ?? 'unknown'
+						: 'unknown',
 				)
 			);
+			
+			// Provide fallback location suggestion
+			$fallback_dir = sys_get_temp_dir() . '/meowseo-sitemaps';
+			Logger::info(
+				'Consider using fallback cache directory',
+				array(
+					'fallback_dir' => $fallback_dir,
+					'writable'     => is_writable( sys_get_temp_dir() ) ? 'yes' : 'no',
+				)
+			);
+			
 			return false;
 		}
 

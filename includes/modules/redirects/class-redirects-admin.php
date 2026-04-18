@@ -58,7 +58,7 @@ class Redirects_Admin {
 	 * @return void
 	 */
 	public function boot(): void {
-		add_action( 'admin_menu', array( $this, 'register_menu' ) );
+		// Menu registration is handled by Admin class to prevent duplicates
 		add_action( 'wp_ajax_meowseo_import_redirects', array( $this, 'handle_csv_import' ) );
 		add_action( 'wp_ajax_meowseo_export_redirects', array( $this, 'handle_csv_export' ) );
 	}

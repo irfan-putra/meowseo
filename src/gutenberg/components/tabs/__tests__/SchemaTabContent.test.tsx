@@ -97,13 +97,14 @@ describe( 'SchemaTypeSelector', () => {
 		const select = screen.getByRole( 'combobox' );
 		const options = select.querySelectorAll( 'option' );
 
-		expect( options ).toHaveLength( 6 );
+		expect( options ).toHaveLength( 7 );
 		expect( options[ 0 ] ).toHaveTextContent( 'None' );
 		expect( options[ 1 ] ).toHaveTextContent( 'Article' );
-		expect( options[ 2 ] ).toHaveTextContent( 'FAQPage' );
-		expect( options[ 3 ] ).toHaveTextContent( 'HowTo' );
-		expect( options[ 4 ] ).toHaveTextContent( 'LocalBusiness' );
-		expect( options[ 5 ] ).toHaveTextContent( 'Product' );
+		expect( options[ 2 ] ).toHaveTextContent( 'WebPage' );
+		expect( options[ 3 ] ).toHaveTextContent( 'FAQPage' );
+		expect( options[ 4 ] ).toHaveTextContent( 'HowTo' );
+		expect( options[ 5 ] ).toHaveTextContent( 'LocalBusiness' );
+		expect( options[ 6 ] ).toHaveTextContent( 'Product' );
 	} );
 
 	it( 'should update schema type on selection', () => {

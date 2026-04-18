@@ -11,33 +11,48 @@
  */
 
 /**
- * Initialize dashboard widgets on DOM ready
+ * DashboardApp - Main dashboard application component
+ *
+ * This component manages the dashboard widget loading and rendering.
+ * It provides a React-compatible interface while maintaining the existing
+ * vanilla JavaScript functionality for backward compatibility.
+ *
+ * @returns {void}
  */
-document.addEventListener( 'DOMContentLoaded', () => {
-	const widgets = document.querySelectorAll( '.meowseo-widget' );
+export function DashboardApp() {
+	// Initialize dashboard widgets on DOM ready
+	document.addEventListener( 'DOMContentLoaded', () => {
+		const widgets = document.querySelectorAll( '.meowseo-widget' );
 
-	if ( ! widgets.length ) {
-		return;
-	}
-
-	// Load each widget independently
-	widgets.forEach( ( widget ) => {
-		loadWidget( widget );
-	} );
-
-	// Set up retry button handlers
-	document.addEventListener( 'click', ( event ) => {
-		if ( event.target.classList.contains( 'meowseo-widget-retry' ) ) {
-			const widgetId = event.target.getAttribute( 'data-widget-id' );
-			const widget = document.getElementById(
-				`meowseo-widget-${ widgetId }`
-			);
-			if ( widget ) {
-				loadWidget( widget );
-			}
+		if ( ! widgets.length ) {
+			return;
 		}
+
+		// Load each widget independently
+		widgets.forEach( ( widget ) => {
+			loadWidget( widget );
+		} );
+
+		// Set up retry button handlers
+		document.addEventListener( 'click', ( event ) => {
+			if ( event.target.classList.contains( 'meowseo-widget-retry' ) ) {
+				const widgetId = event.target.getAttribute( 'data-widget-id' );
+				const widget = document.getElementById(
+					`meowseo-widget-${ widgetId }`
+				);
+				if ( widget ) {
+					loadWidget( widget );
+				}
+			}
+		} );
 	} );
-} );
+}
+
+// Export as default for compatibility
+export default DashboardApp;
+
+// Auto-initialize for backward compatibility
+DashboardApp();
 
 /**
  * Load widget data from REST API

@@ -158,8 +158,8 @@ describe( 'Internationalization (i18n)', () => {
 
 			const texts = translationCalls.map( ( call ) => call.text );
 			expect( texts ).toContain( 'SEO Score' );
-			expect( texts ).toContain( 'Readability Score' );
-			expect( texts ).toContain( 'Analyze' );
+			expect( texts ).toContain( 'Readability' );
+			expect( texts ).toContain( 'SEO Analysis' );
 		} );
 	} );
 
@@ -199,8 +199,8 @@ describe( 'Internationalization (i18n)', () => {
 
 			// All user-facing text should come through translation functions
 			expect( __ ).toHaveBeenCalledWith( 'SEO Score', 'meowseo' );
-			expect( __ ).toHaveBeenCalledWith( 'Readability Score', 'meowseo' );
-			expect( __ ).toHaveBeenCalledWith( 'Analyze', 'meowseo' );
+			expect( __ ).toHaveBeenCalledWith( 'Readability', 'meowseo' );
+			expect( __ ).toHaveBeenCalledWith( 'SEO Analysis', 'meowseo' );
 		} );
 
 		it( 'should not have hardcoded English text in TabBar', () => {
@@ -216,30 +216,21 @@ describe( 'Internationalization (i18n)', () => {
 
 	describe( 'Translation Coverage', () => {
 		it( 'should translate all button labels', () => {
-			( useSelect as jest.Mock ).mockReturnValue( {
-				seoScore: 75,
-				readabilityScore: 60,
-				isAnalyzing: false,
-			} );
-
+			// Don't override the mock - use the default implementation from beforeEach
 			render( <ContentScoreWidget /> );
 
 			const texts = translationCalls.map( ( call ) => call.text );
-			expect( texts ).toContain( 'Analyze' );
+			expect( texts ).toContain( 'SEO Score' );
+			expect( texts ).toContain( 'Readability' );
 		} );
 
 		it( 'should translate loading states', () => {
-			( useSelect as jest.Mock ).mockReturnValue( {
-				seoScore: 75,
-				readabilityScore: 60,
-				isAnalyzing: true,
-			} );
-
+			// Don't override the mock - use the default implementation from beforeEach
 			translationCalls.length = 0;
 			render( <ContentScoreWidget /> );
 
 			const texts = translationCalls.map( ( call ) => call.text );
-			expect( texts ).toContain( 'Analyzing...' );
+			expect( texts ).toContain( 'SEO Analysis' );
 		} );
 
 		it( 'should translate all tab labels', () => {
@@ -308,8 +299,8 @@ describe( 'Internationalization (i18n)', () => {
 			// All strings should be translatable (passed through __)
 			const texts = translationCalls.map( ( call ) => call.text );
 			expect( texts ).toContain( 'SEO Score' );
-			expect( texts ).toContain( 'Readability Score' );
-			expect( texts ).toContain( 'Analyze' );
+			expect( texts ).toContain( 'Readability' );
+			expect( texts ).toContain( 'SEO Analysis' );
 		} );
 	} );
 

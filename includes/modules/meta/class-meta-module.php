@@ -75,6 +75,13 @@ class Meta_Module implements Module {
 	private Gutenberg_Assets $gutenberg_assets;
 
 	/**
+	 * Classic_Editor instance
+	 *
+	 * @var Classic_Editor
+	 */
+	private Classic_Editor $classic_editor;
+
+	/**
 	 * Constructor
 	 *
 	 * Instantiates all module components with proper dependency injection.
@@ -104,6 +111,9 @@ class Meta_Module implements Module {
 
 		// Initialize Gutenberg_Assets for editor integration.
 		$this->gutenberg_assets = new Gutenberg_Assets();
+
+		// Initialize Classic_Editor for classic editor meta box.
+		$this->classic_editor = new Classic_Editor();
 	}
 
 	/**
@@ -122,6 +132,9 @@ class Meta_Module implements Module {
 
 		// Initialize Gutenberg_Assets hooks.
 		$this->gutenberg_assets->init();
+
+		// Initialize Classic_Editor hooks.
+		$this->classic_editor->init();
 	}
 
 	/**
@@ -151,8 +164,7 @@ class Meta_Module implements Module {
 		// Register rest_api_init hook for postmeta exposure.
 		add_action( 'rest_api_init', array( $this, 'register_rest_fields' ) );
 
-		// Register enqueue_block_editor_assets hook for Gutenberg sidebar.
-		add_action( 'enqueue_block_editor_assets', array( $this, 'enqueue_block_editor_assets' ) );
+
 	}
 
 	/**
@@ -202,7 +214,7 @@ class Meta_Module implements Module {
 	 * @return void
 	 */
 	public function handle_save_post( int $post_id, object $post ): void {
-		// TODO: Delegate to Meta_Postmeta instance
+		$this->classic_editor->save_meta( $post_id, $post );
 	}
 
 	/**
@@ -217,15 +229,5 @@ class Meta_Module implements Module {
 		$this->postmeta->register();
 	}
 
-	/**
-	 * Enqueue block editor assets
-	 *
-	 * Delegates to Gutenberg_Assets instance to enqueue scripts and styles
-	 * for Gutenberg sidebar.
-	 *
-	 * @return void
-	 */
-	public function enqueue_block_editor_assets(): void {
-		$this->gutenberg_assets->enqueue_editor_assets();
-	}
+
 }

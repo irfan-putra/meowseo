@@ -316,7 +316,7 @@ const reducer = ( state = DEFAULT_STATE, action ) => {
 };
 
 /**
- * Register the store with error handling
+ * Register the store with error handling and fallback mechanism
  */
 try {
 	registerStore( 'meowseo/data', {
@@ -327,6 +327,42 @@ try {
 } catch ( error ) {
 	// Log error but don't break the editor
 	console.error( 'MeowSEO: Failed to register store', error );
+	
+	// Provide fallback store mechanism for graceful degradation
+	// Create a minimal store with default state that components can still access
+	try {
+		// Attempt to register a minimal fallback store
+		registerStore( 'meowseo/data-fallback', {
+			reducer: ( state = DEFAULT_STATE ) => state,
+			actions: {
+				// Provide no-op actions that don't throw errors
+				updateMeta: () => ( { type: 'NOOP' } ),
+				setAnalysis: () => ( { type: 'NOOP' } ),
+				setActiveTab: () => ( { type: 'NOOP' } ),
+				setSaving: () => ( { type: 'NOOP' } ),
+				initializeMeta: () => ( { type: 'NOOP' } ),
+				setError: () => ( { type: 'NOOP' } ),
+				clearError: () => ( { type: 'NOOP' } ),
+			},
+			selectors: {
+				// Provide safe selectors that return default values
+				getSeoMeta: ( state ) => state.meta,
+				getMetaField: ( state, key ) => state.meta[ key ],
+				getSeoScore: ( state ) => state.analysis.seoScore,
+				getSeoChecks: ( state ) => state.analysis.seoChecks,
+				getReadabilityScore: ( state ) => state.analysis.readabilityScore,
+				getReadabilityChecks: ( state ) => state.analysis.readabilityChecks,
+				getActiveTab: ( state ) => state.ui.activeTab,
+				isSaving: ( state ) => state.ui.isSaving,
+				getError: ( state ) => state.ui.error,
+			},
+		} );
+		
+		console.warn( 'MeowSEO: Using fallback store due to registration failure. Some features may be limited.' );
+	} catch ( fallbackError ) {
+		console.error( 'MeowSEO: Failed to register fallback store', fallbackError );
+		// At this point, components will need to handle missing store gracefully
+	}
 }
 
 export default 'meowseo/data';

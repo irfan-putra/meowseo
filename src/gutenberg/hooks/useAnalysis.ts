@@ -96,16 +96,14 @@ function getWorkerInstance(): Worker | null {
 	try {
 		// In production, webpack will handle the worker path
 		// The worker file is at src/gutenberg/workers/analysis-worker.ts
-		// Using a static path that webpack can resolve
-		workerInstance = new Worker(
-			// @ts-ignore - webpack handles this path
-			/* webpackChunkName: "analysis-worker" */
-			'../workers/analysis-worker.ts',
-			{ type: 'module' }
-		);
+		// Using a relative path that webpack can resolve
+		const workerPath = '../workers/analysis-worker.ts';
+		
+		workerInstance = new Worker( workerPath as any, { type: 'module' } );
 		return workerInstance;
 	} catch ( error ) {
 		console.error( 'MeowSEO: Failed to create Web Worker:', error );
+		console.warn( 'MeowSEO: Falling back to synchronous analysis' );
 		return null;
 	}
 }
@@ -303,9 +301,43 @@ export function useAnalysis(): void {
 
 			if ( ! worker ) {
 				// Requirement 35.2: Display error message when Web Worker fails
-				console.error( 'MeowSEO: Web Worker not available' );
-				isAnalyzingRef.current = false;
-				dispatch( setAnalyzing( false ) );
+				console.error( 'MeowSEO: Web Worker not available, falling back to synchronous analysis' );
+				
+				// Fallback to synchronous analysis
+				// Provide basic analysis results without worker
+				try {
+					// Extract basic metrics from content
+					const content = snapshot.content || '';
+					const words = content.split( /\s+/ ).filter( Boolean );
+					const sentences = content.split( /[.!?]+/ ).filter( Boolean );
+					const paragraphs = content.split( /\n\n+/ ).filter( Boolean );
+					
+					// Calculate basic scores
+					const wordCount = words.length;
+					const sentenceCount = sentences.length;
+					const paragraphCount = paragraphs.length;
+					
+					// Provide fallback analysis results
+					const fallbackResults: AnalysisResults = {
+						seoResults: [],
+						readabilityResults: [],
+						seoScore: 0,
+						readabilityScore: 0,
+						wordCount,
+						sentenceCount,
+						paragraphCount,
+						fleschScore: 0,
+						keywordDensity: 0,
+						analysisTimestamp: Date.now(),
+					};
+					
+					handleAnalysisComplete( fallbackResults );
+				} catch ( fallbackError ) {
+					console.error( 'MeowSEO: Synchronous analysis fallback failed:', fallbackError );
+					isAnalyzingRef.current = false;
+					dispatch( setAnalyzing( false ) );
+				}
+				
 				return;
 			}
 

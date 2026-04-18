@@ -113,7 +113,7 @@ describe( 'InternalLinkSuggestions', () => {
 
 		expect( screen.getByTestId( 'spinner' ) ).toBeInTheDocument();
 		expect(
-			screen.getByText( 'Loading suggestions...' )
+			screen.getByText( 'Loading suggestions…' )
 		).toBeInTheDocument();
 	} );
 

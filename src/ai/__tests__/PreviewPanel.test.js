@@ -379,7 +379,7 @@ describe( 'PreviewPanel Component', () => {
 				/>
 			);
 
-			expect( screen.getByText( 'Applying...' ) ).toBeDisabled();
+			expect( screen.getByText( 'Applying…' ) ).toBeDisabled();
 			expect( screen.getByText( 'Cancel' ) ).toBeDisabled();
 		} );
 
@@ -397,7 +397,7 @@ describe( 'PreviewPanel Component', () => {
 			expect( screen.getByTestId( 'spinner' ) ).toBeInTheDocument();
 		} );
 
-		it( 'should show "Applying..." text when isApplying is true', () => {
+		it( 'should show "Applying…" text when isApplying is true', () => {
 			render(
 				<PreviewPanel
 					content={ mockContent }
@@ -408,7 +408,7 @@ describe( 'PreviewPanel Component', () => {
 				/>
 			);
 
-			expect( screen.getByText( 'Applying...' ) ).toBeInTheDocument();
+			expect( screen.getByText( 'Applying…' ) ).toBeInTheDocument();
 		} );
 	} );
 
@@ -546,7 +546,7 @@ describe( 'PreviewPanel Component', () => {
 				/>
 			);
 
-			const applyButton = screen.getByText( 'Applying...' );
+			const applyButton = screen.getByText( 'Applying…' );
 			expect( applyButton ).toHaveAttribute( 'aria-busy', 'true' );
 		} );
 	} );

@@ -112,7 +112,29 @@ class Options {
 	 */
 	public function get_enabled_modules(): array {
 		$modules = $this->get( 'enabled_modules', array() );
-		return is_array( $modules ) ? $modules : array();
+		
+		// If no modules are explicitly enabled, return default modules.
+		if ( empty( $modules ) || ! is_array( $modules ) ) {
+			return $this->get_default_modules();
+		}
+		
+		return $modules;
+	}
+
+	/**
+	 * Get default enabled modules.
+	 *
+	 * These modules are enabled by default on fresh installation.
+	 *
+	 * @return array Array of default module IDs.
+	 */
+	private function get_default_modules(): array {
+		return array(
+			'meta',          // SEO meta tags (required for Gutenberg sidebar)
+			'schema',        // Schema.org structured data
+			'sitemap',       // XML sitemaps
+			'social',        // Open Graph and Twitter Cards
+		);
 	}
 
 	/**

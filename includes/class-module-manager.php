@@ -39,7 +39,7 @@ class Module_Manager {
 	 * @var array<string, string>
 	 */
 	private array $module_registry = array(
-		'meta'          => 'Modules\Meta\Meta',
+		'meta'          => 'Modules\Meta\Meta_Module',
 		'schema'        => 'Modules\Schema\Schema',
 		'sitemap'       => 'Modules\Sitemap\Sitemap',
 		'redirects'     => 'Modules\Redirects\Redirects',
@@ -48,6 +48,7 @@ class Module_Manager {
 		'gsc'           => 'Modules\GSC\GSC',
 		'social'        => 'Modules\Social\Social',
 		'woocommerce'   => 'Modules\WooCommerce\WooCommerce',
+		'ai'            => 'Modules\AI\AI_Module',
 	);
 
 	/**
