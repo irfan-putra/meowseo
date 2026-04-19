@@ -61,6 +61,14 @@ class Meta implements Module {
 	private Gutenberg $gutenberg;
 
 	/**
+	 * Webmaster Verification instance
+	 *
+	 * @since 2.0.0
+	 * @var Webmaster_Verification
+	 */
+	private Webmaster_Verification $webmaster_verification;
+
+	/**
 	 * Constructor
 	 *
 	 * @since 1.0.0
@@ -73,6 +81,9 @@ class Meta implements Module {
 		$plugin_dir = dirname( dirname( dirname( __DIR__ ) ) );
 		$plugin_url = plugins_url( '', $plugin_dir . '/meowseo.php' );
 		$this->gutenberg = new Gutenberg( $plugin_dir, $plugin_url );
+
+		// Initialize Webmaster Verification (Requirement 3.9)
+		$this->webmaster_verification = new Webmaster_Verification( $options );
 	}
 
 	/**
@@ -199,11 +210,15 @@ class Meta implements Module {
 	 *
 	 * Outputs SEO title, meta description, robots, and canonical tags.
 	 * Implements cache warming to eliminate DB queries (Requirement 14.1).
+	 * Requirement 3.9: Output webmaster verification meta tags before other meta tags.
 	 *
 	 * @since 1.0.0
 	 * @return void
 	 */
 	public function output_head_tags(): void {
+		// Requirement 3.9: Output webmaster verification tags first (priority 1)
+		$this->webmaster_verification->output_verification_tags();
+
 		if ( ! is_singular() ) {
 			return;
 		}

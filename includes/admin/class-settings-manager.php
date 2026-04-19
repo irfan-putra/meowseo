@@ -1080,6 +1080,85 @@ class Settings_Manager {
 				</td>
 			</tr>
 
+			<tr><th scope="row" colspan="2"><h3><?php esc_html_e( 'Webmaster Tools Verification', 'meowseo' ); ?></h3></th></tr>
+			<tr>
+				<td colspan="2">
+					<p class="description" style="margin-top: 0;">
+						<?php esc_html_e( 'Enter verification codes from webmaster tools to verify site ownership. These codes will be output as meta tags in your site\'s head section.', 'meowseo' ); ?>
+					</p>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><label for="webmaster_verification_google"><?php esc_html_e( 'Google Search Console', 'meowseo' ); ?></label></th>
+				<td>
+					<?php
+					$verification = $this->options->get( 'webmaster_verification', array() );
+					$google_code  = $verification['google'] ?? '';
+					?>
+					<input type="text" 
+						   name="webmaster_verification[google]" 
+						   id="webmaster_verification_google" 
+						   value="<?php echo esc_attr( $google_code ); ?>" 
+						   class="regular-text"
+						   placeholder="<?php esc_attr_e( 'Enter verification code', 'meowseo' ); ?>">
+					<p class="description">
+						<?php
+						printf(
+							/* translators: %s: Link to Google Search Console */
+							esc_html__( 'Enter the verification code from %s (Settings > Ownership verification).', 'meowseo' ),
+							'<a href="https://search.google.com/search-console" target="_blank" rel="noopener noreferrer">Google Search Console</a>'
+						);
+						?>
+					</p>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><label for="webmaster_verification_bing"><?php esc_html_e( 'Bing Webmaster Tools', 'meowseo' ); ?></label></th>
+				<td>
+					<?php
+					$bing_code = $verification['bing'] ?? '';
+					?>
+					<input type="text" 
+						   name="webmaster_verification[bing]" 
+						   id="webmaster_verification_bing" 
+						   value="<?php echo esc_attr( $bing_code ); ?>" 
+						   class="regular-text"
+						   placeholder="<?php esc_attr_e( 'Enter verification code', 'meowseo' ); ?>">
+					<p class="description">
+						<?php
+						printf(
+							/* translators: %s: Link to Bing Webmaster Tools */
+							esc_html__( 'Enter the verification code from %s (Settings > Verify ownership).', 'meowseo' ),
+							'<a href="https://www.bing.com/webmasters" target="_blank" rel="noopener noreferrer">Bing Webmaster Tools</a>'
+						);
+						?>
+					</p>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><label for="webmaster_verification_yandex"><?php esc_html_e( 'Yandex Webmaster', 'meowseo' ); ?></label></th>
+				<td>
+					<?php
+					$yandex_code = $verification['yandex'] ?? '';
+					?>
+					<input type="text" 
+						   name="webmaster_verification[yandex]" 
+						   id="webmaster_verification_yandex" 
+						   value="<?php echo esc_attr( $yandex_code ); ?>" 
+						   class="regular-text"
+						   placeholder="<?php esc_attr_e( 'Enter verification code', 'meowseo' ); ?>">
+					<p class="description">
+						<?php
+						printf(
+							/* translators: %s: Link to Yandex Webmaster */
+							esc_html__( 'Enter the verification code from %s (Settings > Site verification).', 'meowseo' ),
+							'<a href="https://webmaster.yandex.com/" target="_blank" rel="noopener noreferrer">Yandex Webmaster</a>'
+						);
+						?>
+					</p>
+				</td>
+			</tr>
+
 			<tr><th scope="row" colspan="2"><h3><?php esc_html_e( 'Data Settings', 'meowseo' ); ?></h3></th></tr>
 			<tr>
 				<th scope="row"><?php esc_html_e( 'Delete on Uninstall', 'meowseo' ); ?></th>
@@ -1372,6 +1451,52 @@ class Settings_Manager {
 		// Save organization settings if any fields are set.
 		if ( ! empty( $organization ) ) {
 			$validated['organization'] = $organization;
+		}
+
+		// Validate webmaster verification codes (Requirement 3.8).
+		if ( isset( $settings['webmaster_verification'] ) && is_array( $settings['webmaster_verification'] ) ) {
+			$webmaster_verification = array();
+			
+			// Validate Google verification code.
+			if ( isset( $settings['webmaster_verification']['google'] ) ) {
+				$google_code = wp_strip_all_tags( trim( $settings['webmaster_verification']['google'] ) );
+				if ( ! empty( $google_code ) ) {
+					if ( preg_match( '/^[a-zA-Z0-9_-]{1,100}$/', $google_code ) ) {
+						$webmaster_verification['google'] = $google_code;
+					} else {
+						$this->errors['webmaster_verification_google'] = __( 'Google verification code must contain only letters, numbers, hyphens, and underscores (max 100 characters).', 'meowseo' );
+					}
+				}
+			}
+			
+			// Validate Bing verification code.
+			if ( isset( $settings['webmaster_verification']['bing'] ) ) {
+				$bing_code = wp_strip_all_tags( trim( $settings['webmaster_verification']['bing'] ) );
+				if ( ! empty( $bing_code ) ) {
+					if ( preg_match( '/^[a-zA-Z0-9_-]{1,100}$/', $bing_code ) ) {
+						$webmaster_verification['bing'] = $bing_code;
+					} else {
+						$this->errors['webmaster_verification_bing'] = __( 'Bing verification code must contain only letters, numbers, hyphens, and underscores (max 100 characters).', 'meowseo' );
+					}
+				}
+			}
+			
+			// Validate Yandex verification code.
+			if ( isset( $settings['webmaster_verification']['yandex'] ) ) {
+				$yandex_code = wp_strip_all_tags( trim( $settings['webmaster_verification']['yandex'] ) );
+				if ( ! empty( $yandex_code ) ) {
+					if ( preg_match( '/^[a-zA-Z0-9_-]{1,100}$/', $yandex_code ) ) {
+						$webmaster_verification['yandex'] = $yandex_code;
+					} else {
+						$this->errors['webmaster_verification_yandex'] = __( 'Yandex verification code must contain only letters, numbers, hyphens, and underscores (max 100 characters).', 'meowseo' );
+					}
+				}
+			}
+			
+			// Save webmaster verification settings if any codes are set.
+			if ( ! empty( $webmaster_verification ) ) {
+				$validated['webmaster_verification'] = $webmaster_verification;
+			}
 		}
 
 		// Validate enabled modules.
