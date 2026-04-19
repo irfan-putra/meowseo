@@ -355,7 +355,7 @@ The implementation follows MeowSEO's module-based architecture with options-base
 
 ### 6. Cornerstone Content Management
 
-- [ ] 6.1 Create Cornerstone Manager component
+- [x] 6.1 Create Cornerstone Manager component
   - Create `includes/modules/cornerstone/class-cornerstone-manager.php`
   - Implement constructor accepting Options dependency
   - Implement `is_cornerstone()` method checking postmeta
@@ -365,14 +365,14 @@ The implementation follows MeowSEO's module-based architecture with options-base
   - Implement `apply_cornerstone_weight()` method for link suggestions
   - _Requirements: 6.2, 6.3, 6.9, 6.10_
 
-- [ ] 6.2 Implement cornerstone postmeta storage
+- [x] 6.2 Implement cornerstone postmeta storage
   - Store value "1" in postmeta key "_meowseo_is_cornerstone" when checked
   - Delete postmeta key when unchecked
   - Add database index for efficient queries
   - Validate post ID exists before setting
   - _Requirements: 6.2, 6.3_
 
-- [ ] 6.3 Create cornerstone checkbox in Gutenberg sidebar
+- [x] 6.3 Create cornerstone checkbox in Gutenberg sidebar
   - Extend Gutenberg sidebar Advanced tab
   - Add checkbox control labeled "Mark as Cornerstone Content"
   - Add help text: "Cornerstone content represents your most important pages. These will be prioritized in internal link suggestions."
@@ -380,7 +380,7 @@ The implementation follows MeowSEO's module-based architecture with options-base
   - Save on post save
   - _Requirements: 6.1_
 
-- [ ] 6.4 Create List Table Integration component
+- [x] 6.4 Create List Table Integration component
   - Create `includes/modules/cornerstone/class-list-table-integration.php`
   - Implement constructor accepting Cornerstone_Manager dependency
   - Implement `register_hooks()` method
@@ -391,7 +391,7 @@ The implementation follows MeowSEO's module-based architecture with options-base
   - Implement `register_sortable_column()` method
   - _Requirements: 6.4, 6.5, 6.6, 6.7, 6.8_
 
-- [ ] 6.5 Implement cornerstone column in post list table
+- [x] 6.5 Implement cornerstone column in post list table
   - Hook into `manage_{post_type}_posts_columns` filter
   - Add "Cornerstone" column to all public post types
   - Display star icon (⭐ or dashicon-star-filled) for cornerstone posts
@@ -400,21 +400,21 @@ The implementation follows MeowSEO's module-based architecture with options-base
   - Make column sortable
   - _Requirements: 6.4, 6.7, 6.8_
 
-- [ ] 6.6 Implement cornerstone filter dropdown
+- [x] 6.6 Implement cornerstone filter dropdown
   - Hook into `restrict_manage_posts` action
   - Add filter dropdown with options: "All Posts", "Cornerstone Only", "Non-Cornerstone"
   - Hook into `pre_get_posts` filter
   - Apply meta_query filtering by "_meowseo_is_cornerstone" postmeta
   - _Requirements: 6.5, 6.6_
 
-- [ ] 6.7 Implement cornerstone link suggestion weighting
+- [x] 6.7 Implement cornerstone link suggestion weighting
   - Modify existing Link_Suggestions_Engine
   - Apply 2x weight to cornerstone posts in scoring
   - Scoring formula: `base_score * (is_cornerstone ? 2 : 1)`
   - Ensure cornerstone posts appear higher in suggestion list
   - _Requirements: 6.9_
 
-- [ ] 6.8 Create cornerstone dashboard widget
+- [x] 6.8 Create cornerstone dashboard widget
   - Add "Cornerstone Content" widget to MeowSEO dashboard
   - Display count of total cornerstone posts
   - Display list of cornerstone posts with edit links

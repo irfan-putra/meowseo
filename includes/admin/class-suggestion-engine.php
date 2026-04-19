@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Suggestion_Engine class
  *
  * Analyzes content and suggests relevant internal links.
- * Requirements: 14.1, 14.2, 14.3, 14.4, 14.5, 14.6, 14.7
+ * Requirements: 14.1, 14.2, 14.3, 14.4, 14.5, 14.6, 14.7, 6.9
  *
  * @since 1.0.0
  */
@@ -45,12 +45,22 @@ class Suggestion_Engine {
 	private array $stopwords_id = array();
 
 	/**
+	 * Cornerstone Manager instance
+	 *
+	 * @since 1.0.0
+	 * @var \MeowSEO\Modules\Cornerstone\Cornerstone_Manager|null
+	 */
+	private $cornerstone_manager = null;
+
+	/**
 	 * Constructor
 	 *
 	 * @since 1.0.0
+	 * @param \MeowSEO\Modules\Cornerstone\Cornerstone_Manager|null $cornerstone_manager Optional Cornerstone Manager instance.
 	 */
-	public function __construct() {
+	public function __construct( $cornerstone_manager = null ) {
 		$this->load_stopwords();
+		$this->cornerstone_manager = $cornerstone_manager;
 	}
 
 	/**
@@ -315,8 +325,9 @@ class Suggestion_Engine {
 	 *
 	 * Scoring algorithm: title match +50, content match +10 (max 50 per keyword),
 	 * meta description match +30.
-	 * Requirements: 14.3
+	 * Requirements: 14.3, 6.9
 	 *
+	 * Applies 2x weight to cornerstone posts (Requirement 6.9).
 	 * Optimized to use preloaded metadata instead of calling get_post_meta in loop.
 	 *
 	 * @since 1.0.0
@@ -349,6 +360,11 @@ class Suggestion_Engine {
 			if ( ! empty( $description ) && stripos( $description, $keyword ) !== false ) {
 				$score += 30;
 			}
+		}
+
+		// Apply cornerstone weight (Requirement 6.9).
+		if ( $this->cornerstone_manager ) {
+			$score = (int) $this->cornerstone_manager->apply_cornerstone_weight( (float) $score, $post->ID );
 		}
 
 		return $score;

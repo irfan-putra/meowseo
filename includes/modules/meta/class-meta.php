@@ -202,6 +202,19 @@ class Meta implements Module {
 					$args
 				);
 			}
+
+			// Register cornerstone meta field (Requirement 6.1)
+			register_post_meta(
+				$post_type,
+				'_meowseo_is_cornerstone',
+				array(
+					'type'         => 'string',
+					'description'  => __( 'Cornerstone content flag', 'meowseo' ),
+					'single'       => true,
+					'show_in_rest' => true,
+					'default'      => '',
+				)
+			);
 		}
 	}
 

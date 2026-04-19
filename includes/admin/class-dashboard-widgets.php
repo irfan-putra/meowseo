@@ -73,6 +73,11 @@ class Dashboard_Widgets {
 				'endpoint' => '/meowseo/v1/dashboard/content-health',
 				'icon'     => 'dashicons-heart',
 			),
+			'cornerstone-content'    => array(
+				'title'    => __( 'Cornerstone Content', 'meowseo' ),
+				'endpoint' => '/meowseo/v1/dashboard/cornerstone-content',
+				'icon'     => 'dashicons-star-filled',
+			),
 			'sitemap-status'         => array(
 				'title'    => __( 'Sitemap Status', 'meowseo' ),
 				'endpoint' => '/meowseo/v1/dashboard/sitemap-status',
@@ -653,6 +658,84 @@ class Dashboard_Widgets {
 	}
 
 	/**
+	 * Get cornerstone content data
+	 *
+	 * Lists cornerstone posts with edit links.
+	 * Requirements: 6.10
+	 *
+	 * @since 1.0.0
+	 * @return array Cornerstone content widget data.
+	 */
+	public function get_cornerstone_content_data(): array {
+		// Check cache first.
+		$cache_key = 'dashboard_cornerstone_content';
+		$cached_data = Cache::get( $cache_key );
+
+		if ( false !== $cached_data ) {
+			return $cached_data;
+		}
+
+		global $wpdb;
+
+		// Get total count of cornerstone posts.
+		$total_count = (int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(DISTINCT post_id) FROM {$wpdb->postmeta} 
+				WHERE meta_key = %s AND meta_value = '1'",
+				'_meowseo_is_cornerstone'
+			)
+		);
+
+		// Get cornerstone posts with details.
+		$posts = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT p.ID, p.post_title, p.post_type, p.post_status, p.post_modified
+				FROM {$wpdb->posts} p
+				INNER JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id
+				WHERE pm.meta_key = %s AND pm.meta_value = '1'
+				AND p.post_status = 'publish'
+				ORDER BY p.post_modified DESC
+				LIMIT 10",
+				'_meowseo_is_cornerstone'
+			),
+			ARRAY_A
+		);
+
+		// Format posts data.
+		$posts_data = array();
+		foreach ( $posts as $post ) {
+			$posts_data[] = array(
+				'id'            => (int) $post['ID'],
+				'title'         => $post['post_title'],
+				'post_type'     => $post['post_type'],
+				'edit_url'      => get_edit_post_link( $post['ID'], 'raw' ),
+				'view_url'      => get_permalink( $post['ID'] ),
+				'last_modified' => gmdate( 'c', strtotime( $post['post_modified'] ) ),
+			);
+		}
+
+		// Generate filter URL for all cornerstone posts.
+		$filter_url = add_query_arg(
+			array(
+				'post_type'                   => 'post',
+				'meowseo_cornerstone_filter' => 'cornerstone',
+			),
+			admin_url( 'edit.php' )
+		);
+
+		$data = array(
+			'total_count' => $total_count,
+			'posts'       => $posts_data,
+			'filter_url'  => $filter_url,
+		);
+
+		// Cache for 5 minutes (300 seconds).
+		Cache::set( $cache_key, $data, 300 );
+
+		return $data;
+	}
+
+	/**
 	 * Register cache invalidation hooks
 	 *
 	 * Invalidates widget caches when relevant data changes.
@@ -681,6 +764,10 @@ class Dashboard_Widgets {
 
 		// Invalidate index queue cache when queue status changes.
 		add_action( 'meowseo_gsc_queue_updated', array( $this, 'invalidate_index_queue_cache' ) );
+
+		// Invalidate cornerstone content cache when cornerstone meta is updated.
+		add_action( 'update_postmeta', array( $this, 'invalidate_cornerstone_cache_on_meta_update' ), 10, 4 );
+		add_action( 'delete_postmeta', array( $this, 'invalidate_cornerstone_cache_on_meta_delete' ), 10, 4 );
 	}
 
 	/**
@@ -761,5 +848,41 @@ class Dashboard_Widgets {
 	 */
 	public function invalidate_index_queue_cache(): void {
 		Cache::delete( 'dashboard_index_queue' );
+	}
+
+	/**
+	 * Invalidate cornerstone content cache on meta update
+	 *
+	 * Only invalidates when cornerstone meta key is updated.
+	 *
+	 * @since 1.0.0
+	 * @param int    $meta_id    Meta ID.
+	 * @param int    $object_id  Object ID.
+	 * @param string $meta_key   Meta key.
+	 * @param mixed  $meta_value Meta value.
+	 * @return void
+	 */
+	public function invalidate_cornerstone_cache_on_meta_update( int $meta_id, int $object_id, string $meta_key, $meta_value ): void {
+		if ( '_meowseo_is_cornerstone' === $meta_key ) {
+			Cache::delete( 'dashboard_cornerstone_content' );
+		}
+	}
+
+	/**
+	 * Invalidate cornerstone content cache on meta delete
+	 *
+	 * Only invalidates when cornerstone meta key is deleted.
+	 *
+	 * @since 1.0.0
+	 * @param array  $meta_ids   Meta IDs.
+	 * @param int    $object_id  Object ID.
+	 * @param string $meta_key   Meta key.
+	 * @param mixed  $meta_value Meta value.
+	 * @return void
+	 */
+	public function invalidate_cornerstone_cache_on_meta_delete( array $meta_ids, int $object_id, string $meta_key, $meta_value ): void {
+		if ( '_meowseo_is_cornerstone' === $meta_key ) {
+			Cache::delete( 'dashboard_cornerstone_content' );
+		}
 	}
 }

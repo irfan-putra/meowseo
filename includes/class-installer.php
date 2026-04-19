@@ -247,13 +247,14 @@ CREATE TABLE {$prefix}meowseo_logs (
 	 * Ensure database indexes exist on wp_posts table for suggestion engine performance.
 	 *
 	 * Requirement: 26.2 - THE Suggestion_Engine SHALL use database indexes on post_title and post_content
+	 * Requirement: 6.2 - Add database index for cornerstone content queries
 	 *
 	 * @return void
 	 */
 	private static function ensure_post_indexes(): void {
 		global $wpdb;
 
-		// Check if indexes already exist.
+		// Check if indexes already exist on wp_posts.
 		$indexes = $wpdb->get_results(
 			"SHOW INDEX FROM {$wpdb->posts} WHERE Key_name IN ('idx_post_title', 'idx_post_content')"
 		);
@@ -268,6 +269,18 @@ CREATE TABLE {$prefix}meowseo_logs (
 		// Add post_content index if it doesn't exist.
 		if ( ! in_array( 'idx_post_content', $existing_indexes, true ) ) {
 			$wpdb->query( "ALTER TABLE {$wpdb->posts} ADD INDEX idx_post_content (post_content(191))" );
+		}
+
+		// Check if cornerstone index exists on wp_postmeta.
+		$postmeta_indexes = $wpdb->get_results(
+			"SHOW INDEX FROM {$wpdb->postmeta} WHERE Key_name = 'idx_meowseo_cornerstone'"
+		);
+
+		// Add cornerstone index if it doesn't exist.
+		if ( empty( $postmeta_indexes ) ) {
+			$wpdb->query(
+				"ALTER TABLE {$wpdb->postmeta} ADD INDEX idx_meowseo_cornerstone (meta_key(191), meta_value(10))"
+			);
 		}
 	}
 }
