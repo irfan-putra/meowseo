@@ -31,6 +31,13 @@ const SchemaTypeSelector: React.FC = () => {
 		{ label: __( 'HowTo', 'meowseo' ), value: 'HowTo' },
 		{ label: __( 'LocalBusiness', 'meowseo' ), value: 'LocalBusiness' },
 		{ label: __( 'Product', 'meowseo' ), value: 'Product' },
+		{ label: __( 'Recipe', 'meowseo' ), value: 'Recipe' },
+		{ label: __( 'Event', 'meowseo' ), value: 'Event' },
+		{ label: __( 'VideoObject', 'meowseo' ), value: 'VideoObject' },
+		{ label: __( 'Course', 'meowseo' ), value: 'Course' },
+		{ label: __( 'JobPosting', 'meowseo' ), value: 'JobPosting' },
+		{ label: __( 'Book', 'meowseo' ), value: 'Book' },
+		{ label: __( 'Person', 'meowseo' ), value: 'Person' },
 	];
 
 	return (

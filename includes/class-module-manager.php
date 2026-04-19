@@ -50,6 +50,8 @@ class Module_Manager {
 		'woocommerce'   => 'Modules\WooCommerce\WooCommerce',
 		'ai'            => 'Modules\AI\AI_Module',
 		'import'        => 'Modules\Import\Import',
+		'image_seo'     => 'Modules\Image_SEO\Image_SEO',
+		'indexnow'      => 'Modules\IndexNow\IndexNow',
 	);
 
 	/**

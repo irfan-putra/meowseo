@@ -18,7 +18,7 @@ export interface AnalysisResultDetails {
 
 /**
  * Individual analyzer result
- * Requirements: 22.1, 22.2, 22.3, 22.4, 22.5
+ * Requirements: 22.1, 22.2, 22.3, 22.4, 22.5, 6.15
  */
 export interface AnalysisResult {
 	/** Unique identifier (e.g., 'keyword-in-title') */
@@ -31,6 +31,8 @@ export interface AnalysisResult {
 	score: number;
 	/** Optional additional data */
 	details?: AnalysisResultDetails;
+	/** Optional fix explanation for failing checks (Requirement 6.15) */
+	fix_explanation?: string;
 }
 
 export interface ContentSnapshot {

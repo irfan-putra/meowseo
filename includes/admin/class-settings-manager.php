@@ -90,6 +90,11 @@ class Settings_Manager {
 				'icon'   => 'dashicons-share',
 				'method' => 'render_social_profiles_tab',
 			),
+			'sitemap'         => array(
+				'title'  => __( 'Sitemap', 'meowseo' ),
+				'icon'   => 'dashicons-networking',
+				'method' => 'render_sitemap_tab',
+			),
 			'modules'         => array(
 				'title'  => __( 'Modules', 'meowseo' ),
 				'icon'   => 'dashicons-admin-plugins',
@@ -861,6 +866,85 @@ class Settings_Manager {
 	}
 
 	/**
+	 * Render Sitemap settings tab
+	 *
+	 * Requirements: 3.9, 13.4
+	 *
+	 * @since 1.0.0
+	 * @return void
+	 */
+	public function render_sitemap_tab(): void {
+		$news_sitemap_publication_name = $this->options->get( 'news_sitemap_publication_name', '' );
+		$news_sitemap_language = $this->options->get( 'news_sitemap_language', '' );
+		
+		// Get site defaults for placeholders
+		$site_name = get_bloginfo( 'name' );
+		$site_language = get_bloginfo( 'language' );
+		
+		// Convert WordPress locale to ISO 639-1 (e.g., 'en-US' to 'en')
+		if ( strpos( $site_language, '-' ) !== false ) {
+			$parts = explode( '-', $site_language );
+			$site_language = $parts[0];
+		}
+		?>
+		<h2><?php esc_html_e( 'Sitemap Settings', 'meowseo' ); ?></h2>
+		<p class="description"><?php esc_html_e( 'Configure XML sitemap generation and Google News sitemap settings.', 'meowseo' ); ?></p>
+
+		<table class="form-table" role="presentation">
+			<tr><th scope="row" colspan="2"><h3><?php esc_html_e( 'Google News Sitemap', 'meowseo' ); ?></h3></th></tr>
+			<tr>
+				<td colspan="2">
+					<p class="description" style="margin-top: 0;">
+						<?php
+						printf(
+							/* translators: %s: news sitemap URL */
+							esc_html__( 'Your Google News sitemap is available at: %s', 'meowseo' ),
+							'<a href="' . esc_url( trailingslashit( get_site_url() ) . 'news-sitemap.xml' ) . '" target="_blank" rel="noopener noreferrer"><code>' . esc_html( trailingslashit( get_site_url() ) . 'news-sitemap.xml' ) . '</code></a>'
+						);
+						?>
+					</p>
+					<p class="description">
+						<?php esc_html_e( 'The news sitemap includes posts published within the last 2 days and is automatically updated when you publish new content.', 'meowseo' ); ?>
+					</p>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><label for="news_sitemap_publication_name"><?php esc_html_e( 'Publication Name', 'meowseo' ); ?></label></th>
+				<td>
+					<input type="text" name="news_sitemap_publication_name" id="news_sitemap_publication_name" value="<?php echo esc_attr( $news_sitemap_publication_name ); ?>" class="regular-text" placeholder="<?php echo esc_attr( $site_name ); ?>">
+					<p class="description">
+						<?php
+						printf(
+							/* translators: %s: site name */
+							esc_html__( 'The name of your news publication. Leave empty to use your site name: %s', 'meowseo' ),
+							'<strong>' . esc_html( $site_name ) . '</strong>'
+						);
+						?>
+					</p>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><label for="news_sitemap_language"><?php esc_html_e( 'Publication Language', 'meowseo' ); ?></label></th>
+				<td>
+					<input type="text" name="news_sitemap_language" id="news_sitemap_language" value="<?php echo esc_attr( $news_sitemap_language ); ?>" class="regular-text" placeholder="<?php echo esc_attr( $site_language ); ?>" maxlength="2" pattern="[a-z]{2}">
+					<p class="description">
+						<?php
+						printf(
+							/* translators: %s: site language code */
+							esc_html__( 'ISO 639-1 language code (2 letters). Leave empty to use your site language: %s', 'meowseo' ),
+							'<strong>' . esc_html( $site_language ) . '</strong>'
+						);
+						?>
+						<br>
+						<?php esc_html_e( 'Examples: en (English), es (Spanish), fr (French), de (German), it (Italian), pt (Portuguese)', 'meowseo' ); ?>
+					</p>
+				</td>
+			</tr>
+		</table>
+		<?php
+	}
+
+	/**
 	 * Render Modules settings tab
 	 *
 	 * Requirements: 7.1, 7.2, 7.3, 7.5
@@ -1168,6 +1252,105 @@ class Settings_Manager {
 			// Render the editor UI.
 			$robots_txt_editor->render_editor_ui();
 			?>
+
+			<tr><th scope="row" colspan="2"><h3><?php esc_html_e( 'Schema Settings', 'meowseo' ); ?></h3></th></tr>
+			<tr>
+				<th scope="row"><?php esc_html_e( 'Automatic Video Schema', 'meowseo' ); ?></th>
+				<td>
+					<?php
+					$auto_video_schema_enabled = $this->options->get( 'auto_video_schema_enabled', true );
+					?>
+					<label>
+						<input type="checkbox" name="auto_video_schema_enabled" value="1" <?php checked( $auto_video_schema_enabled ); ?>>
+						<?php esc_html_e( 'Automatically generate VideoObject schema for embedded YouTube and Vimeo videos', 'meowseo' ); ?>
+					</label>
+					<p class="description">
+						<?php esc_html_e( 'When enabled, MeowSEO will automatically detect YouTube and Vimeo videos in your post content and generate VideoObject schema markup. This helps search engines display rich video results.', 'meowseo' ); ?>
+					</p>
+				</td>
+			</tr>
+
+			<tr><th scope="row" colspan="2"><h3><?php esc_html_e( 'Image SEO', 'meowseo' ); ?></h3></th></tr>
+			<tr>
+				<th scope="row"><?php esc_html_e( 'Automatic Alt Text Generation', 'meowseo' ); ?></th>
+				<td>
+					<?php
+					$image_seo_enabled = $this->options->get( 'image_seo_enabled', false );
+					?>
+					<label>
+						<input type="checkbox" name="image_seo_enabled" value="1" <?php checked( $image_seo_enabled ); ?>>
+						<?php esc_html_e( 'Enable automatic alt text generation for images', 'meowseo' ); ?>
+					</label>
+					<p class="description">
+						<?php esc_html_e( 'When enabled, MeowSEO will automatically generate alt text for images that lack it, improving accessibility and SEO.', 'meowseo' ); ?>
+					</p>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><label for="image_seo_alt_pattern"><?php esc_html_e( 'Alt Text Pattern', 'meowseo' ); ?></label></th>
+				<td>
+					<?php
+					$image_seo_alt_pattern = $this->options->get( 'image_seo_alt_pattern', '%imagetitle%' );
+					?>
+					<input type="text" 
+						   name="image_seo_alt_pattern" 
+						   id="image_seo_alt_pattern" 
+						   value="<?php echo esc_attr( $image_seo_alt_pattern ); ?>" 
+						   class="regular-text"
+						   placeholder="%imagetitle%">
+					<p class="description">
+						<?php esc_html_e( 'Pattern template for generating alt text. Available variables:', 'meowseo' ); ?>
+						<br>
+						<code>%imagetitle%</code> - <?php esc_html_e( 'Image title', 'meowseo' ); ?>,
+						<code>%imagealt%</code> - <?php esc_html_e( 'Existing alt text', 'meowseo' ); ?>,
+						<code>%sitename%</code> - <?php esc_html_e( 'Site name', 'meowseo' ); ?>
+					</p>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><?php esc_html_e( 'Override Existing Alt Text', 'meowseo' ); ?></th>
+				<td>
+					<?php
+					$image_seo_override_existing = $this->options->get( 'image_seo_override_existing', false );
+					?>
+					<label>
+						<input type="checkbox" name="image_seo_override_existing" value="1" <?php checked( $image_seo_override_existing ); ?>>
+						<?php esc_html_e( 'Replace existing alt text with generated alt text', 'meowseo' ); ?>
+					</label>
+					<p class="description">
+						<?php esc_html_e( 'When disabled (recommended), only images without alt text will be processed. When enabled, all images will have their alt text replaced with the generated pattern.', 'meowseo' ); ?>
+					</p>
+				</td>
+			</tr>
+
+			<tr><th scope="row" colspan="2"><h3><?php esc_html_e( 'IndexNow Settings', 'meowseo' ); ?></h3></th></tr>
+			<tr>
+				<th scope="row"><?php esc_html_e( 'Enable IndexNow', 'meowseo' ); ?></th>
+				<td>
+					<?php
+					$indexnow_enabled = $this->options->get( 'indexnow_enabled', false );
+					?>
+					<label>
+						<input type="checkbox" name="indexnow_enabled" value="1" <?php checked( $indexnow_enabled ); ?>>
+						<?php esc_html_e( 'Enable instant URL indexing via IndexNow', 'meowseo' ); ?>
+					</label>
+					<p class="description">
+						<?php esc_html_e( 'When enabled, published and updated posts will be automatically submitted to IndexNow for instant indexing by Bing, Yandex, and Seznam.', 'meowseo' ); ?>
+					</p>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><label for="indexnow_api_key"><?php esc_html_e( 'IndexNow API Key', 'meowseo' ); ?></label></th>
+				<td>
+					<?php
+					$indexnow_api_key = $this->options->get( 'indexnow_api_key', '' );
+					?>
+					<input type="text" id="indexnow_api_key" name="indexnow_api_key" value="<?php echo esc_attr( $indexnow_api_key ); ?>" class="regular-text" readonly>
+					<p class="description">
+						<?php esc_html_e( 'Your unique IndexNow API key. This is automatically generated and used to authenticate submissions.', 'meowseo' ); ?>
+					</p>
+				</td>
+			</tr>
 
 			<tr><th scope="row" colspan="2"><h3><?php esc_html_e( 'Data Settings', 'meowseo' ); ?></h3></th></tr>
 			<tr>
@@ -1612,6 +1795,39 @@ class Settings_Manager {
 
 		// Validate delete on uninstall.
 		$validated['delete_on_uninstall'] = ! empty( $settings['delete_on_uninstall'] );
+
+		// Validate automatic video schema setting (Requirement 2.10).
+		$validated['auto_video_schema_enabled'] = ! empty( $settings['auto_video_schema_enabled'] );
+
+		// Validate image SEO settings (Requirements 4.6, 4.7, 4.10).
+		$validated['image_seo_enabled'] = ! empty( $settings['image_seo_enabled'] );
+		
+		if ( isset( $settings['image_seo_alt_pattern'] ) ) {
+			$alt_pattern = sanitize_text_field( $settings['image_seo_alt_pattern'] );
+			// Validate that pattern is not empty if image SEO is enabled.
+			if ( ! empty( $validated['image_seo_enabled'] ) && empty( $alt_pattern ) ) {
+				$this->errors['image_seo_alt_pattern'] = __( 'Alt text pattern cannot be empty when image SEO is enabled.', 'meowseo' );
+			} else {
+				$validated['image_seo_alt_pattern'] = $alt_pattern;
+			}
+		}
+		
+		$validated['image_seo_override_existing'] = ! empty( $settings['image_seo_override_existing'] );
+
+		// Validate news sitemap settings (Requirements 3.9, 13.4).
+		if ( isset( $settings['news_sitemap_publication_name'] ) ) {
+			$validated['news_sitemap_publication_name'] = sanitize_text_field( $settings['news_sitemap_publication_name'] );
+		}
+		
+		if ( isset( $settings['news_sitemap_language'] ) ) {
+			$language = sanitize_text_field( $settings['news_sitemap_language'] );
+			// Validate ISO 639-1 format (2 lowercase letters).
+			if ( empty( $language ) || preg_match( '/^[a-z]{2}$/', $language ) ) {
+				$validated['news_sitemap_language'] = $language;
+			} else {
+				$this->errors['news_sitemap_language'] = __( 'Language code must be 2 lowercase letters (ISO 639-1 format). Examples: en, es, fr, de', 'meowseo' );
+			}
+		}
 
 		// Validate breadcrumbs settings.
 		$validated['breadcrumbs_enabled'] = ! empty( $settings['breadcrumbs_enabled'] );

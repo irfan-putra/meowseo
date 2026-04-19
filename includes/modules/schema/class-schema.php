@@ -426,6 +426,13 @@ class Schema implements Module {
 			'HowTo',
 			'LocalBusiness',
 			'Product',
+			'Recipe',
+			'Event',
+			'VideoObject',
+			'Course',
+			'JobPosting',
+			'Book',
+			'Person',
 		);
 
 		return in_array( $schema_type, $valid_types, true );

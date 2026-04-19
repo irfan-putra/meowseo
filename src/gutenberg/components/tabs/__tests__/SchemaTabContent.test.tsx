@@ -88,8 +88,21 @@ jest.mock( '@wordpress/i18n', () => ( {
 	__: ( text: string ) => text,
 } ) );
 
+// Mock WordPress data store
+jest.mock( '@wordpress/data', () => ( {
+	useSelect: jest.fn( ( callback: any ) => {
+		return callback( () => ( {
+			getSelectedBlockClientId: () => null,
+			getBlock: () => null,
+		} ) );
+	} ),
+	useDispatch: jest.fn( () => ( {
+		updateBlockAttributes: jest.fn(),
+	} ) ),
+} ) );
+
 describe( 'SchemaTypeSelector', () => {
-	it( 'should display schema type selector with 5 schema types', () => {
+	it( 'should display schema type selector with all 13 schema types', () => {
 		render( <SchemaTypeSelector /> );
 
 		expect( screen.getByLabelText( 'Schema Type' ) ).toBeInTheDocument();
@@ -97,7 +110,7 @@ describe( 'SchemaTypeSelector', () => {
 		const select = screen.getByRole( 'combobox' );
 		const options = select.querySelectorAll( 'option' );
 
-		expect( options ).toHaveLength( 7 );
+		expect( options ).toHaveLength( 14 );
 		expect( options[ 0 ] ).toHaveTextContent( 'None' );
 		expect( options[ 1 ] ).toHaveTextContent( 'Article' );
 		expect( options[ 2 ] ).toHaveTextContent( 'WebPage' );
@@ -105,6 +118,13 @@ describe( 'SchemaTypeSelector', () => {
 		expect( options[ 4 ] ).toHaveTextContent( 'HowTo' );
 		expect( options[ 5 ] ).toHaveTextContent( 'LocalBusiness' );
 		expect( options[ 6 ] ).toHaveTextContent( 'Product' );
+		expect( options[ 7 ] ).toHaveTextContent( 'Recipe' );
+		expect( options[ 8 ] ).toHaveTextContent( 'Event' );
+		expect( options[ 9 ] ).toHaveTextContent( 'VideoObject' );
+		expect( options[ 10 ] ).toHaveTextContent( 'Course' );
+		expect( options[ 11 ] ).toHaveTextContent( 'JobPosting' );
+		expect( options[ 12 ] ).toHaveTextContent( 'Book' );
+		expect( options[ 13 ] ).toHaveTextContent( 'Person' );
 	} );
 
 	it( 'should update schema type on selection', () => {

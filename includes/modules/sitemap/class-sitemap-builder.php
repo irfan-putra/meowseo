@@ -114,6 +114,12 @@ class Sitemap_Builder {
 		$xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
 		$xml .= '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
 
+		// Add news sitemap to index (Requirement 3.10)
+		$xml .= "\t<sitemap>\n";
+		$xml .= "\t\t<loc>" . esc_url( $site_url . 'news-sitemap.xml' ) . "</loc>\n";
+		$xml .= "\t\t<lastmod>" . $this->format_date( current_time( 'mysql', true ) ) . "</lastmod>\n";
+		$xml .= "\t</sitemap>\n";
+
 		foreach ( $post_types as $post_type ) {
 			// Check if post type has published posts
 			$count = $this->get_post_count( $post_type );

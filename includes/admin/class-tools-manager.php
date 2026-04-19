@@ -204,6 +204,78 @@ class Tools_Manager {
 					</tr>
 				</table>
 			</div>
+
+			<!-- IndexNow Submission History Section -->
+			<div class="meowseo-tools-section">
+				<h3><?php esc_html_e( 'IndexNow Submission History', 'meowseo' ); ?></h3>
+				<p class="description"><?php esc_html_e( 'View recent IndexNow submissions and their status.', 'meowseo' ); ?></p>
+
+				<?php
+				// Get IndexNow module and logger.
+				$plugin = \MeowSEO\Plugin::instance();
+				$module_manager = $plugin->get_module_manager();
+				$indexnow_module = $module_manager->get_module( 'indexnow' );
+
+				if ( $indexnow_module ) {
+					$logger = $indexnow_module->get_logger();
+					$history = $logger->get_history( 100 );
+
+					if ( empty( $history ) ) {
+						echo '<p>' . esc_html__( 'No submissions yet.', 'meowseo' ) . '</p>';
+					} else {
+						?>
+						<table class="widefat striped">
+							<thead>
+								<tr>
+									<th><?php esc_html_e( 'Timestamp', 'meowseo' ); ?></th>
+									<th><?php esc_html_e( 'URLs', 'meowseo' ); ?></th>
+									<th><?php esc_html_e( 'Status', 'meowseo' ); ?></th>
+									<th><?php esc_html_e( 'Error', 'meowseo' ); ?></th>
+								</tr>
+							</thead>
+							<tbody>
+								<?php foreach ( $history as $entry ) : ?>
+									<tr>
+										<td><?php echo esc_html( $entry['timestamp'] ); ?></td>
+										<td>
+											<?php
+											$url_count = count( $entry['urls'] );
+											echo esc_html( sprintf(
+												/* translators: %d: number of URLs */
+												_n( '%d URL', '%d URLs', $url_count, 'meowseo' ),
+												$url_count
+											) );
+											?>
+										</td>
+										<td>
+											<?php
+											if ( $entry['success'] ) {
+												echo '<span style="color: green;">✓ ' . esc_html__( 'Success', 'meowseo' ) . '</span>';
+											} else {
+												echo '<span style="color: red;">✗ ' . esc_html__( 'Failed', 'meowseo' ) . '</span>';
+											}
+											?>
+										</td>
+										<td>
+											<?php
+											if ( ! empty( $entry['error'] ) ) {
+												echo esc_html( $entry['error'] );
+											} else {
+												echo '—';
+											}
+											?>
+										</td>
+									</tr>
+								<?php endforeach; ?>
+							</tbody>
+						</table>
+						<?php
+					}
+				} else {
+					echo '<p>' . esc_html__( 'IndexNow module is not active.', 'meowseo' ) . '</p>';
+				}
+				?>
+			</div>
 		</div>
 		<?php
 	}

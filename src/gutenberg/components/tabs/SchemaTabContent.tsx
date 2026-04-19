@@ -20,6 +20,13 @@ const FAQPageForm = lazy( () => import( './schema/FAQPageForm' ) );
 const HowToForm = lazy( () => import( './schema/HowToForm' ) );
 const LocalBusinessForm = lazy( () => import( './schema/LocalBusinessForm' ) );
 const ProductForm = lazy( () => import( './schema/ProductForm' ) );
+const RecipeForm = lazy( () => import( './schema/RecipeForm' ) );
+const EventForm = lazy( () => import( './schema/EventForm' ) );
+const VideoObjectForm = lazy( () => import( './schema/VideoObjectForm' ) );
+const CourseForm = lazy( () => import( './schema/CourseForm' ) );
+const JobPostingForm = lazy( () => import( './schema/JobPostingForm' ) );
+const BookForm = lazy( () => import( './schema/BookForm' ) );
+const PersonForm = lazy( () => import( './schema/PersonForm' ) );
 
 /**
  * Validate schema configuration against selected schema type
@@ -63,6 +70,46 @@ const validateSchemaConfig = (
 					typeof config.name === 'string' &&
 					typeof config.offers === 'object'
 				);
+			case 'Recipe':
+				return (
+					typeof config.name === 'string' &&
+					typeof config.description === 'string' &&
+					typeof config.recipeIngredient === 'string' &&
+					typeof config.recipeInstructions === 'string'
+				);
+			case 'Event':
+				return (
+					typeof config.name === 'string' &&
+					typeof config.startDate === 'string' &&
+					typeof config.location === 'string'
+				);
+			case 'VideoObject':
+				return (
+					typeof config.name === 'string' &&
+					typeof config.description === 'string' &&
+					typeof config.thumbnailUrl === 'string' &&
+					typeof config.uploadDate === 'string'
+				);
+			case 'Course':
+				return (
+					typeof config.name === 'string' &&
+					typeof config.description === 'string' &&
+					typeof config.provider === 'string'
+				);
+			case 'JobPosting':
+				return (
+					typeof config.title === 'string' &&
+					typeof config.description === 'string' &&
+					typeof config.datePosted === 'string' &&
+					typeof config.hiringOrganization === 'string'
+				);
+			case 'Book':
+				return (
+					typeof config.name === 'string' &&
+					typeof config.author === 'string'
+				);
+			case 'Person':
+				return typeof config.name === 'string';
 			default:
 				return true;
 		}
@@ -113,6 +160,13 @@ const SchemaTabContent: React.FC = () => {
 				{ schemaType === 'HowTo' && <HowToForm /> }
 				{ schemaType === 'LocalBusiness' && <LocalBusinessForm /> }
 				{ schemaType === 'Product' && <ProductForm /> }
+				{ schemaType === 'Recipe' && <RecipeForm /> }
+				{ schemaType === 'Event' && <EventForm /> }
+				{ schemaType === 'VideoObject' && <VideoObjectForm /> }
+				{ schemaType === 'Course' && <CourseForm /> }
+				{ schemaType === 'JobPosting' && <JobPostingForm /> }
+				{ schemaType === 'Book' && <BookForm /> }
+				{ schemaType === 'Person' && <PersonForm /> }
 			</Suspense>
 		);
 	};

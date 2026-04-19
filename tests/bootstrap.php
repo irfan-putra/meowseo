@@ -22,6 +22,11 @@ if ( ! defined( 'AUTH_KEY' ) ) {
 	define( 'AUTH_KEY', 'test-auth-key-for-encryption-testing-12345678901234567890' );
 }
 
+// Define SECURE_AUTH_KEY for encryption testing
+if ( ! defined( 'SECURE_AUTH_KEY' ) ) {
+	define( 'SECURE_AUTH_KEY', 'test-secure-auth-key-for-encryption-testing-1234567890' );
+}
+
 // Define plugin directory constant
 if ( ! defined( 'MEOWSEO_PLUGIN_DIR' ) ) {
 	define( 'MEOWSEO_PLUGIN_DIR', __DIR__ . '/../' );
@@ -325,6 +330,26 @@ if ( ! function_exists( 'has_filter' ) ) {
 			}
 		}
 		return false;
+	}
+}
+
+if ( ! function_exists( 'remove_all_filters' ) ) {
+	function remove_all_filters( $hook, $priority = false ) {
+		global $wp_filter;
+		if ( ! isset( $wp_filter[ $hook ] ) ) {
+			return true;
+		}
+		if ( $priority === false ) {
+			unset( $wp_filter[ $hook ] );
+		} else {
+			$wp_filter[ $hook ] = array_filter(
+				$wp_filter[ $hook ],
+				function( $filter ) use ( $priority ) {
+					return $filter['priority'] !== $priority;
+				}
+			);
+		}
+		return true;
 	}
 }
 
@@ -2460,5 +2485,27 @@ if ( ! function_exists( 'is_archive' ) ) {
 if ( ! function_exists( 'is_404' ) ) {
 	function is_404() {
 		return false;
+	}
+}
+
+
+if ( ! function_exists( 'sanitize_title' ) ) {
+	function sanitize_title( $title, $fallback_title = '', $context = 'save' ) {
+		// Convert to lowercase
+		$title = strtolower( $title );
+		// Replace spaces and underscores with hyphens
+		$title = preg_replace( '/[\s_]+/', '-', $title );
+		// Remove any characters that are not alphanumeric, hyphens, or underscores
+		$title = preg_replace( '/[^a-z0-9\-_]/', '', $title );
+		// Remove consecutive hyphens
+		$title = preg_replace( '/-+/', '-', $title );
+		// Remove leading/trailing hyphens
+		$title = trim( $title, '-' );
+		
+		if ( empty( $title ) ) {
+			return $fallback_title;
+		}
+		
+		return $title;
 	}
 }

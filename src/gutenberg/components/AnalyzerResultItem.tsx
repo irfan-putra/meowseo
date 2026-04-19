@@ -2,9 +2,9 @@
  * AnalyzerResultItem Component
  *
  * Displays individual analyzer result with status icon, message,
- * and expandable details section.
+ * expandable details section, and fix explanation.
  *
- * Requirements: 22.1, 22.2, 22.3, 22.4, 22.5, 22.6, 22.7
+ * Requirements: 22.1, 22.2, 22.3, 22.4, 22.5, 22.6, 22.7, 6.15
  */
 
 import { memo, useState, useCallback } from '@wordpress/element';
@@ -78,6 +78,7 @@ export const AnalyzerResultItem: React.FC< AnalyzerResultItemProps > = memo(
 
 		const hasDetails =
 			result.details && Object.keys( result.details ).length > 0;
+		const hasFixExplanation = result.fix_explanation && result.fix_explanation.trim().length > 0;
 
 		return (
 			<div
@@ -101,7 +102,7 @@ export const AnalyzerResultItem: React.FC< AnalyzerResultItemProps > = memo(
 					<span className="meowseo-analyzer-message">
 						{ result.message }
 					</span>
-					{ hasDetails && (
+					{ ( hasDetails || hasFixExplanation ) && (
 						<button
 							type="button"
 							className="meowseo-analyzer-details-toggle"
@@ -117,24 +118,35 @@ export const AnalyzerResultItem: React.FC< AnalyzerResultItemProps > = memo(
 						</button>
 					) }
 				</div>
-				{ hasDetails && isExpanded && (
+				{ ( hasDetails || hasFixExplanation ) && isExpanded && (
 					<div className="meowseo-analyzer-details">
-						{ Object.entries( result.details! ).map(
-							( [ key, value ] ) => (
-								<div
-									key={ key }
-									className="meowseo-analyzer-detail-row"
-								>
-									<span className="meowseo-analyzer-detail-key">
-										{ key }:
-									</span>
-									<span className="meowseo-analyzer-detail-value">
-										{ typeof value === 'object'
-											? JSON.stringify( value )
-											: String( value ) }
-									</span>
+						{ hasDetails && (
+							<div className="meowseo-analyzer-details-section">
+								{ Object.entries( result.details! ).map(
+									( [ key, value ] ) => (
+										<div
+											key={ key }
+											className="meowseo-analyzer-detail-row"
+										>
+											<span className="meowseo-analyzer-detail-key">
+												{ key }:
+											</span>
+											<span className="meowseo-analyzer-detail-value">
+												{ typeof value === 'object'
+													? JSON.stringify( value )
+													: String( value ) }
+											</span>
+										</div>
+									)
+								) }
+							</div>
+						) }
+						{ hasFixExplanation && (
+							<div className="meowseo-analyzer-fix-explanation">
+								<div className="meowseo-analyzer-fix-explanation-content">
+									{ result.fix_explanation }
 								</div>
-							)
+							</div>
 						) }
 					</div>
 				) }
