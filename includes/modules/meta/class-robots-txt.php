@@ -58,6 +58,7 @@ class Robots_Txt {
 	 *
 	 * Generates the complete robots.txt content with default directives,
 	 * custom directives, and sitemap URL (Requirements 11.1-11.6).
+	 * Requirement 4.6: Use custom content if configured, otherwise use default.
 	 *
 	 * @param string $output The default robots.txt output from WordPress.
 	 * @param bool   $public Whether the site is public.
@@ -67,6 +68,12 @@ class Robots_Txt {
 		// If site is not public, return WordPress default (Disallow: /).
 		if ( ! $public ) {
 			return $output;
+		}
+
+		// Requirement 4.6: Check for custom content from editor.
+		$custom_content = $this->get_custom_content();
+		if ( ! empty( $custom_content ) ) {
+			return $custom_content . "\n";
 		}
 
 		// Build sections array.
@@ -149,6 +156,32 @@ class Robots_Txt {
 
 		// Join sections with double line breaks.
 		return implode( "\n\n", $sections ) . "\n";
+	}
+
+	/**
+	 * Get custom content from editor
+	 *
+	 * Returns custom robots.txt content configured via the editor.
+	 * Requirement 4.3: Store content in meowseo_options['robots_txt_content'].
+	 *
+	 * @return string Custom content or empty string if none configured.
+	 */
+	public function get_custom_content(): string {
+		$content = $this->options->get( 'robots_txt_content', '' );
+		return trim( $content );
+	}
+
+	/**
+	 * Set custom content
+	 *
+	 * Stores custom robots.txt content in options.
+	 * Requirement 4.3: Store content in meowseo_options['robots_txt_content'].
+	 *
+	 * @param string $content Custom robots.txt content.
+	 * @return void
+	 */
+	public function set_custom_content( string $content ): void {
+		$this->options->set( 'robots_txt_content', $content );
 	}
 }
 

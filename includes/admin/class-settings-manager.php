@@ -1159,6 +1159,16 @@ class Settings_Manager {
 				</td>
 			</tr>
 
+			<tr><th scope="row" colspan="2"><h3><?php esc_html_e( 'Robots.txt Editor', 'meowseo' ); ?></h3></th></tr>
+			<?php
+			// Initialize Robots.txt Editor.
+			$robots_txt        = new Robots_Txt( $this->options );
+			$robots_txt_editor = new Robots_Txt_Editor( $this->options, $robots_txt );
+			
+			// Render the editor UI.
+			$robots_txt_editor->render_editor_ui();
+			?>
+
 			<tr><th scope="row" colspan="2"><h3><?php esc_html_e( 'Data Settings', 'meowseo' ); ?></h3></th></tr>
 			<tr>
 				<th scope="row"><?php esc_html_e( 'Delete on Uninstall', 'meowseo' ); ?></th>
@@ -1171,6 +1181,31 @@ class Settings_Manager {
 				</td>
 			</tr>
 		</table>
+
+		<script type="text/javascript">
+		jQuery(document).ready(function($) {
+			// Handle Reset to Default button for robots.txt
+			$('#meowseo-reset-robots-txt').on('click', function(e) {
+				if (!confirm('<?php echo esc_js( __( 'Are you sure you want to reset to default content? This cannot be undone.', 'meowseo' ) ); ?>')) {
+					e.preventDefault();
+					return false;
+				}
+				
+				// Get default content via AJAX
+				$.post(ajaxurl, {
+					action: 'meowseo_reset_robots_txt',
+					nonce: '<?php echo esc_js( wp_create_nonce( 'meowseo_reset_robots_txt' ) ); ?>'
+				}, function(response) {
+					if (response.success) {
+						$('#robots_txt_content').val(response.data.content);
+						alert('<?php echo esc_js( __( 'Robots.txt content has been reset to default.', 'meowseo' ) ); ?>');
+					} else {
+						alert('<?php echo esc_js( __( 'Failed to reset robots.txt content.', 'meowseo' ) ); ?>');
+					}
+				});
+			});
+		});
+		</script>
 		<?php
 	}
 
@@ -1496,6 +1531,21 @@ class Settings_Manager {
 			// Save webmaster verification settings if any codes are set.
 			if ( ! empty( $webmaster_verification ) ) {
 				$validated['webmaster_verification'] = $webmaster_verification;
+			}
+		}
+
+		// Validate robots.txt content (Requirement 4.4, 4.5).
+		if ( isset( $settings['robots_txt_content'] ) ) {
+			$robots_txt        = new \MeowSEO\Modules\Meta\Robots_Txt( $this->options );
+			$robots_txt_editor = new \MeowSEO\Modules\Meta\Robots_Txt_Editor( $this->options, $robots_txt );
+			
+			$content    = $settings['robots_txt_content'];
+			$validation = $robots_txt_editor->validate_syntax( $content );
+			
+			if ( is_wp_error( $validation ) ) {
+				$this->errors['robots_txt_content'] = $validation->get_error_message();
+			} else {
+				$validated['robots_txt_content'] = $content;
 			}
 		}
 
@@ -1931,5 +1981,31 @@ class Settings_Manager {
 	 */
 	public function register_handlers(): void {
 		add_action( 'admin_post_meowseo_save_settings', array( $this, 'save_settings' ) );
+		
+		// Register AJAX handler for robots.txt reset.
+		add_action( 'wp_ajax_meowseo_reset_robots_txt', array( $this, 'ajax_reset_robots_txt' ) );
+	}
+
+	/**
+	 * AJAX handler for resetting robots.txt to default
+	 *
+	 * @return void
+	 */
+	public function ajax_reset_robots_txt(): void {
+		// Verify nonce.
+		check_ajax_referer( 'meowseo_reset_robots_txt', 'nonce' );
+
+		// Check user capabilities.
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Insufficient permissions.', 'meowseo' ) ) );
+		}
+
+		// Get default content.
+		$robots_txt        = new \MeowSEO\Modules\Meta\Robots_Txt( $this->options );
+		$robots_txt_editor = new \MeowSEO\Modules\Meta\Robots_Txt_Editor( $this->options, $robots_txt );
+		$default_content   = $robots_txt_editor->get_default_content();
+
+		// Return default content.
+		wp_send_json_success( array( 'content' => $default_content ) );
 	}
 }
