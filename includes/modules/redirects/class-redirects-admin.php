@@ -585,6 +585,15 @@ class Redirects_Admin {
 	 *
 	 * @return void
 	 */
+	/**
+	 * Handle CSV import
+	 *
+	 * AJAX handler for importing redirects from CSV file.
+	 * Uses CSV_Importer class for processing.
+	 * Requirements: 5.1, 5.6, 5.7
+	 *
+	 * @return void
+	 */
 	public function handle_csv_import(): void {
 		// Verify nonce
 		if ( ! isset( $_POST['meowseo_csv_nonce'] ) || ! wp_verify_nonce( $_POST['meowseo_csv_nonce'], 'meowseo_csv_import' ) ) {
@@ -601,124 +610,34 @@ class Redirects_Admin {
 			wp_send_json_error( array( 'message' => __( 'No file uploaded.', 'meowseo' ) ) );
 		}
 
-		$file = $_FILES['csv_file'];
+		// Use CSV_Importer class
+		$importer = new CSV_Importer( $this );
+		$result   = $importer->import_from_file( $_FILES['csv_file'] );
 
-		// Validate file type
-		$file_ext = strtolower( pathinfo( $file['name'], PATHINFO_EXTENSION ) );
-		if ( 'csv' !== $file_ext ) {
-			wp_send_json_error( array( 'message' => __( 'File must be in CSV format.', 'meowseo' ) ) );
+		if ( is_wp_error( $result ) ) {
+			wp_send_json_error( array( 'message' => $result->get_error_message() ) );
 		}
 
-		// Read CSV file
-		$handle = fopen( $file['tmp_name'], 'r' );
-
-		if ( false === $handle ) {
-			wp_send_json_error( array( 'message' => __( 'Could not read the uploaded file.', 'meowseo' ) ) );
-		}
-
-		global $wpdb;
-		$table = $wpdb->prefix . 'meowseo_redirects';
-
-		$imported_count = 0;
-		$skipped_count = 0;
-		$row_number = 0;
-		$errors = array();
-
-		// Skip header row if present
-		$first_row = fgetcsv( $handle );
-		if ( $first_row && ( 'source_url' === strtolower( $first_row[0] ) || 'source' === strtolower( $first_row[0] ) ) ) {
-			// Header row detected, continue to next row
-			$row_number++;
-		} else {
-			// No header, rewind to start
-			rewind( $handle );
-		}
-
-		// Process each row
-		while ( ( $row = fgetcsv( $handle ) ) !== false ) {
-			$row_number++;
-
-			// Skip empty rows (Requirement 12.4)
-			if ( empty( array_filter( $row ) ) ) {
-				continue;
-			}
-
-			// Validate row has at least 2 columns (source and target) (Requirement 12.4)
-			if ( count( $row ) < 2 ) {
-				$skipped_count++;
-				$errors[] = sprintf( 'Row %d: Missing required columns', $row_number );
-				continue;
-			}
-
-			$source_url = trim( $row[0] );
-			$target_url = trim( $row[1] );
-			$redirect_type = isset( $row[2] ) ? absint( $row[2] ) : 301;
-			$is_regex = isset( $row[3] ) ? (bool) $row[3] : false;
-
-			// Skip rows with missing required fields (Requirement 12.4)
-			if ( empty( $source_url ) || empty( $target_url ) ) {
-				$skipped_count++;
-				$errors[] = sprintf( 'Row %d: Empty source or target URL', $row_number );
-				continue;
-			}
-
-			// Default redirect_type to 301 if not provided or invalid (Requirement 12.5)
-			if ( ! in_array( $redirect_type, array( 301, 302, 307, 410, 451 ), true ) ) {
-				$redirect_type = 301;
-			}
-
-			// Insert redirect
-			$result = $wpdb->insert(
-				$table,
-				array(
-					'source_url'    => $source_url,
-					'target_url'    => $target_url,
-					'redirect_type' => $redirect_type,
-					'is_regex'      => $is_regex ? 1 : 0,
-					'is_active'     => 1,
-				),
-				array( '%s', '%s', '%d', '%d', '%d' )
-			);
-
-			if ( false === $result ) {
-				$skipped_count++;
-				$errors[] = sprintf( 'Row %d: Database insert failed', $row_number );
-			} else {
-				$imported_count++;
-			}
-		}
-
-		fclose( $handle );
-
-		// Update regex rules flag
-		$this->update_regex_rules_flag();
-
-		// Log import results (Requirement 12.6)
-		Logger::info(
-			'CSV import completed',
-			array(
-				'file_name'      => $file['name'],
-				'imported_count' => $imported_count,
-				'skipped_count'  => $skipped_count,
-				'errors'         => $errors,
-			)
-		);
-
-		// Send response
-		if ( $imported_count > 0 ) {
+		// Requirement 5.6, 5.7: Display import summary
+		if ( $result['imported'] > 0 ) {
 			wp_send_json_success(
 				array(
-					'message'        => sprintf( __( 'Successfully imported %d redirects. Skipped %d rows.', 'meowseo' ), $imported_count, $skipped_count ),
-					'imported_count' => $imported_count,
-					'skipped_count'  => $skipped_count,
-					'errors'         => $errors,
+					'message'        => sprintf(
+						/* translators: 1: Imported count, 2: Skipped count */
+						__( 'Successfully imported %1$d redirects. Skipped %2$d rows.', 'meowseo' ),
+						$result['imported'],
+						$result['skipped']
+					),
+					'imported_count' => $result['imported'],
+					'skipped_count'  => $result['skipped'],
+					'errors'         => $result['errors'],
 				)
 			);
 		} else {
 			wp_send_json_error(
 				array(
 					'message' => __( 'No redirects were imported. Please check the CSV format.', 'meowseo' ),
-					'errors'  => $errors,
+					'errors'  => $result['errors'],
 				)
 			);
 		}
@@ -728,7 +647,8 @@ class Redirects_Admin {
 	 * Handle CSV export
 	 *
 	 * AJAX handler for exporting redirects to CSV file.
-	 * Requirement: 12.5
+	 * Uses CSV_Exporter class for processing.
+	 * Requirements: 5.2, 5.10
 	 *
 	 * @return void
 	 */
@@ -743,42 +663,9 @@ class Redirects_Admin {
 			wp_die( esc_html__( 'You do not have permission to export redirects.', 'meowseo' ) );
 		}
 
-		global $wpdb;
-		$table = $wpdb->prefix . 'meowseo_redirects';
-
-		// Get all redirects
-		$redirects = $wpdb->get_results(
-			"SELECT source_url, target_url, redirect_type, is_regex FROM {$table} ORDER BY id ASC",
-			ARRAY_A
-		);
-
-		// Set headers for CSV download
-		header( 'Content-Type: text/csv; charset=utf-8' );
-		header( 'Content-Disposition: attachment; filename=meowseo-redirects-' . gmdate( 'Y-m-d' ) . '.csv' );
-		header( 'Pragma: no-cache' );
-		header( 'Expires: 0' );
-
-		// Open output stream
-		$output = fopen( 'php://output', 'w' );
-
-		// Write header row
-		fputcsv( $output, array( 'source_url', 'target_url', 'redirect_type', 'is_regex' ) );
-
-		// Write data rows
-		foreach ( $redirects as $redirect ) {
-			fputcsv( $output, $redirect );
-		}
-
-		fclose( $output );
-
-		// Log export
-		Logger::info(
-			'CSV export completed',
-			array(
-				'redirect_count' => count( $redirects ),
-			)
-		);
-
-		exit;
+		// Use CSV_Exporter class
+		$exporter = new CSV_Exporter( $this );
+		$exporter->export_to_file();
+		// Note: export_to_file() exits after sending the file
 	}
 }

@@ -253,7 +253,7 @@ The implementation follows MeowSEO's module-based architecture with options-base
 
 ### 5. Redirect CSV Import and Export
 
-- [ ] 5.1 Create CSV Importer component
+- [x] 5.1 Create CSV Importer component
   - Create `includes/modules/redirects/class-csv-importer.php`
   - Implement constructor accepting Redirect_Manager dependency
   - Implement `import_from_file()` method accepting $_FILES array
@@ -263,7 +263,7 @@ The implementation follows MeowSEO's module-based architecture with options-base
   - Implement `create_redirect()` private method
   - _Requirements: 5.1, 5.3_
 
-- [ ] 5.2 Implement CSV parsing and validation
+- [x] 5.2 Implement CSV parsing and validation
   - Parse CSV with header row detection
   - Validate required columns: source_url, target_url, status_code
   - Validate status_code is one of: 301, 302, 307, 410
@@ -272,14 +272,14 @@ The implementation follows MeowSEO's module-based architecture with options-base
   - Return detailed errors with line numbers
   - _Requirements: 5.4, 5.5_
 
-- [ ] 5.3 Implement duplicate redirect handling
+- [x] 5.3 Implement duplicate redirect handling
   - Check for existing redirects with same source_url
   - Skip duplicate entries during import
   - Track count of skipped duplicates
   - Include skipped count in import summary
   - _Requirements: 5.12_
 
-- [ ] 5.4 Implement CSV import process
+- [x] 5.4 Implement CSV import process
   - Create redirect records for each valid row
   - Display import summary: imported count, skipped count, errors
   - Display detailed error messages with line numbers
@@ -287,7 +287,7 @@ The implementation follows MeowSEO's module-based architecture with options-base
   - Log import action with user ID and timestamp
   - _Requirements: 5.6, 5.7_
 
-- [ ] 5.5 Create CSV Exporter component
+- [x] 5.5 Create CSV Exporter component
   - Create `includes/modules/redirects/class-csv-exporter.php`
   - Implement constructor accepting Redirect_Manager dependency
   - Implement `export_to_file()` method returning file path
@@ -297,21 +297,21 @@ The implementation follows MeowSEO's module-based architecture with options-base
   - Implement `generate_csv_content()` private method
   - _Requirements: 5.2, 5.8_
 
-- [ ] 5.6 Implement CSV export format
+- [x] 5.6 Implement CSV export format
   - Export columns: source_url, target_url, status_code, hits, created_date, last_accessed
   - Include header row
   - Format dates as YYYY-MM-DD HH:MM:SS
   - Include all existing redirects
   - _Requirements: 5.8, 5.9_
 
-- [ ] 5.7 Implement CSV export filename generation
+- [x] 5.7 Implement CSV export filename generation
   - Generate filename: "meowseo-redirects-YYYY-MM-DD.csv"
   - Use current date for YYYY-MM-DD
   - Set appropriate headers for download
   - Stream CSV content to browser
   - _Requirements: 5.10_
 
-- [ ] 5.8 Create CSV Import/Export UI
+- [x] 5.8 Create CSV Import/Export UI
   - Extend `includes/admin/class-tools-manager.php`
   - Add "Import/Export" section to Tools page
   - Add file upload control for CSV import
