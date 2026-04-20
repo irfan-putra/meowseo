@@ -1,15 +1,24 @@
 /* MeowSEO Classic Editor Meta Box */
 
-#meowseo-meta-box .inside { padding: 0; }
+#meowseo-meta-box .inside {
+	padding: 0;
+}
 
-/* Tab Navigation */
-#meowseo-tabs {}
+/* ========================================================================== */
+/* 12.1 TAB NAVIGATION STYLES                                                */
+/* ========================================================================== */
+
+#meowseo-tabs {
+	/* Container for all tabs */
+}
 
 #meowseo-tab-nav {
 	display: flex;
 	border-bottom: 1px solid #dcdcde;
 	background: #f6f7f7;
 	padding: 0 12px;
+	margin: 0;
+	flex-wrap: wrap;
 }
 
 #meowseo-tab-nav button {
@@ -22,28 +31,50 @@
 	color: #50575e;
 	margin-bottom: -1px;
 	font-weight: 500;
+	transition: all 0.2s ease;
+	white-space: nowrap;
 }
 
 #meowseo-tab-nav button:hover {
 	color: #1d2327;
+	background: rgba(0, 0, 0, 0.02);
+}
+
+#meowseo-tab-nav button:focus {
+	outline: 2px solid #2271b1;
+	outline-offset: -2px;
 }
 
 #meowseo-tab-nav button.meowseo-active {
 	color: #2271b1;
 	border-bottom-color: #2271b1;
+	background: #fff;
 }
 
-/* Tab Panels */
+/* Tab Panels - visibility control */
 .meowseo-tab-panel {
 	display: none;
 	padding: 16px;
+	animation: fadeIn 0.15s ease-in;
 }
 
 .meowseo-tab-panel.meowseo-active {
 	display: block;
 }
 
-/* Fields */
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+/* ========================================================================== */
+/* GENERAL FIELD STYLES                                                      */
+/* ========================================================================== */
+
 .meowseo-field {
 	margin-bottom: 14px;
 }
@@ -58,6 +89,7 @@
 	letter-spacing: 0.5px;
 	color: #50575e;
 	margin-bottom: 5px;
+	flex-wrap: wrap;
 }
 
 .meowseo-field input[type="text"],
@@ -66,38 +98,91 @@
 .meowseo-field select {
 	width: 100%;
 	box-sizing: border-box;
+	padding: 8px 10px;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+	font-size: 13px;
+	color: #1d2327;
+	background: #fff;
+	transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.meowseo-field input[type="text"]:focus,
+.meowseo-field input[type="url"]:focus,
+.meowseo-field textarea:focus,
+.meowseo-field select:focus {
+	border-color: #2271b1;
+	box-shadow: 0 0 0 1px #2271b1;
+	outline: none;
 }
 
 .meowseo-field textarea {
 	height: 80px;
 	resize: vertical;
+	font-family: monospace;
 }
 
-/* Character counter */
+.meowseo-field select {
+	cursor: pointer;
+	appearance: none;
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+	background-repeat: no-repeat;
+	background-position: right 8px center;
+	background-size: 18px;
+	padding-right: 32px;
+}
+
+/* ========================================================================== */
+/* 12.2 CHARACTER COUNTER STYLES                                             */
+/* ========================================================================== */
+
 .meowseo-counter {
 	margin-left: auto;
 	font-size: 11px;
-	font-weight: normal;
+	font-weight: 600;
 	text-transform: none;
 	letter-spacing: 0;
-	padding: 2px 6px;
+	padding: 3px 8px;
 	border-radius: 10px;
 	background: #f0f0f1;
 	color: #50575e;
+	white-space: nowrap;
+	flex-shrink: 0;
+	transition: all 0.2s ease;
 }
 
-.meowseo-counter.meowseo-ok    { background: #d4edda; color: #155724; }
-.meowseo-counter.meowseo-warn  { background: #fff3cd; color: #856404; }
-.meowseo-counter.meowseo-bad   { background: #f8d7da; color: #721c24; }
+/* Color coding for character counters */
+.meowseo-counter.meowseo-ok {
+	background: #d4edda;
+	color: #155724;
+	font-weight: 600;
+}
 
-/* SERP Preview */
+.meowseo-counter.meowseo-warn {
+	background: #fff3cd;
+	color: #856404;
+	font-weight: 600;
+}
+
+.meowseo-counter.meowseo-bad {
+	background: #f8d7da;
+	color: #721c24;
+	font-weight: 600;
+}
+
+/* ========================================================================== */
+/* 12.3 SERP PREVIEW STYLES                                                  */
+/* ========================================================================== */
+
 .meowseo-serp-preview {
 	background: #fff;
 	border: 1px solid #dcdcde;
 	border-radius: 6px;
 	padding: 14px 16px;
 	margin-bottom: 14px;
-	font-family: arial, sans-serif;
+	font-family: Arial, sans-serif;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .meowseo-serp-preview .serp-label {
@@ -106,9 +191,11 @@
 	letter-spacing: 0.5px;
 	color: #50575e;
 	margin-bottom: 8px;
-	font-family: -apple-system, sans-serif;
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+	font-weight: 600;
 }
 
+/* URL display - matches Google SERP style */
 .meowseo-serp-preview .serp-url {
 	font-size: 12px;
 	color: #202124;
@@ -116,12 +203,14 @@
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
+	font-family: Arial, sans-serif;
 }
 
 .meowseo-serp-preview .serp-url span {
 	color: #4d5156;
 }
 
+/* Title display - matches Google SERP style */
 .meowseo-serp-preview .serp-title {
 	font-size: 18px;
 	color: #1a0dab;
@@ -129,8 +218,12 @@
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
+	font-family: Arial, sans-serif;
+	font-weight: normal;
+	line-height: 1.3;
 }
 
+/* Description display - matches Google SERP style */
 .meowseo-serp-preview .serp-desc {
 	font-size: 13px;
 	color: #4d5156;
@@ -139,12 +232,308 @@
 	-webkit-line-clamp: 2;
 	-webkit-box-orient: vertical;
 	overflow: hidden;
+	font-family: Arial, sans-serif;
 }
 
-/* Robots row */
+/* ========================================================================== */
+/* 12.4 IMAGE PICKER STYLES                                                  */
+/* ========================================================================== */
+
+.meowseo-image-picker {
+	display: flex;
+	align-items: flex-start;
+	gap: 12px;
+	flex-wrap: wrap;
+}
+
+/* Image preview container */
+.meowseo-image-preview {
+	width: 120px;
+	height: 70px;
+	object-fit: cover;
+	border-radius: 4px;
+	border: 1px solid #dcdcde;
+	display: none;
+	background: #f6f7f7;
+	transition: all 0.2s ease;
+}
+
+/* Show image when has-image state is active */
+.meowseo-image-preview.has-image {
+	display: block;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Image action buttons container */
+.meowseo-image-actions {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.meowseo-image-actions .button {
+	white-space: nowrap;
+	font-size: 12px;
+	padding: 6px 12px;
+	height: auto;
+	line-height: 1.5;
+}
+
+.meowseo-image-actions .button:hover {
+	background: #f6f7f7;
+	border-color: #8c8f94;
+}
+
+.meowseo-image-actions .button:active {
+	background: #f0f0f1;
+	border-color: #7e8993;
+}
+
+/* ========================================================================== */
+/* 12.5 SCHEMA FIELD STYLES                                                  */
+/* ========================================================================== */
+
+/* Schema type selector */
+#meowseo_schema_type {
+	max-width: 300px;
+}
+
+/* Conditional field groups - hidden by default */
+.meowseo-schema-fields {
+	display: none;
+	padding: 12px;
+	background: #f6f7f7;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+	margin-top: 12px;
+}
+
+.meowseo-schema-fields[style*="display: block"],
+.meowseo-schema-fields:not([style*="display: none"]) {
+	display: block;
+	animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+	from {
+		opacity: 0;
+		transform: translateY(-10px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+/* Repeating field items (FAQ, HowTo) */
+.meowseo-faq-item,
+.meowseo-howto-step {
+	border: 1px solid #dcdcde;
+	padding: 10px;
+	margin-bottom: 8px;
+	border-radius: 4px;
+	background: #fff;
+	transition: all 0.2s ease;
+}
+
+.meowseo-faq-item:hover,
+.meowseo-howto-step:hover {
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+	border-color: #8c8f94;
+}
+
+/* Remove buttons for repeating fields */
+.meowseo-remove-faq,
+.meowseo-remove-step {
+	background: #f8d7da;
+	color: #721c24;
+	border-color: #f5c6cb;
+	margin-top: 8px;
+	width: 100%;
+}
+
+.meowseo-remove-faq:hover,
+.meowseo-remove-step:hover {
+	background: #f5c6cb;
+	border-color: #f1b0b7;
+	color: #721c24;
+}
+
+/* Add buttons for repeating fields */
+#meowseo-add-faq,
+#meowseo-add-step {
+	background: #d4edda;
+	color: #155724;
+	border-color: #c3e6cb;
+	margin-top: 8px;
+}
+
+#meowseo-add-faq:hover,
+#meowseo-add-step:hover {
+	background: #c3e6cb;
+	border-color: #b1dfbb;
+	color: #155724;
+}
+
+/* Section headings within schema fields */
+.meowseo-section-heading {
+	font-weight: 600;
+	font-size: 12px;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	color: #50575e;
+	margin-bottom: 12px;
+	margin-top: 12px;
+	display: block;
+}
+
+.meowseo-section-heading:first-child {
+	margin-top: 0;
+}
+
+/* ========================================================================== */
+/* 12.6 ANALYSIS PANEL STYLES                                                */
+/* ========================================================================== */
+
+#meowseo-analysis-panel {
+	background: #f6f7f7;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+	padding: 12px;
+	margin-top: 10px;
+	font-size: 13px;
+	line-height: 1.6;
+}
+
+/* Analysis section container */
+.meowseo-analysis-section {
+	margin-bottom: 14px;
+}
+
+.meowseo-analysis-section:last-child {
+	margin-bottom: 0;
+}
+
+/* Analysis header with title and score badge */
+.meowseo-analysis-header {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin-bottom: 10px;
+	flex-wrap: wrap;
+}
+
+.meowseo-analysis-header strong {
+	font-size: 14px;
+	color: #1d2327;
+	font-weight: 600;
+}
+
+/* Score badge styling */
+.meowseo-score-badge {
+	padding: 4px 10px;
+	border-radius: 12px;
+	font-size: 12px;
+	font-weight: 600;
+	white-space: nowrap;
+	display: inline-block;
+	transition: all 0.2s ease;
+}
+
+.meowseo-score-badge.score-green {
+	background: #d4edda;
+	color: #155724;
+	border: 1px solid #c3e6cb;
+}
+
+.meowseo-score-badge.score-orange {
+	background: #fff3cd;
+	color: #856404;
+	border: 1px solid #ffeaa7;
+}
+
+.meowseo-score-badge.score-red {
+	background: #f8d7da;
+	color: #721c24;
+	border: 1px solid #f5c6cb;
+}
+
+/* Analysis checks list */
+.meowseo-analysis-checks {
+	margin-left: 0;
+	padding-left: 0;
+	list-style: none;
+}
+
+/* Individual analysis check item */
+.meowseo-analysis-check {
+	margin-bottom: 6px;
+	font-size: 13px;
+	display: flex;
+	align-items: flex-start;
+	gap: 6px;
+	padding: 4px 0;
+	transition: all 0.2s ease;
+}
+
+.meowseo-analysis-check.pass {
+	color: #155724;
+}
+
+.meowseo-analysis-check.warn {
+	color: #856404;
+}
+
+.meowseo-analysis-check.fail {
+	color: #721c24;
+}
+
+/* Analysis check icon */
+.meowseo-analysis-check-icon {
+	flex-shrink: 0;
+	width: 16px;
+	text-align: center;
+	line-height: 1.4;
+	font-weight: 600;
+}
+
+/* Run Analysis button */
+#meowseo-run-analysis {
+	background: #2271b1;
+	color: #fff;
+	border-color: #1d5aa0;
+	font-weight: 600;
+	padding: 8px 16px;
+	height: auto;
+	line-height: 1.5;
+}
+
+#meowseo-run-analysis:hover {
+	background: #1d5aa0;
+	border-color: #1a4a7a;
+	color: #fff;
+}
+
+#meowseo-run-analysis:active {
+	background: #1a4a7a;
+	border-color: #164080;
+}
+
+#meowseo-run-analysis:disabled {
+	background: #ccc;
+	border-color: #999;
+	color: #666;
+	cursor: not-allowed;
+}
+
+/* ========================================================================== */
+/* ROBOTS META TAGS STYLES                                                   */
+/* ========================================================================== */
+
 .meowseo-robots {
 	display: flex;
 	gap: 20px;
+	flex-wrap: wrap;
 }
 
 .meowseo-robots label {
@@ -156,47 +545,174 @@
 	gap: 6px;
 	font-size: 13px !important;
 	color: #1d2327 !important;
+	cursor: pointer;
+	margin-bottom: 0 !important;
 }
 
-/* Section heading within a tab */
-.meowseo-section-heading {
-	font-size: 11px;
-	font-weight: 700;
-	text-transform: uppercase;
-	letter-spacing: 0.5px;
+.meowseo-robots input[type="checkbox"] {
+	cursor: pointer;
+	margin: 0;
+}
+
+/* ========================================================================== */
+/* GSC SUBMIT BUTTON STYLES                                                  */
+/* ========================================================================== */
+
+#meowseo-gsc-submit {
+	background: #2271b1;
+	color: #fff;
+	border-color: #1d5aa0;
+	font-weight: 600;
+	padding: 8px 16px;
+	height: auto;
+	line-height: 1.5;
+}
+
+#meowseo-gsc-submit:hover {
+	background: #1d5aa0;
+	border-color: #1a4a7a;
+	color: #fff;
+}
+
+#meowseo-gsc-submit:active {
+	background: #1a4a7a;
+	border-color: #164080;
+}
+
+#meowseo-gsc-submit:disabled {
+	background: #ccc;
+	border-color: #999;
+	color: #666;
+	cursor: not-allowed;
+}
+
+#meowseo-gsc-status {
+	margin-left: 10px;
+	font-size: 13px;
 	color: #50575e;
-	margin: 16px 0 10px;
-	padding-bottom: 4px;
-	border-bottom: 1px solid #f0f0f1;
+	display: inline-block;
 }
 
-.meowseo-section-heading:first-child {
-	margin-top: 0;
+/* ========================================================================== */
+/* AI GENERATION BUTTON STYLES                                               */
+/* ========================================================================== */
+
+.meowseo-ai-btn {
+	background: #fff;
+	color: #2271b1;
+	border-color: #2271b1;
+	font-weight: 600;
+	padding: 4px 10px;
+	height: auto;
+	line-height: 1.5;
+	font-size: 12px;
+	white-space: nowrap;
+	transition: all 0.2s ease;
 }
 
-/* OG/Twitter image picker */
-.meowseo-image-picker {
-	display: flex;
-	align-items: flex-start;
-	gap: 12px;
-	flex-wrap: wrap;
+.meowseo-ai-btn:hover {
+	background: #2271b1;
+	color: #fff;
+	border-color: #1d5aa0;
 }
 
-.meowseo-image-preview {
-	width: 120px;
-	height: 70px;
-	object-fit: cover;
-	border-radius: 4px;
-	border: 1px solid #dcdcde;
-	display: none;
+.meowseo-ai-btn:active {
+	background: #1d5aa0;
+	border-color: #1a4a7a;
+	color: #fff;
 }
 
-.meowseo-image-preview.has-image {
-	display: block;
+.meowseo-ai-btn:disabled {
+	background: #f0f0f1;
+	color: #999;
+	border-color: #ddd;
+	cursor: not-allowed;
 }
 
-.meowseo-image-actions {
-	display: flex;
-	flex-direction: column;
-	gap: 6px;
+/* ========================================================================== */
+/* RESPONSIVE DESIGN                                                         */
+/* ========================================================================== */
+
+@media (max-width: 768px) {
+	#meowseo-tab-nav {
+		padding: 0 8px;
+	}
+
+	#meowseo-tab-nav button {
+		padding: 8px 10px;
+		font-size: 12px;
+	}
+
+	.meowseo-tab-panel {
+		padding: 12px;
+	}
+
+	.meowseo-field label {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+
+	.meowseo-counter {
+		margin-left: 0;
+		margin-top: 4px;
+	}
+
+	.meowseo-image-picker {
+		flex-direction: column;
+	}
+
+	.meowseo-image-preview {
+		width: 100%;
+		height: auto;
+		max-width: 200px;
+	}
+
+	.meowseo-image-actions {
+		width: 100%;
+	}
+
+	.meowseo-image-actions .button {
+		width: 100%;
+	}
+
+	.meowseo-robots {
+		flex-direction: column;
+		gap: 10px;
+	}
+
+	.meowseo-analysis-header {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+}
+
+@media (max-width: 480px) {
+	#meowseo-tab-nav {
+		padding: 0 4px;
+	}
+
+	#meowseo-tab-nav button {
+		padding: 6px 8px;
+		font-size: 11px;
+	}
+
+	.meowseo-tab-panel {
+		padding: 8px;
+	}
+
+	.meowseo-field {
+		margin-bottom: 10px;
+	}
+
+	.meowseo-serp-preview {
+		padding: 10px 12px;
+	}
+
+	.meowseo-serp-preview .serp-title {
+		font-size: 16px;
+	}
+
+	.meowseo-serp-preview .serp-desc {
+		font-size: 12px;
+	}
 }

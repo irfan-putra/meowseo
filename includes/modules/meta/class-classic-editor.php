@@ -28,6 +28,7 @@ class Classic_Editor {
 	public function init(): void {
 		add_action( 'add_meta_boxes', array( $this, 'register_meta_box' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_editor_scripts' ) );
+		add_action( 'save_post', array( $this, 'save_meta' ), 10, 2 );
 	}
 
 	/**
@@ -108,10 +109,10 @@ class Classic_Editor {
 		$nofollow            = (bool) get_post_meta( $post->ID, '_meowseo_robots_nofollow', true );
 		$og_title            = (string) get_post_meta( $post->ID, '_meowseo_og_title', true );
 		$og_desc             = (string) get_post_meta( $post->ID, '_meowseo_og_description', true );
-		$og_image_id         = (int) get_post_meta( $post->ID, '_meowseo_og_image', true );
+		$og_image_id         = (int) get_post_meta( $post->ID, '_meowseo_og_image_id', true );
 		$twitter_title       = (string) get_post_meta( $post->ID, '_meowseo_twitter_title', true );
 		$twitter_desc        = (string) get_post_meta( $post->ID, '_meowseo_twitter_description', true );
-		$twitter_image_id    = (int) get_post_meta( $post->ID, '_meowseo_twitter_image', true );
+		$twitter_image_id    = (int) get_post_meta( $post->ID, '_meowseo_twitter_image_id', true );
 		$use_og_for_twitter  = (bool) get_post_meta( $post->ID, '_meowseo_use_og_for_twitter', true );
 		$schema_type         = (string) get_post_meta( $post->ID, '_meowseo_schema_type', true );
 		$schema_config_raw   = (string) get_post_meta( $post->ID, '_meowseo_schema_config', true );
@@ -124,7 +125,12 @@ class Classic_Editor {
 
 		$post_permalink = get_permalink( $post->ID );
 		$parsed_url     = wp_parse_url( $post_permalink );
-		$display_url    = ( $parsed_url['host'] ?? '' ) . ( $parsed_url['path'] ?? '' );
+		$host           = $parsed_url['host'] ?? '';
+		$path           = $parsed_url['path'] ?? '';
+		// Format: "domain.com › slug" (breadcrumb style)
+		$path_parts     = array_filter( explode( '/', trim( $path, '/' ) ) );
+		$slug           = ! empty( $path_parts ) ? end( $path_parts ) : '';
+		$display_url    = $host . ( $slug ? ' › ' . $slug : '' );
 		?>
 		<div id="meowseo-tabs">
 
@@ -195,8 +201,6 @@ class Classic_Editor {
 				<div id="meowseo-analysis-panel" style="margin-top:10px">
 					<p style="color:#50575e;font-size:13px"><?php esc_html_e( 'Save the post, then click Run Analysis.', 'meowseo' ); ?></p>
 				</div>
-
-			</div>
 
 			<!-- ============================================================ -->
 			<!-- TAB: Social                                                   -->
@@ -586,20 +590,29 @@ class Classic_Editor {
 			return;
 		}
 
-		// String fields.
-		$string_fields = array(
-			'meowseo_title'               => '_meowseo_title',
+		// String fields (text inputs).
+		$text_fields = array(
+			'meowseo_title'         => '_meowseo_title',
+			'meowseo_focus_keyword' => '_meowseo_focus_keyword',
+			'meowseo_og_title'      => '_meowseo_og_title',
+			'meowseo_twitter_title' => '_meowseo_twitter_title',
+		);
+
+		foreach ( $text_fields as $post_key => $meta_key ) {
+			$value = isset( $_POST[ $post_key ] ) ? sanitize_text_field( wp_unslash( $_POST[ $post_key ] ) ) : '';
+			update_post_meta( $post_id, $meta_key, $value );
+		}
+
+		// Textarea fields.
+		$textarea_fields = array(
 			'meowseo_description'         => '_meowseo_description',
-			'meowseo_focus_keyword'       => '_meowseo_focus_keyword',
 			'meowseo_direct_answer'       => '_meowseo_direct_answer',
-			'meowseo_og_title'            => '_meowseo_og_title',
 			'meowseo_og_description'      => '_meowseo_og_description',
-			'meowseo_twitter_title'       => '_meowseo_twitter_title',
 			'meowseo_twitter_description' => '_meowseo_twitter_description',
 		);
 
-		foreach ( $string_fields as $post_key => $meta_key ) {
-			$value = isset( $_POST[ $post_key ] ) ? sanitize_text_field( wp_unslash( $_POST[ $post_key ] ) ) : '';
+		foreach ( $textarea_fields as $post_key => $meta_key ) {
+			$value = isset( $_POST[ $post_key ] ) ? sanitize_textarea_field( wp_unslash( $_POST[ $post_key ] ) ) : '';
 			update_post_meta( $post_id, $meta_key, $value );
 		}
 
@@ -615,8 +628,8 @@ class Classic_Editor {
 		// Image ID fields (absint).
 		$og_image_id      = isset( $_POST['meowseo_og_image'] ) ? absint( $_POST['meowseo_og_image'] ) : 0;
 		$twitter_image_id = isset( $_POST['meowseo_twitter_image'] ) ? absint( $_POST['meowseo_twitter_image'] ) : 0;
-		update_post_meta( $post_id, '_meowseo_og_image', $og_image_id );
-		update_post_meta( $post_id, '_meowseo_twitter_image', $twitter_image_id );
+		update_post_meta( $post_id, '_meowseo_og_image_id', $og_image_id );
+		update_post_meta( $post_id, '_meowseo_twitter_image_id', $twitter_image_id );
 
 		// Schema type.
 		$schema_type = isset( $_POST['meowseo_schema_type'] ) ? sanitize_text_field( wp_unslash( $_POST['meowseo_schema_type'] ) ) : '';
