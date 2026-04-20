@@ -98,7 +98,7 @@ function getWorkerInstance(): Worker | null {
 		// The worker file is at src/gutenberg/workers/analysis-worker.ts
 		// Using a relative path that webpack can resolve
 		const workerPath = '../workers/analysis-worker.ts';
-		
+
 		workerInstance = new Worker( workerPath as any, { type: 'module' } );
 		return workerInstance;
 	} catch ( error ) {
@@ -301,22 +301,28 @@ export function useAnalysis(): void {
 
 			if ( ! worker ) {
 				// Requirement 35.2: Display error message when Web Worker fails
-				console.error( 'MeowSEO: Web Worker not available, falling back to synchronous analysis' );
-				
+				console.error(
+					'MeowSEO: Web Worker not available, falling back to synchronous analysis'
+				);
+
 				// Fallback to synchronous analysis
 				// Provide basic analysis results without worker
 				try {
 					// Extract basic metrics from content
 					const content = snapshot.content || '';
 					const words = content.split( /\s+/ ).filter( Boolean );
-					const sentences = content.split( /[.!?]+/ ).filter( Boolean );
-					const paragraphs = content.split( /\n\n+/ ).filter( Boolean );
-					
+					const sentences = content
+						.split( /[.!?]+/ )
+						.filter( Boolean );
+					const paragraphs = content
+						.split( /\n\n+/ )
+						.filter( Boolean );
+
 					// Calculate basic scores
 					const wordCount = words.length;
 					const sentenceCount = sentences.length;
 					const paragraphCount = paragraphs.length;
-					
+
 					// Provide fallback analysis results
 					const fallbackResults: AnalysisResults = {
 						seoResults: [],
@@ -330,14 +336,17 @@ export function useAnalysis(): void {
 						keywordDensity: 0,
 						analysisTimestamp: Date.now(),
 					};
-					
+
 					handleAnalysisComplete( fallbackResults );
 				} catch ( fallbackError ) {
-					console.error( 'MeowSEO: Synchronous analysis fallback failed:', fallbackError );
+					console.error(
+						'MeowSEO: Synchronous analysis fallback failed:',
+						fallbackError
+					);
 					isAnalyzingRef.current = false;
 					dispatch( setAnalyzing( false ) );
 				}
-				
+
 				return;
 			}
 

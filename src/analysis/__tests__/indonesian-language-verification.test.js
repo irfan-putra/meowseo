@@ -344,8 +344,7 @@ describe( 'Indonesian Language Support Verification', () => {
 
 		it( 'should return problem status for low transition usage (<20%)', () => {
 			// 0 out of 3 sentences = 0%
-			const content =
-				'Kami bekerja keras. Kami berhasil. Kami senang.';
+			const content = 'Kami bekerja keras. Kami berhasil. Kami senang.';
 			const result = analyzeTransitionWords( content );
 
 			expect( result.type ).toBe( 'problem' );

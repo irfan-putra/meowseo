@@ -1,0 +1,26 @@
+{
+	"apiVersion": 3,
+	"name": "meowseo/subpages",
+	"title": "Subpages",
+	"category": "meowseo",
+	"icon": "list-view",
+	"description": "Display child pages of the current page",
+	"keywords": [ "subpages", "children", "seo" ],
+	"textdomain": "meowseo",
+	"attributes": {
+		"depth": {
+			"type": "number",
+			"default": 1
+		},
+		"showThumbnails": {
+			"type": "boolean",
+			"default": true
+		}
+	},
+	"supports": {
+		"html": false,
+		"align": [ "full", "wide" ]
+	},
+	"editorScript": "file:./index.ts",
+	"style": "file:../blocks.css"
+}

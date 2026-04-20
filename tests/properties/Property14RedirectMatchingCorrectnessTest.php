@@ -130,8 +130,8 @@ class Property14RedirectMatchingCorrectnessTest extends TestCase {
 				);
 
 				$this->assertEquals(
-					'active',
-					$result['status'],
+					1,
+					(int) $result['is_active'],
 					'Matched redirect should be active'
 				);
 			}
@@ -277,7 +277,7 @@ class Property14RedirectMatchingCorrectnessTest extends TestCase {
 					$target_url,
 					301,
 					false,
-					'inactive'
+					0
 				);
 
 				// Query for exact match
@@ -536,7 +536,7 @@ class Property14RedirectMatchingCorrectnessTest extends TestCase {
 		string $target_url,
 		int $redirect_type = 301,
 		bool $is_regex = false,
-		string $status = 'active'
+		int $is_active = 1
 	): int {
 		global $wpdb;
 
@@ -547,11 +547,11 @@ class Property14RedirectMatchingCorrectnessTest extends TestCase {
 			'target_url'    => $target_url,
 			'redirect_type' => $redirect_type,
 			'is_regex'      => $is_regex ? 1 : 0,
-			'status'        => $status,
+			'is_active'     => $is_active,
 			'hit_count'     => 0,
 		];
 
-		$format = [ '%s', '%s', '%d', '%d', '%s', '%d' ];
+		$format = [ '%s', '%s', '%d', '%d', '%d', '%d' ];
 
 		$wpdb->insert( $table, $data, $format );
 

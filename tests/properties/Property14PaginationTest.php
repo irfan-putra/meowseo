@@ -39,13 +39,6 @@ class Property14PaginationTest extends TestCase {
 	private REST_Logs $rest_logs;
 
 	/**
-	 * Mock database logs
-	 *
-	 * @var array
-	 */
-	private array $mock_logs = [];
-
-	/**
 	 * Set up test fixtures
 	 *
 	 * @return void
@@ -53,88 +46,35 @@ class Property14PaginationTest extends TestCase {
 	protected function setUp(): void {
 		parent::setUp();
 
-		// Reset mock logs
-		$this->mock_logs = [];
+		// Reset global wpdb storage (use the bootstrap's mock)
+		global $wpdb_storage;
+		$table = 'wp_meowseo_logs';
+		$wpdb_storage[ $table ] = array();
 
 		// Create mock Options instance
 		$options_mock = $this->createMock( Options::class );
 
 		// Initialize REST_Logs
 		$this->rest_logs = new REST_Logs( $options_mock );
-
-		// Setup mock database
-		$this->setup_mock_database();
 	}
 
 	/**
-	 * Setup mock database
+	 * Tear down test fixtures
 	 *
 	 * @return void
 	 */
-	private function setup_mock_database(): void {
-		global $wpdb;
-
-		// Create a mock wpdb object
-		$wpdb = new class( $this ) {
-			private $test_instance;
-
-			public function __construct( $test_instance ) {
-				$this->test_instance = $test_instance;
-			}
-
-			public $prefix = 'wp_';
-
-			public function prepare( $query, ...$args ) {
-				// Simple prepare implementation for testing
-				$query = str_replace( '%d', '%s', $query );
-				$query = str_replace( '%s', "'%s'", $query );
-				return vsprintf( $query, $args );
-			}
-
-			public function get_results( $query, $output = OBJECT ) {
-				// Parse the query to extract pagination info
-				if ( preg_match( '/LIMIT (\d+) OFFSET (\d+)/', $query, $matches ) ) {
-					$limit = (int) $matches[1];
-					$offset = (int) $matches[2];
-
-					// Return paginated results
-					$results = array_slice( $this->test_instance->mock_logs, $offset, $limit );
-					return $results;
-				}
-				return [];
-			}
-
-			public function get_var( $query = null, $x = 0, $y = 0 ) {
-				// Return total count
-				return count( $this->test_instance->mock_logs );
-			}
-
-			public function insert( $table, $data, $format = null ) {
-				// Capture the log entry
-				if ( strpos( $table, 'meowseo_logs' ) !== false ) {
-					$this->test_instance->mock_logs[] = $data;
-					return true;
-				}
-				return false;
-			}
-
-			public function query( $query ) {
-				// Handle DELETE queries
-				if ( strpos( $query, 'DELETE' ) === 0 ) {
-					if ( strpos( $query, "module = 'test'" ) !== false ) {
-						$this->test_instance->mock_logs = array_filter(
-							$this->test_instance->mock_logs,
-							function( $log ) {
-								return $log['module'] !== 'test';
-							}
-						);
-					}
-					return true;
-				}
-				return false;
-			}
-		};
+	protected function tearDown(): void {
+		// Clean up wpdb storage
+		global $wpdb_storage;
+		$table = 'wp_meowseo_logs';
+		$wpdb_storage[ $table ] = array();
+		
+		parent::tearDown();
 	}
+
+	/**
+	 * DO NOT setup mock database - use the bootstrap's existing mock
+	 */
 
 	/**
 	 * Property 14: Pagination
@@ -542,25 +482,24 @@ class Property14PaginationTest extends TestCase {
 	 * @return void
 	 */
 	private function create_test_logs( int $count ): void {
-		global $wpdb;
+		global $wpdb, $wpdb_storage;
 
 		$table = $wpdb->prefix . 'meowseo_logs';
 
 		for ( $i = 0; $i < $count; $i++ ) {
-			$wpdb->insert(
-				$table,
-				array(
-					'level'        => 'INFO',
-					'module'       => 'test',
-					'message'      => "Test log entry $i",
-					'message_hash' => hash( 'sha256', "Test log entry $i" ),
-					'context'      => wp_json_encode( array( 'index' => $i ) ),
-					'stack_trace'  => null,
-					'hit_count'    => 1,
-					'created_at'   => current_time( 'mysql' ),
-				),
-				array( '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%s' )
+			$data = array(
+				'id'           => ( $wpdb->insert_id ?? 0 ) + $i + 1,
+				'level'        => 'INFO',
+				'module'       => 'test',
+				'message'      => "Test log entry $i",
+				'message_hash' => hash( 'sha256', "Test log entry $i" ),
+				'context'      => wp_json_encode( array( 'index' => $i ) ),
+				'stack_trace'  => null,
+				'hit_count'    => 1,
+				'created_at'   => current_time( 'mysql' ),
 			);
+			
+			$wpdb->insert( $table, $data, array( '%d', '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%s' ) );
 		}
 	}
 
@@ -570,11 +509,25 @@ class Property14PaginationTest extends TestCase {
 	 * @return void
 	 */
 	private function delete_test_logs(): void {
-		global $wpdb;
+		global $wpdb, $wpdb_storage;
 
 		$table = $wpdb->prefix . 'meowseo_logs';
 
 		// Delete all test logs
 		$wpdb->query( "DELETE FROM {$table} WHERE module = 'test'" );
+	}
+
+	/**
+	 * Helper method to delete ALL log entries (for test isolation)
+	 *
+	 * @return void
+	 */
+	private function delete_all_logs(): void {
+		global $wpdb, $wpdb_storage;
+
+		$table = $wpdb->prefix . 'meowseo_logs';
+
+		// Clear the storage
+		$wpdb_storage[ $table ] = array();
 	}
 }

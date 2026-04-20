@@ -182,13 +182,17 @@ const RecipeForm: React.FC = () => {
 			<TextControl
 				label={ __( 'Calories', 'meowseo' ) }
 				value={ schemaConfig.nutrition?.calories || '' }
-				onChange={ ( value ) => updateNutritionField( 'calories', value ) }
+				onChange={ ( value ) =>
+					updateNutritionField( 'calories', value )
+				}
 			/>
 
 			<TextControl
 				label={ __( 'Fat Content (e.g., 10g)', 'meowseo' ) }
 				value={ schemaConfig.nutrition?.fatContent || '' }
-				onChange={ ( value ) => updateNutritionField( 'fatContent', value ) }
+				onChange={ ( value ) =>
+					updateNutritionField( 'fatContent', value )
+				}
 			/>
 
 			<TextControl

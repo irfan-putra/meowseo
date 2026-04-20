@@ -1,0 +1,347 @@
+/**
+ * MeowSEO Gutenberg Blocks Styles
+ *
+ * Requirements: 9.1, 9.2, 9.3, 9.4, 9.5, 9.6, 9.7, 9.8, 9.9, 9.10
+ */
+
+/* Estimated Reading Time Block */
+.meowseo-reading-time {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	font-size: 1rem;
+	color: #666;
+}
+
+.meowseo-reading-time__icon {
+	font-size: 1.2rem;
+}
+
+.meowseo-reading-time__text {
+	font-weight: 500;
+}
+
+/* Related Posts Block */
+.meowseo-related-posts {
+	margin: 2rem 0;
+}
+
+.meowseo-related-posts__title {
+	font-size: 1.5rem;
+	font-weight: 600;
+	margin-bottom: 1.5rem;
+	color: #333;
+}
+
+.meowseo-related-posts__loading {
+	display: flex;
+	justify-content: center;
+	padding: 2rem;
+}
+
+.meowseo-related-posts__empty {
+	padding: 2rem;
+	text-align: center;
+	color: #666;
+	background-color: #f5f5f5;
+	border-radius: 4px;
+}
+
+/* List Display */
+.meowseo-related-posts--list .meowseo-related-posts__list {
+	display: flex;
+	flex-direction: column;
+	gap: 1.5rem;
+}
+
+.meowseo-related-posts--list .meowseo-related-posts__item {
+	display: flex;
+	gap: 1rem;
+	padding: 1rem;
+	border: 1px solid #e0e0e0;
+	border-radius: 4px;
+	transition: box-shadow 0.2s ease;
+}
+
+.meowseo-related-posts--list .meowseo-related-posts__item:hover {
+	box-shadow: 0 2px 8px rgba( 0, 0, 0, 0.1 );
+}
+
+.meowseo-related-posts--list .meowseo-related-posts__thumbnail {
+	flex-shrink: 0;
+	width: 120px;
+	height: 120px;
+	overflow: hidden;
+	border-radius: 4px;
+}
+
+.meowseo-related-posts--list .meowseo-related-posts__thumbnail img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+/* Grid Display */
+.meowseo-related-posts--grid .meowseo-related-posts__list {
+	display: grid;
+	grid-template-columns: repeat( auto-fill, minmax( 250px, 1fr ) );
+	gap: 1.5rem;
+}
+
+.meowseo-related-posts--grid .meowseo-related-posts__item {
+	display: flex;
+	flex-direction: column;
+	border: 1px solid #e0e0e0;
+	border-radius: 4px;
+	overflow: hidden;
+	transition: box-shadow 0.2s ease;
+}
+
+.meowseo-related-posts--grid .meowseo-related-posts__item:hover {
+	box-shadow: 0 4px 12px rgba( 0, 0, 0, 0.15 );
+}
+
+.meowseo-related-posts--grid .meowseo-related-posts__thumbnail {
+	width: 100%;
+	height: 200px;
+	overflow: hidden;
+}
+
+.meowseo-related-posts--grid .meowseo-related-posts__thumbnail img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.meowseo-related-posts__content {
+	padding: 1rem;
+	flex-grow: 1;
+	display: flex;
+	flex-direction: column;
+}
+
+.meowseo-related-posts__post-title {
+	font-size: 1.1rem;
+	font-weight: 600;
+	margin: 0 0 0.5rem 0;
+}
+
+.meowseo-related-posts__post-title a {
+	color: #0073aa;
+	text-decoration: none;
+}
+
+.meowseo-related-posts__post-title a:hover {
+	text-decoration: underline;
+}
+
+.meowseo-related-posts__excerpt {
+	font-size: 0.9rem;
+	color: #666;
+	line-height: 1.5;
+	margin: 0;
+}
+
+/* Siblings Block */
+.meowseo-siblings {
+	margin: 2rem 0;
+}
+
+.meowseo-siblings__title {
+	font-size: 1.5rem;
+	font-weight: 600;
+	margin-bottom: 1.5rem;
+	color: #333;
+}
+
+.meowseo-siblings__loading {
+	display: flex;
+	justify-content: center;
+	padding: 2rem;
+}
+
+.meowseo-siblings__empty {
+	padding: 2rem;
+	text-align: center;
+	color: #666;
+	background-color: #f5f5f5;
+	border-radius: 4px;
+}
+
+.meowseo-siblings__list {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+}
+
+.meowseo-siblings__item {
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+	padding: 1rem;
+	border: 1px solid #e0e0e0;
+	border-radius: 4px;
+	transition: box-shadow 0.2s ease;
+}
+
+.meowseo-siblings__item:hover {
+	box-shadow: 0 2px 8px rgba( 0, 0, 0, 0.1 );
+}
+
+.meowseo-siblings__thumbnail {
+	flex-shrink: 0;
+	width: 80px;
+	height: 80px;
+	overflow: hidden;
+	border-radius: 4px;
+}
+
+.meowseo-siblings__thumbnail img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.meowseo-siblings__link {
+	color: #0073aa;
+	text-decoration: none;
+	font-weight: 500;
+	flex-grow: 1;
+}
+
+.meowseo-siblings__link:hover {
+	text-decoration: underline;
+}
+
+/* Subpages Block */
+.meowseo-subpages {
+	margin: 2rem 0;
+}
+
+.meowseo-subpages__title {
+	font-size: 1.5rem;
+	font-weight: 600;
+	margin-bottom: 1.5rem;
+	color: #333;
+}
+
+.meowseo-subpages__loading {
+	display: flex;
+	justify-content: center;
+	padding: 2rem;
+}
+
+.meowseo-subpages__empty {
+	padding: 2rem;
+	text-align: center;
+	color: #666;
+	background-color: #f5f5f5;
+	border-radius: 4px;
+}
+
+.meowseo-subpages__list {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+}
+
+.meowseo-subpages__list--level-2 {
+	margin-left: 1.5rem;
+	margin-top: 1rem;
+	border-left: 2px solid #e0e0e0;
+	padding-left: 1rem;
+}
+
+.meowseo-subpages__list--level-3 {
+	margin-left: 1.5rem;
+	margin-top: 1rem;
+	border-left: 2px solid #e0e0e0;
+	padding-left: 1rem;
+}
+
+.meowseo-subpages__item {
+	display: flex;
+	flex-direction: column;
+}
+
+.meowseo-subpages__page {
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+	padding: 0.75rem;
+	border-radius: 4px;
+	transition: background-color 0.2s ease;
+}
+
+.meowseo-subpages__page:hover {
+	background-color: #f9f9f9;
+}
+
+.meowseo-subpages__thumbnail {
+	flex-shrink: 0;
+	width: 60px;
+	height: 60px;
+	overflow: hidden;
+	border-radius: 4px;
+}
+
+.meowseo-subpages__thumbnail img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.meowseo-subpages__link {
+	color: #0073aa;
+	text-decoration: none;
+	font-weight: 500;
+}
+
+.meowseo-subpages__link:hover {
+	text-decoration: underline;
+}
+
+/* Accessibility */
+@media ( prefers-reduced-motion: reduce ) {
+	.meowseo-related-posts__item,
+	.meowseo-siblings__item,
+	.meowseo-subpages__page {
+		transition: none;
+	}
+}
+
+/* Focus styles for keyboard navigation */
+.meowseo-related-posts__post-title a:focus,
+.meowseo-siblings__link:focus,
+.meowseo-subpages__link:focus {
+	outline: 2px solid #0073aa;
+	outline-offset: 2px;
+}
+
+/* Responsive */
+@media ( max-width: 768px ) {
+	.meowseo-related-posts--grid .meowseo-related-posts__list {
+		grid-template-columns: 1fr;
+	}
+
+	.meowseo-related-posts--list .meowseo-related-posts__item {
+		flex-direction: column;
+	}
+
+	.meowseo-related-posts--list .meowseo-related-posts__thumbnail {
+		width: 100%;
+		height: 200px;
+	}
+
+	.meowseo-subpages__list--level-2,
+	.meowseo-subpages__list--level-3 {
+		margin-left: 1rem;
+		padding-left: 0.5rem;
+	}
+}

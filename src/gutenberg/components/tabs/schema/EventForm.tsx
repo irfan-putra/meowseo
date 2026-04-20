@@ -98,8 +98,14 @@ const EventForm: React.FC = () => {
 	];
 
 	const attendanceModeOptions = [
-		{ label: __( 'Offline', 'meowseo' ), value: 'OfflineEventAttendanceMode' },
-		{ label: __( 'Online', 'meowseo' ), value: 'OnlineEventAttendanceMode' },
+		{
+			label: __( 'Offline', 'meowseo' ),
+			value: 'OfflineEventAttendanceMode',
+		},
+		{
+			label: __( 'Online', 'meowseo' ),
+			value: 'OnlineEventAttendanceMode',
+		},
 		{ label: __( 'Mixed', 'meowseo' ), value: 'MixedEventAttendanceMode' },
 	];
 
@@ -153,9 +159,14 @@ const EventForm: React.FC = () => {
 
 			<SelectControl
 				label={ __( 'Attendance Mode', 'meowseo' ) }
-				value={ schemaConfig.eventAttendanceMode || 'OfflineEventAttendanceMode' }
+				value={
+					schemaConfig.eventAttendanceMode ||
+					'OfflineEventAttendanceMode'
+				}
 				options={ attendanceModeOptions }
-				onChange={ ( value ) => updateField( 'eventAttendanceMode', value ) }
+				onChange={ ( value ) =>
+					updateField( 'eventAttendanceMode', value )
+				}
 			/>
 
 			<TextControl
@@ -184,7 +195,9 @@ const EventForm: React.FC = () => {
 			<TextControl
 				label={ __( 'Currency', 'meowseo' ) }
 				value={ schemaConfig.offers?.priceCurrency || 'USD' }
-				onChange={ ( value ) => updateOffersField( 'priceCurrency', value ) }
+				onChange={ ( value ) =>
+					updateOffersField( 'priceCurrency', value )
+				}
 				help={ __( 'e.g., USD, EUR, GBP', 'meowseo' ) }
 			/>
 		</div>

@@ -11,6 +11,7 @@ import { registerPlugin } from '@wordpress/plugins';
 import { PluginSidebar } from '@wordpress/edit-post';
 import { AiGeneratorPanel } from './components/AiGeneratorPanel';
 import './styles/ai-generator.css';
+import './styles/ai-suggestion.css';
 
 /**
  * Register the AI Generator sidebar plugin

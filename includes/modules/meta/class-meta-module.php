@@ -152,9 +152,6 @@ class Meta_Module implements Module {
 		// Register Robots_Txt filter hook.
 		$this->robots_txt->register();
 
-		// Initialize Gutenberg_Assets hooks.
-		$this->gutenberg_assets->init();
-
 		// Initialize Classic_Editor hooks.
 		$this->classic_editor->init();
 	}
@@ -191,6 +188,9 @@ class Meta_Module implements Module {
 
 		// Register rest_api_init hook for keyword REST endpoints.
 		add_action( 'rest_api_init', array( $this, 'register_keyword_rest_routes' ) );
+
+		// Register enqueue_block_editor_assets hook for Gutenberg editor assets.
+		add_action( 'enqueue_block_editor_assets', array( $this, 'enqueue_block_editor_assets' ) );
 	}
 
 	/**
@@ -203,6 +203,17 @@ class Meta_Module implements Module {
 	 */
 	private function remove_theme_title_tag(): void {
 		remove_theme_support( 'title-tag' );
+	}
+
+	/**
+	 * Enqueue block editor assets
+	 *
+	 * Delegates to Gutenberg_Assets for asset enqueuing.
+	 *
+	 * @return void
+	 */
+	public function enqueue_block_editor_assets(): void {
+		$this->gutenberg_assets->enqueue_editor_assets();
 	}
 
 	/**

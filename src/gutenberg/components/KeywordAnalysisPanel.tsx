@@ -187,10 +187,7 @@ const KeywordScoreRow: React.FC< KeywordScoreRowProps > = memo(
 													? __( 'Good', 'meowseo' )
 													: checkData.status === 'ok'
 													? __( 'OK', 'meowseo' )
-													: __(
-															'Problem',
-															'meowseo'
-													  )
+													: __( 'Problem', 'meowseo' )
 											}
 										>
 											{ statusIcon }
@@ -256,10 +253,8 @@ export const KeywordAnalysisPanel: React.FC = memo( () => {
 				// Get keyword analysis results from postmeta
 				// Note: This will be populated by the backend analysis
 				// For now, we'll use an empty object as placeholder
-				const keywordAnalysis: Record<
-					string,
-					KeywordAnalysisData
-				> = {};
+				const keywordAnalysis: Record< string, KeywordAnalysisData > =
+					{};
 
 				return {
 					primaryKeyword,
@@ -282,10 +277,9 @@ export const KeywordAnalysisPanel: React.FC = memo( () => {
 		}, [] );
 
 	// Combine primary and secondary keywords
-	const allKeywords = [
-		primaryKeyword,
-		...secondaryKeywords,
-	].filter( Boolean );
+	const allKeywords = [ primaryKeyword, ...secondaryKeywords ].filter(
+		Boolean
+	);
 
 	return (
 		<div className="meowseo-keyword-analysis-panel">
@@ -308,8 +302,7 @@ export const KeywordAnalysisPanel: React.FC = memo( () => {
 			) : (
 				<div className="meowseo-keyword-analysis-list">
 					{ allKeywords.map( ( keyword, index ) => {
-						const analysisData =
-							keywordAnalysis[ keyword ] || {};
+						const analysisData = keywordAnalysis[ keyword ] || {};
 						const isPrimary = index === 0;
 
 						return (

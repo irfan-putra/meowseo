@@ -17,16 +17,16 @@ import { useEffect } from '@wordpress/element';
  * Requirement 6.1: Checkbox control for cornerstone content designation
  */
 const CornerstoneCheckbox: React.FC = () => {
-	const postType = useSelect((select: any) => {
-		return select('core/editor').getCurrentPostType();
-	}, []);
+	const postType = useSelect( ( select: any ) => {
+		return select( 'core/editor' ).getCurrentPostType();
+	}, [] );
 
-	const postId = useSelect((select: any) => {
-		return select('core/editor').getCurrentPostId();
-	}, []);
+	const postId = useSelect( ( select: any ) => {
+		return select( 'core/editor' ).getCurrentPostId();
+	}, [] );
 
 	// Get cornerstone meta value
-	const [isCornerstone, setIsCornerstone] = useEntityProp(
+	const [ isCornerstone, setIsCornerstone ] = useEntityProp(
 		'postType',
 		postType,
 		'meta',
@@ -36,11 +36,11 @@ const CornerstoneCheckbox: React.FC = () => {
 	const cornerstoneValue = isCornerstone?._meowseo_is_cornerstone || '';
 
 	// Handle checkbox change
-	const handleChange = (checked: boolean) => {
-		setIsCornerstone({
+	const handleChange = ( checked: boolean ) => {
+		setIsCornerstone( {
 			...isCornerstone,
 			_meowseo_is_cornerstone: checked ? '1' : '',
-		});
+		} );
 	};
 
 	return (
@@ -48,8 +48,8 @@ const CornerstoneCheckbox: React.FC = () => {
 			<CheckboxControl
 				label="Mark as Cornerstone Content"
 				help="Cornerstone content represents your most important pages. These will be prioritized in internal link suggestions."
-				checked={cornerstoneValue === '1'}
-				onChange={handleChange}
+				checked={ cornerstoneValue === '1' }
+				onChange={ handleChange }
 			/>
 		</div>
 	);

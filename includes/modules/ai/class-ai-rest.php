@@ -47,6 +47,13 @@ class AI_REST {
 	private AI_Provider_Manager $provider_manager;
 
 	/**
+	 * AI Optimizer instance.
+	 *
+	 * @var AI_Optimizer
+	 */
+	private AI_Optimizer $optimizer;
+
+	/**
 	 * Valid provider slugs.
 	 *
 	 * @var array
@@ -65,10 +72,12 @@ class AI_REST {
 	 *
 	 * @param AI_Generator        $generator         Generator instance.
 	 * @param AI_Provider_Manager $provider_manager  Provider Manager instance.
+	 * @param AI_Optimizer        $optimizer         AI Optimizer instance.
 	 */
-	public function __construct( AI_Generator $generator, AI_Provider_Manager $provider_manager ) {
+	public function __construct( AI_Generator $generator, AI_Provider_Manager $provider_manager, AI_Optimizer $optimizer ) {
 		$this->generator         = $generator;
 		$this->provider_manager  = $provider_manager;
+		$this->optimizer         = $optimizer;
 	}
 
 	/**
@@ -190,6 +199,39 @@ class AI_REST {
 						'sanitize_callback' => 'sanitize_text_field',
 					),
 					'api_key' => array(
+						'type'              => 'string',
+						'required'          => true,
+						'sanitize_callback' => 'sanitize_text_field',
+					),
+				),
+			)
+		);
+
+		// POST /meowseo/v1/ai/suggestion - Get AI suggestion for failing SEO check (Requirement 10.1, 10.2, 10.4).
+		register_rest_route(
+			self::NAMESPACE,
+			'/ai/suggestion',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( $this, 'get_suggestion' ),
+				'permission_callback' => array( $this, 'check_permission_and_nonce' ),
+				'args'                => array(
+					'post_id'    => array(
+						'type'              => 'integer',
+						'required'          => true,
+						'sanitize_callback' => 'absint',
+					),
+					'check_name' => array(
+						'type'              => 'string',
+						'required'          => true,
+						'sanitize_callback' => 'sanitize_text_field',
+					),
+					'content'    => array(
+						'type'              => 'string',
+						'required'          => true,
+						'sanitize_callback' => 'wp_kses_post',
+					),
+					'keyword'    => array(
 						'type'              => 'string',
 						'required'          => true,
 						'sanitize_callback' => 'sanitize_text_field',
@@ -603,6 +645,75 @@ class AI_REST {
 				array( 'status' => 500 )
 			);
 		}
+	}
+
+	/**
+	 * Get AI suggestion for failing SEO check.
+	 *
+	 * POST /meowseo/v1/ai/suggestion
+	 * Requirements: 10.1, 10.2, 10.4
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response|WP_Error Response object or error.
+	 */
+	public function get_suggestion( WP_REST_Request $request ) {
+		$post_id = $request->get_param( 'post_id' );
+		$check_name = $request->get_param( 'check_name' );
+		$content = $request->get_param( 'content' );
+		$keyword = $request->get_param( 'keyword' );
+
+		// Verify post exists and user can edit it
+		$post = get_post( $post_id );
+		if ( ! $post ) {
+			return new WP_Error(
+				'invalid_post',
+				__( 'Invalid post ID.', 'meowseo' ),
+				array( 'status' => 404 )
+			);
+		}
+
+		if ( ! current_user_can( 'edit_post', $post_id ) ) {
+			return new WP_Error(
+				'unauthorized',
+				__( 'You do not have permission to edit this post.', 'meowseo' ),
+				array( 'status' => 403 )
+			);
+		}
+
+		// Get suggestion from AI Optimizer
+		$suggestion = $this->optimizer->get_suggestion( $check_name, $content, $keyword, $post_id );
+
+		if ( is_wp_error( $suggestion ) ) {
+			Logger::error(
+				'AI suggestion generation failed',
+				array(
+					'module'     => 'ai',
+					'post_id'    => $post_id,
+					'check_name' => $check_name,
+					'error'      => $suggestion->get_error_message(),
+				)
+			);
+
+			return $suggestion;
+		}
+
+		Logger::info(
+			'AI suggestion generated successfully',
+			array(
+				'module'     => 'ai',
+				'post_id'    => $post_id,
+				'check_name' => $check_name,
+			)
+		);
+
+		return new WP_REST_Response(
+			array(
+				'success'    => true,
+				'suggestion' => $suggestion,
+				'check_name' => $check_name,
+			),
+			200
+		);
 	}
 
 	/**

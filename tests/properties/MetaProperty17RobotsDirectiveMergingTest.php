@@ -14,18 +14,15 @@
 
 namespace MeowSEO\Tests\Properties;
 
-use WP_UnitTestCase;
 use MeowSEO\Modules\Meta\Meta_Resolver;
 use MeowSEO\Modules\Meta\Title_Patterns;
 use MeowSEO\Options;
 use Eris\Generator;
-use Eris\TestTrait;
 
 /**
  * Test Property 17: Robots Directive Merging
  */
-class MetaProperty17RobotsDirectiveMergingTest extends WP_UnitTestCase {
-	use TestTrait;
+class MetaProperty17RobotsDirectiveMergingTest extends MetaPropertyTestCase {
 
 	/**
 	 * Test robots directive merging with post overrides

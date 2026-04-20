@@ -13,18 +13,15 @@
 
 namespace MeowSEO\Tests\Properties;
 
-use WP_UnitTestCase;
 use MeowSEO\Modules\Meta\Meta_Resolver;
 use MeowSEO\Modules\Meta\Title_Patterns;
 use MeowSEO\Options;
 use Eris\Generator;
-use Eris\TestTrait;
 
 /**
  * Test Property 13: OG Image Fallback Chain Completeness
  */
-class MetaProperty13OGImageFallbackChainTest extends WP_UnitTestCase {
-	use TestTrait;
+class MetaProperty13OGImageFallbackChainTest extends MetaPropertyTestCase {
 
 	/**
 	 * Test OG image fallback chain with custom image

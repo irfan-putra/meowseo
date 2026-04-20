@@ -39,9 +39,14 @@ const SecondaryKeywordsInput: React.FC = memo( () => {
 	}, [] );
 
 	// Get primary keyword to check total count
-	const [ meta, setMeta ] = useEntityProp( 'postType', postType, 'meta', postId );
+	const [ meta, setMeta ] = useEntityProp(
+		'postType',
+		postType,
+		'meta',
+		postId
+	);
 	const primaryKeyword = meta?._meowseo_focus_keyword || '';
-	
+
 	// Get secondary keywords
 	let secondaryKeywords: string[] = [];
 	try {
@@ -74,7 +79,7 @@ const SecondaryKeywordsInput: React.FC = memo( () => {
 	// Add keyword handler
 	const handleAddKeyword = useCallback( () => {
 		const trimmed = newKeyword.trim();
-		
+
 		if ( ! trimmed ) {
 			setError( __( 'Keyword cannot be empty.', 'meowseo' ) );
 			return;
@@ -82,12 +87,22 @@ const SecondaryKeywordsInput: React.FC = memo( () => {
 
 		// Check if already exists
 		if ( primaryKeyword === trimmed ) {
-			setError( __( 'This keyword is already set as the primary keyword.', 'meowseo' ) );
+			setError(
+				__(
+					'This keyword is already set as the primary keyword.',
+					'meowseo'
+				)
+			);
 			return;
 		}
 
 		if ( secondaryKeywords.includes( trimmed ) ) {
-			setError( __( 'This keyword already exists in secondary keywords.', 'meowseo' ) );
+			setError(
+				__(
+					'This keyword already exists in secondary keywords.',
+					'meowseo'
+				)
+			);
 			return;
 		}
 
@@ -101,7 +116,13 @@ const SecondaryKeywordsInput: React.FC = memo( () => {
 		updateSecondaryKeywords( [ ...secondaryKeywords, trimmed ] );
 		setNewKeyword( '' );
 		setError( '' );
-	}, [ newKeyword, primaryKeyword, secondaryKeywords, canAddMore, updateSecondaryKeywords ] );
+	}, [
+		newKeyword,
+		primaryKeyword,
+		secondaryKeywords,
+		canAddMore,
+		updateSecondaryKeywords,
+	] );
 
 	// Remove keyword handler
 	const handleRemoveKeyword = useCallback(
@@ -135,7 +156,10 @@ const SecondaryKeywordsInput: React.FC = memo( () => {
 				{ __( 'Secondary Keywords', 'meowseo' ) }
 			</h3>
 			<p className="meowseo-secondary-keywords__description">
-				{ __( 'Add up to 4 additional keywords to optimize for. Drag to reorder.', 'meowseo' ) }
+				{ __(
+					'Add up to 4 additional keywords to optimize for. Drag to reorder.',
+					'meowseo'
+				) }
 			</p>
 
 			{ secondaryKeywords.length > 0 && (
@@ -162,7 +186,10 @@ const SecondaryKeywordsInput: React.FC = memo( () => {
 												<span
 													{ ...provided.dragHandleProps }
 													className="meowseo-secondary-keywords__drag-handle"
-													aria-label={ __( 'Drag to reorder', 'meowseo' ) }
+													aria-label={ __(
+														'Drag to reorder',
+														'meowseo'
+													) }
 												>
 													⋮⋮
 												</span>
@@ -172,10 +199,20 @@ const SecondaryKeywordsInput: React.FC = memo( () => {
 												<Button
 													isDestructive
 													isSmall
-													onClick={ () => handleRemoveKeyword( index ) }
-													aria-label={ __( 'Remove keyword', 'meowseo' ) }
+													onClick={ () =>
+														handleRemoveKeyword(
+															index
+														)
+													}
+													aria-label={ __(
+														'Remove keyword',
+														'meowseo'
+													) }
 												>
-													{ __( 'Remove', 'meowseo' ) }
+													{ __(
+														'Remove',
+														'meowseo'
+													) }
 												</Button>
 											</div>
 										) }

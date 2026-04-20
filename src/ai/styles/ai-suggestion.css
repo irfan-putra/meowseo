@@ -1,0 +1,62 @@
+/**
+ * AI Suggestion Component Styles
+ *
+ * @package MeowSEO
+ * @since 1.0.0
+ */
+
+.meowseo-ai-suggestion {
+	margin-top: 8px;
+	margin-left: 28px;
+}
+
+.meowseo-ai-suggestion-button {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	font-size: 12px;
+	padding: 4px 8px;
+	height: auto;
+	min-height: 28px;
+}
+
+.meowseo-ai-suggestion-button .dashicons {
+	font-size: 14px;
+	width: 14px;
+	height: 14px;
+}
+
+.meowseo-ai-suggestion-button .components-spinner {
+	margin: 0;
+}
+
+.meowseo-ai-suggestion-error {
+	margin-top: 8px;
+	font-size: 12px;
+}
+
+.meowseo-ai-suggestion-panel {
+	margin-top: 8px;
+	padding: 12px;
+	background: #f0f6fc;
+	border-left: 3px solid #0073aa;
+	border-radius: 4px;
+	font-size: 13px;
+	line-height: 1.6;
+}
+
+.meowseo-ai-suggestion-content {
+	color: #1e1e1e;
+}
+
+.meowseo-check-header {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.meowseo-check-item {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}

@@ -128,7 +128,9 @@ describe( 'KeywordAnalysisPanel', () => {
 		render( <KeywordAnalysisPanel /> );
 
 		// Initially, details should not be visible
-		expect( screen.queryByText( 'Keyword Density' ) ).not.toBeInTheDocument();
+		expect(
+			screen.queryByText( 'Keyword Density' )
+		).not.toBeInTheDocument();
 
 		// Click to expand
 		const expandButton = screen.getByRole( 'button', {

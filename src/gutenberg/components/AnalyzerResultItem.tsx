@@ -78,7 +78,8 @@ export const AnalyzerResultItem: React.FC< AnalyzerResultItemProps > = memo(
 
 		const hasDetails =
 			result.details && Object.keys( result.details ).length > 0;
-		const hasFixExplanation = result.fix_explanation && result.fix_explanation.trim().length > 0;
+		const hasFixExplanation =
+			result.fix_explanation && result.fix_explanation.trim().length > 0;
 
 		return (
 			<div

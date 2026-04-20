@@ -219,8 +219,8 @@ class REST_Logs {
 		$logs_query = $wpdb->prepare( $logs_query, ...$query_values );
 		$logs = $wpdb->get_results( $logs_query, ARRAY_A );
 
-		// Calculate total pages
-		$total_pages = ceil( $total / $per_page );
+		// Calculate total pages (minimum 1 page even if no entries)
+		$total_pages = max( 1, ceil( $total / $per_page ) );
 
 		// Return JSON response with logs array and pagination metadata
 		$response = new WP_REST_Response(

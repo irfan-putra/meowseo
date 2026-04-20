@@ -32,6 +32,7 @@ class Meta_Postmeta {
 		'twitter_description' => 'string',
 		'twitter_image'       => 'integer',
 		'focus_keyword'       => 'string',
+		'keyword_synonyms'    => 'string',
 		'direct_answer'       => 'string',
 		'schema_type'         => 'string',
 		'schema_config'       => 'string',

@@ -16,10 +16,12 @@ import SERPPreview from '../SERPPreview';
 import CharacterCounter from '../CharacterCounter';
 import FocusKeywordInput from './FocusKeywordInput';
 import SecondaryKeywordsInput from './SecondaryKeywordsInput';
+import SynonymInput from './SynonymInput';
 import DirectAnswerField from './DirectAnswerField';
 import InternalLinkSuggestions from './InternalLinkSuggestions';
 import { ReadabilityScorePanel } from '../ReadabilityScorePanel';
 import { KeywordAnalysisPanel } from '../KeywordAnalysisPanel';
+import { SynonymAnalysisPanel } from '../SynonymAnalysisPanel';
 import { useEntityPropBinding } from '../../hooks/useEntityPropBinding';
 import '../SERPPreview.css';
 import '../CharacterCounter.css';
@@ -68,14 +70,10 @@ const GeneralTabContent: React.FC = () => {
 			}
 			return {
 				permalink: editorSelect.getPermalink() || '',
-				postTitle:
-					editorSelect.getEditedPostAttribute( 'title' ) || '',
+				postTitle: editorSelect.getEditedPostAttribute( 'title' ) || '',
 			};
 		} catch ( error ) {
-			console.error(
-				'MeowSEO: Error reading permalink/title:',
-				error
-			);
+			console.error( 'MeowSEO: Error reading permalink/title:', error );
 			return { permalink: '', postTitle: '' };
 		}
 	}, [] );
@@ -127,7 +125,7 @@ const GeneralTabContent: React.FC = () => {
 						'meowseo'
 					) }
 					placeholder={ __(
-						'Enter a compelling description...',
+						'Enter a compelling description…',
 						'meowseo'
 					) }
 				/>
@@ -143,7 +141,9 @@ const GeneralTabContent: React.FC = () => {
 
 			<FocusKeywordInput />
 			<SecondaryKeywordsInput />
+			<SynonymInput />
 			<KeywordAnalysisPanel />
+			<SynonymAnalysisPanel />
 			<DirectAnswerField />
 			<InternalLinkSuggestions />
 			<ReadabilityScorePanel />

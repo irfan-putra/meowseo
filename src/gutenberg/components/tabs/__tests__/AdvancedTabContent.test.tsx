@@ -10,6 +10,17 @@ import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import AdvancedTabContent from '../AdvancedTabContent';
 
+// Mock WordPress data store
+jest.mock( '@wordpress/data', () => ( {
+	useSelect: jest.fn( () => ( {
+		postType: 'post',
+		postId: 1,
+	} ) ),
+	useDispatch: jest.fn( () => ( {
+		editPost: jest.fn(),
+	} ) ),
+} ) );
+
 // Mock child components
 jest.mock( '../RobotsToggles', () => {
 	return function RobotsToggles() {
@@ -34,6 +45,26 @@ jest.mock( '../GSCIntegration', () => {
 		);
 	};
 } );
+
+jest.mock( '../CornerstoneCheckbox', () => {
+	return function CornerstoneCheckbox() {
+		return (
+			<div data-testid="cornerstone-checkbox">
+				CornerstoneCheckbox Component
+			</div>
+		);
+	};
+} );
+
+jest.mock( '../../ReadabilityScorePanel', () => ( {
+	ReadabilityScorePanel: function ReadabilityScorePanel() {
+		return (
+			<div data-testid="readability-score-panel">
+				ReadabilityScorePanel Component
+			</div>
+		);
+	},
+} ) );
 
 describe( 'AdvancedTabContent', () => {
 	/**

@@ -7,10 +7,7 @@
  * Requirements: 1.10
  */
 
-import {
-	TextControl,
-	TextareaControl,
-} from '@wordpress/components';
+import { TextControl, TextareaControl } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 import { useEntityPropBinding } from '../../../hooks/useEntityPropBinding';
 import { useCallback } from '@wordpress/element';
@@ -98,10 +95,16 @@ const PersonForm: React.FC = () => {
 			/>
 
 			<TextControl
-				label={ __( 'Social Media Profiles (comma-separated URLs)', 'meowseo' ) }
+				label={ __(
+					'Social Media Profiles (comma-separated URLs)',
+					'meowseo'
+				) }
 				value={ schemaConfig.sameAs || '' }
 				onChange={ ( value ) => updateField( 'sameAs', value ) }
-				help={ __( 'e.g., https://twitter.com/handle, https://linkedin.com/in/profile', 'meowseo' ) }
+				help={ __(
+					'e.g., https://twitter.com/handle, https://linkedin.com/in/profile',
+					'meowseo'
+				) }
 			/>
 		</div>
 	);

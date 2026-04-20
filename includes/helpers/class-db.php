@@ -94,23 +94,50 @@ class DB {
 
 		$table = $wpdb->prefix . 'meowseo_404_log';
 
+		// Aggregate rows by URL first
+		$aggregated = [];
+		foreach ( $rows as $row ) {
+			$url = $row['url'];
+			$url_hash = hash( 'sha256', $url );
+			
+			if ( ! isset( $aggregated[ $url_hash ] ) ) {
+				$aggregated[ $url_hash ] = [
+					'url'        => $url,
+					'url_hash'   => $url_hash,
+					'referrer'   => $row['referrer'] ?? '',
+					'user_agent' => $row['user_agent'] ?? '',
+					'hit_count'  => 0,
+					'first_seen' => $row['first_seen'] ?? gmdate( 'Y-m-d' ),
+					'last_seen'  => $row['last_seen'] ?? gmdate( 'Y-m-d' ),
+				];
+			}
+			
+			// Aggregate hit counts
+			$aggregated[ $url_hash ]['hit_count'] += $row['hit_count'] ?? 1;
+			
+			// Keep the most recent last_seen
+			if ( isset( $row['last_seen'] ) && $row['last_seen'] > $aggregated[ $url_hash ]['last_seen'] ) {
+				$aggregated[ $url_hash ]['last_seen'] = $row['last_seen'];
+			}
+			
+			// Keep the earliest first_seen
+			if ( isset( $row['first_seen'] ) && $row['first_seen'] < $aggregated[ $url_hash ]['first_seen'] ) {
+				$aggregated[ $url_hash ]['first_seen'] = $row['first_seen'];
+			}
+		}
+
 		$values = [];
 		$placeholders = [];
 
-		foreach ( $rows as $row ) {
-			$url_hash = hash( 'sha256', $row['url'] );
-			$first_seen = $row['first_seen'] ?? gmdate( 'Y-m-d' );
-			$last_seen = $row['last_seen'] ?? gmdate( 'Y-m-d' );
-			$hit_count = $row['hit_count'] ?? 1;
-
+		foreach ( $aggregated as $row ) {
 			$placeholders[] = '(%s, %s, %s, %s, %d, %s, %s)';
 			$values[] = $row['url'];
-			$values[] = $url_hash;
-			$values[] = $row['referrer'] ?? '';
-			$values[] = $row['user_agent'] ?? '';
-			$values[] = $hit_count;
-			$values[] = $first_seen;
-			$values[] = $last_seen;
+			$values[] = $row['url_hash'];
+			$values[] = $row['referrer'];
+			$values[] = $row['user_agent'];
+			$values[] = $row['hit_count'];
+			$values[] = $row['first_seen'];
+			$values[] = $row['last_seen'];
 		}
 
 		$query = "INSERT INTO {$table} (url, url_hash, referrer, user_agent, hit_count, first_seen, last_seen) VALUES ";

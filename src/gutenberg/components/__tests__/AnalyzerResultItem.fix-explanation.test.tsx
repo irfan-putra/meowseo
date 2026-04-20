@@ -23,7 +23,8 @@ describe( 'AnalyzerResultItem - Fix Explanation (Requirement 6.15)', () => {
 				type: 'problem',
 				message: 'SEO title is too short',
 				score: 0,
-				fix_explanation: 'Your SEO title should be between 30-60 characters. Currently it is 15 characters. Try adding more descriptive words to your title.',
+				fix_explanation:
+					'Your SEO title should be between 30-60 characters. Currently it is 15 characters. Try adding more descriptive words to your title.',
 			};
 
 			const { container } = render(
@@ -108,7 +109,8 @@ describe( 'AnalyzerResultItem - Fix Explanation (Requirement 6.15)', () => {
 				type: 'problem',
 				message: 'SEO title is too short',
 				score: 0,
-				fix_explanation: 'Your SEO title should be between 30-60 characters.',
+				fix_explanation:
+					'Your SEO title should be between 30-60 characters.',
 			};
 
 			const { container } = render(
@@ -128,7 +130,8 @@ describe( 'AnalyzerResultItem - Fix Explanation (Requirement 6.15)', () => {
 				message: 'SEO title is too short',
 				score: 0,
 				details: { currentLength: 15, minLength: 30 },
-				fix_explanation: 'Your SEO title should be between 30-60 characters.',
+				fix_explanation:
+					'Your SEO title should be between 30-60 characters.',
 			};
 
 			const { container } = render(
@@ -180,7 +183,9 @@ describe( 'AnalyzerResultItem - Fix Explanation (Requirement 6.15)', () => {
 				'meowseo-analyzer-fix-explanation-content'
 			);
 			// Verify the content is preserved with line breaks
-			expect( fixExplanation?.textContent ).toBe( 'Line 1\nLine 2\nLine 3' );
+			expect( fixExplanation?.textContent ).toBe(
+				'Line 1\nLine 2\nLine 3'
+			);
 		} );
 	} );
 
@@ -191,7 +196,8 @@ describe( 'AnalyzerResultItem - Fix Explanation (Requirement 6.15)', () => {
 				type: 'problem',
 				message: 'SEO title is too short',
 				score: 0,
-				fix_explanation: 'Your SEO title should be between 30-60 characters.',
+				fix_explanation:
+					'Your SEO title should be between 30-60 characters.',
 			};
 
 			const { container } = render(

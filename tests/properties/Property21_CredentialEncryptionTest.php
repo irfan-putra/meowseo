@@ -451,6 +451,13 @@ class Property21_CredentialEncryptionTest extends TestCase {
 		$this->forAll(
 			Generators::string( 'a-zA-Z0-9_-', 20, 50 )
 		)
+		->when(
+			function ( string $access_token ) {
+				// Only test with tokens that are at least 10 characters
+				// (shorter tokens might appear in base64 by coincidence)
+				return strlen( $access_token ) >= 10;
+			}
+		)
 		->then(
 			function ( string $access_token ) {
 				$credentials = array(

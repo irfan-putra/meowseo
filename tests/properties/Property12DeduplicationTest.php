@@ -83,15 +83,51 @@ class Property12DeduplicationTest extends TestCase {
 			public function get_row( $query, $output = OBJECT ) {
 				// Check if this is a deduplication query
 				if ( strpos( $query, 'SELECT id, created_at FROM' ) !== false && strpos( $query, 'message_hash' ) !== false ) {
-					// Extract the message_hash from the query to find matching entries
-					// For simplicity, we'll check the last inserted log
-					if ( ! empty( $this->logs ) ) {
-						$last_log = end( $this->logs );
-						// Return the last log if it matches (simulating deduplication)
-						$result = new \stdClass();
-						$result->id = $last_log['id'] ?? 1;
-						$result->created_at = $last_log['created_at'] ?? gmdate( 'Y-m-d H:i:s' );
-						return $result;
+					// Extract the level, module, and message_hash from the query
+					// Query format: SELECT id, created_at FROM wp_meowseo_logs WHERE level = 'INFO' AND module = 'core' AND message_hash = 'abc123' AND created_at >= '2024-01-01 00:00:00' ORDER BY created_at DESC LIMIT 1
+					
+					// Extract message_hash (64 character hex string)
+					if ( ! preg_match( "/'([a-f0-9]{64})'/", $query, $hash_matches ) ) {
+						return null;
+					}
+					$message_hash = $hash_matches[1];
+					
+					// Extract level (first quoted string after WHERE)
+					if ( ! preg_match( "/WHERE level = '([^']+)'/", $query, $level_matches ) ) {
+						return null;
+					}
+					$level = $level_matches[1];
+					
+					// Extract module
+					if ( ! preg_match( "/module = '([^']+)'/", $query, $module_matches ) ) {
+						return null;
+					}
+					$module = $module_matches[1];
+					
+					// Extract time window
+					$time_window = null;
+					if ( preg_match( "/created_at >= '([^']+)'/", $query, $time_matches ) ) {
+						$time_window = $time_matches[1];
+					}
+					
+					// Find matching entry in logs (search from most recent)
+					foreach ( array_reverse( $this->logs ) as $log ) {
+						if ( isset( $log['message_hash'], $log['level'], $log['module'], $log['created_at'] ) &&
+							$log['message_hash'] === $message_hash &&
+							$log['level'] === $level &&
+							$log['module'] === $module ) {
+							
+							// Check time window if specified
+							if ( $time_window && $log['created_at'] < $time_window ) {
+								continue;
+							}
+							
+							// Return the matching log
+							$result = new \stdClass();
+							$result->id = $log['id'];
+							$result->created_at = $log['created_at'];
+							return $result;
+						}
 					}
 				}
 				return null;
@@ -107,6 +143,14 @@ class Property12DeduplicationTest extends TestCase {
 				if ( strpos( $table, 'meowseo_logs' ) !== false ) {
 					global $meowseo_test_logs;
 					$data['id'] = count( $this->logs ) + 1;
+					// hit_count defaults to 1 if not provided (matching database schema DEFAULT 1)
+					if ( ! isset( $data['hit_count'] ) ) {
+						$data['hit_count'] = 1;
+					}
+					// created_at defaults to current time if not provided
+					if ( ! isset( $data['created_at'] ) ) {
+						$data['created_at'] = gmdate( 'Y-m-d H:i:s' );
+					}
 					$this->logs[] = $data;
 					$meowseo_test_logs[] = $data;
 					return true;
@@ -118,6 +162,29 @@ class Property12DeduplicationTest extends TestCase {
 				// Track UPDATE queries for hit_count increments
 				if ( strpos( $query, 'UPDATE' ) !== false && strpos( $query, 'hit_count' ) !== false ) {
 					$this->update_count++;
+					
+					// Extract the ID from the query
+					if ( preg_match( "/WHERE id = '?(\d+)'?/", $query, $matches ) ) {
+						$id = (int) $matches[1];
+						
+						// Find and update the log entry
+						foreach ( $this->logs as $key => $log ) {
+							if ( isset( $log['id'] ) && $log['id'] == $id ) {
+								$this->logs[ $key ]['hit_count'] = ( $log['hit_count'] ?? 1 ) + 1;
+								
+								// Also update in global test logs
+								global $meowseo_test_logs;
+								foreach ( $meowseo_test_logs as $test_key => $test_log ) {
+									if ( isset( $test_log['id'] ) && $test_log['id'] == $id ) {
+										$meowseo_test_logs[ $test_key ]['hit_count'] = ( $test_log['hit_count'] ?? 1 ) + 1;
+										break;
+									}
+								}
+								break;
+							}
+						}
+					}
+					
 					return true;
 				}
 				return true;
@@ -151,7 +218,7 @@ class Property12DeduplicationTest extends TestCase {
 	public function test_duplicate_entries_increment_hit_count(): void {
 		$this->forAll(
 			Generators::string( 'a-zA-Z0-9 ', 1, 100 ),
-			Generators::integers( 1, 10 )
+			Generators::int( 2, 10 )
 		)
 		->then(
 			function ( string $message, int $duplicate_count ) {
@@ -164,37 +231,54 @@ class Property12DeduplicationTest extends TestCase {
 				global $meowseo_test_logs;
 				$meowseo_test_logs = [];
 
-				// Log the same message multiple times
-				for ( $i = 0; $i < $duplicate_count; $i++ ) {
+				// First, test that a single log call works
+				Logger::info( $message );
+				
+				// Verify at least one entry was created
+				$this->assertNotEmpty(
+					$meowseo_test_logs,
+					'Logger should create at least one log entry for first call'
+				);
+				
+				$initial_count = count( $meowseo_test_logs );
+
+				// Log the same message additional times
+				for ( $i = 1; $i < $duplicate_count; $i++ ) {
 					Logger::info( $message );
 				}
 
-				// Verify that we have fewer entries than log calls (deduplication occurred)
-				$this->assertLessThanOrEqual(
-					$duplicate_count,
-					count( $meowseo_test_logs ),
-					'Duplicate log entries should be deduplicated'
+				// Verify that we still have exactly the initial count (all duplicates were deduplicated)
+				$this->assertCount(
+					$initial_count,
+					$meowseo_test_logs,
+					'Duplicate log entries should be deduplicated into a single entry'
 				);
 
-				// For the first entry, verify it has the correct hit_count
-				if ( ! empty( $meowseo_test_logs ) ) {
-					$first_entry = $meowseo_test_logs[0];
-
-					// The hit_count should reflect the number of duplicates
-					// (either as a separate field or through deduplication logic)
-					$this->assertArrayHasKey(
-						'hit_count',
-						$first_entry,
-						'Log entry should have hit_count field'
-					);
-
-					// hit_count should be at least 1
-					$this->assertGreaterThanOrEqual(
-						1,
-						$first_entry['hit_count'],
-						'Hit count should be at least 1'
+				// Verify that UPDATE was called (duplicate_count - 1) times
+				global $wpdb;
+				if ( method_exists( $wpdb, 'get_update_count' ) ) {
+					$update_count = $wpdb->get_update_count();
+					$this->assertEquals(
+						$duplicate_count - 1,
+						$update_count,
+						'Deduplication should increment hit_count via UPDATE'
 					);
 				}
+
+				// Verify the entry has the correct hit_count
+				$first_entry = $meowseo_test_logs[0];
+				$this->assertArrayHasKey(
+					'hit_count',
+					$first_entry,
+					'Log entry should have hit_count field'
+				);
+
+				// hit_count should equal duplicate_count
+				$this->assertEquals(
+					$duplicate_count,
+					$first_entry['hit_count'],
+					'Hit count should equal the number of duplicate log calls'
+				);
 			}
 		);
 	}
@@ -222,39 +306,42 @@ class Property12DeduplicationTest extends TestCase {
 				}
 
 				// Clear previous logs
-				global $meowseo_test_logs;
+				global $meowseo_test_logs, $wpdb;
 				$meowseo_test_logs = [];
+				$wpdb->reset_update_count();
 
 				// Log with the same level and message twice
 				$method = strtolower( $level );
 				Logger::$method( $message );
 				$first_entry = $meowseo_test_logs[0] ?? null;
 
-				$meowseo_test_logs = [];
-
+				// Don't clear logs - we want to test deduplication
 				Logger::$method( $message );
-				$second_entry = $meowseo_test_logs[0] ?? null;
 
 				// Verify both entries have the same level, module, and message_hash
 				$this->assertNotNull( $first_entry, 'First entry should exist' );
-				$this->assertNotNull( $second_entry, 'Second entry should exist' );
 
-				$this->assertEquals(
-					$first_entry['level'],
-					$second_entry['level'],
-					'Duplicate entries should have the same level'
+				// After second log call, we should still have only 1 entry
+				$this->assertCount(
+					1,
+					$meowseo_test_logs,
+					'Duplicate entries should not create new log entries'
 				);
 
+				// Verify UPDATE was called once for deduplication
+				$update_count = $wpdb->get_update_count();
 				$this->assertEquals(
-					$first_entry['module'],
-					$second_entry['module'],
-					'Duplicate entries should have the same module'
+					1,
+					$update_count,
+					'Second duplicate should trigger UPDATE for hit_count'
 				);
 
+				// Verify hit_count was incremented
+				$updated_entry = $meowseo_test_logs[0];
 				$this->assertEquals(
-					$first_entry['message_hash'],
-					$second_entry['message_hash'],
-					'Duplicate entries should have the same message_hash'
+					2,
+					$updated_entry['hit_count'],
+					'Hit count should be 2 after logging the same message twice'
 				);
 			}
 		);
@@ -421,7 +508,7 @@ class Property12DeduplicationTest extends TestCase {
 	public function test_deduplication_within_time_window(): void {
 		$this->forAll(
 			Generators::string( 'a-zA-Z0-9 ', 1, 100 ),
-			Generators::integers( 0, 299 ) // 0 to 299 seconds (within 5 minutes)
+			Generators::int( 0, 299 ) // 0 to 299 seconds (within 5 minutes)
 		)
 		->then(
 			function ( string $message, int $seconds_offset ) {

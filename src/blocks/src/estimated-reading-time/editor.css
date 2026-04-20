@@ -1,0 +1,36 @@
+.meowseo-reading-time {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  background-color: #f5f5f5;
+  border-left: 4px solid #0073aa;
+  border-radius: 4px;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.meowseo-reading-time-icon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.meowseo-reading-time-label {
+  font-weight: 600;
+  color: #333;
+}
+
+.meowseo-reading-time-value {
+  color: #0073aa;
+  font-weight: 500;
+}
+
+.aligncenter .meowseo-reading-time {
+  margin-left: auto;
+  margin-right: auto;
+  max-width: fit-content;
+}
+
+.alignright .meowseo-reading-time {
+  margin-left: auto;
+}

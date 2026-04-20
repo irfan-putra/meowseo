@@ -14,18 +14,15 @@
 
 namespace MeowSEO\Tests\Properties;
 
-use WP_UnitTestCase;
 use MeowSEO\Modules\Meta\Meta_Resolver;
 use MeowSEO\Modules\Meta\Title_Patterns;
 use MeowSEO\Options;
 use Eris\Generator;
-use Eris\TestTrait;
 
 /**
  * Test Property 15: OG Image Return Structure
  */
-class MetaProperty15OGImageReturnStructureTest extends WP_UnitTestCase {
-	use TestTrait;
+class MetaProperty15OGImageReturnStructureTest extends MetaPropertyTestCase {
 
 	/**
 	 * Test OG image return structure

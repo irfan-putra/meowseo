@@ -15,6 +15,8 @@ namespace MeowSEO\Admin;
 use MeowSEO\Options;
 use MeowSEO\Module_Manager;
 use MeowSEO\Helpers\Logger;
+use MeowSEO\Modules\Meta\Robots_Txt;
+use MeowSEO\Modules\Meta\Robots_Txt_Editor;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -964,6 +966,19 @@ class Settings_Manager {
 			'internal_links' => array( 'name' => __( 'Internal Links', 'meowseo' ), 'description' => __( 'Suggest internal links while editing content to improve SEO structure.', 'meowseo' ) ),
 			'gsc'           => array( 'name' => __( 'Google Search Console', 'meowseo' ), 'description' => __( 'Connect to Google Search Console for search analytics and indexing.', 'meowseo' ) ),
 			'social'        => array( 'name' => __( 'Social Meta', 'meowseo' ), 'description' => __( 'Add Open Graph and Twitter Card meta tags for social sharing.', 'meowseo' ) ),
+			'ai'            => array( 'name' => __( 'AI Generation', 'meowseo' ), 'description' => __( 'Generate SEO content using AI providers (OpenAI, Anthropic, Gemini).', 'meowseo' ) ),
+			'import'        => array( 'name' => __( 'Import/Export', 'meowseo' ), 'description' => __( 'Import and export SEO data from other plugins.', 'meowseo' ) ),
+			'image_seo'     => array( 'name' => __( 'Image SEO', 'meowseo' ), 'description' => __( 'Automatically optimize image alt text and filenames.', 'meowseo' ) ),
+			'indexnow'      => array( 'name' => __( 'IndexNow', 'meowseo' ), 'description' => __( 'Instantly notify search engines of content changes.', 'meowseo' ) ),
+			'roles'         => array( 'name' => __( 'Role Manager', 'meowseo' ), 'description' => __( 'Control which user roles can access specific MeowSEO features.', 'meowseo' ) ),
+			'multilingual'  => array( 'name' => __( 'Multilingual', 'meowseo' ), 'description' => __( 'Integrate with WPML and Polylang for multilingual SEO.', 'meowseo' ) ),
+			'multisite'     => array( 'name' => __( 'Multisite', 'meowseo' ), 'description' => __( 'Support WordPress multisite networks with per-site configuration.', 'meowseo' ) ),
+			'locations'     => array( 'name' => __( 'Locations', 'meowseo' ), 'description' => __( 'Manage multiple business locations with schema and maps.', 'meowseo' ) ),
+			'bulk'          => array( 'name' => __( 'Bulk Editor', 'meowseo' ), 'description' => __( 'Perform bulk SEO operations on multiple posts simultaneously.', 'meowseo' ) ),
+			'analytics'     => array( 'name' => __( 'Analytics (GA4)', 'meowseo' ), 'description' => __( 'View combined Google Analytics 4 and Search Console data.', 'meowseo' ) ),
+			'admin-bar'     => array( 'name' => __( 'Admin Bar', 'meowseo' ), 'description' => __( 'Display SEO score in the admin bar on frontend pages.', 'meowseo' ) ),
+			'orphaned'      => array( 'name' => __( 'Orphaned Content', 'meowseo' ), 'description' => __( 'Identify posts with no internal links and suggest fixes.', 'meowseo' ) ),
+			'synonyms'      => array( 'name' => __( 'Keyword Synonyms', 'meowseo' ), 'description' => __( 'Analyze content for keyword synonyms and semantic variations.', 'meowseo' ) ),
 		);
 
 		if ( class_exists( 'WooCommerce' ) ) {
@@ -1369,7 +1384,8 @@ class Settings_Manager {
 		jQuery(document).ready(function($) {
 			// Handle Reset to Default button for robots.txt
 			$('#meowseo-reset-robots-txt').on('click', function(e) {
-				if (!confirm('<?php echo esc_js( __( 'Are you sure you want to reset to default content? This cannot be undone.', 'meowseo' ) ); ?>')) {
+				var confirmMessage = $(this).data('confirm-message') || 'Are you sure?';
+				if (!confirm(confirmMessage)) {
 					e.preventDefault();
 					return false;
 				}
@@ -1377,13 +1393,13 @@ class Settings_Manager {
 				// Get default content via AJAX
 				$.post(ajaxurl, {
 					action: 'meowseo_reset_robots_txt',
-					nonce: '<?php echo esc_js( wp_create_nonce( 'meowseo_reset_robots_txt' ) ); ?>'
+					nonce: '<?php echo wp_create_nonce( 'meowseo_reset_robots_txt' ); ?>'
 				}, function(response) {
 					if (response.success) {
 						$('#robots_txt_content').val(response.data.content);
-						alert('<?php echo esc_js( __( 'Robots.txt content has been reset to default.', 'meowseo' ) ); ?>');
+						alert('Robots.txt content has been reset to default.');
 					} else {
-						alert('<?php echo esc_js( __( 'Failed to reset robots.txt content.', 'meowseo' ) ); ?>');
+						alert('Failed to reset robots.txt content.');
 					}
 				});
 			});

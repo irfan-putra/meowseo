@@ -11,13 +11,15 @@
 
 namespace MeowSEO\Tests\Integration;
 
+use PHPUnit\Framework\TestCase;
+
 /**
  * Performance Benchmark Test Case
  *
  * NOTE: These tests require a real WordPress installation and performance
  * monitoring tools. They should be run in a CI/CD environment.
  */
-class PerformanceBenchmarkTest extends \WP_UnitTestCase {
+class PerformanceBenchmarkTest extends TestCase {
 	/**
 	 * Set up test environment
 	 *
@@ -25,6 +27,11 @@ class PerformanceBenchmarkTest extends \WP_UnitTestCase {
 	 */
 	public function setUp(): void {
 		parent::setUp();
+
+		// Skip if WordPress test framework is not available
+		if ( ! class_exists( '\WP_UnitTestCase' ) || ! function_exists( 'activate_plugin' ) ) {
+			$this->markTestSkipped( 'WordPress test framework is not available. These tests require a full WordPress installation with the WordPress Test Suite.' );
+		}
 
 		// Activate MeowSEO plugin.
 		activate_plugin( 'meowseo/meowseo.php' );

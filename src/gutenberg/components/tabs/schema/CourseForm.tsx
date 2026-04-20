@@ -90,7 +90,10 @@ const CourseForm: React.FC = () => {
 				value={ schemaConfig.provider }
 				onChange={ ( value ) => updateField( 'provider', value ) }
 				required
-				help={ __( 'Organization or institution offering the course', 'meowseo' ) }
+				help={ __(
+					'Organization or institution offering the course',
+					'meowseo'
+				) }
 			/>
 
 			<TextControl

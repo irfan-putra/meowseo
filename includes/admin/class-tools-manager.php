@@ -213,8 +213,12 @@ class Tools_Manager {
 				<?php
 				// Get IndexNow module and logger.
 				$plugin = \MeowSEO\Plugin::instance();
-				$module_manager = $plugin->get_module_manager();
-				$indexnow_module = $module_manager->get_module( 'indexnow' );
+				if ( $plugin ) {
+					$module_manager = $plugin->get_module_manager();
+					$indexnow_module = $module_manager ? $module_manager->get_module( 'indexnow' ) : null;
+				} else {
+					$indexnow_module = null;
+				}
 
 				if ( $indexnow_module ) {
 					$logger = $indexnow_module->get_logger();

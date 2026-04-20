@@ -1,0 +1,30 @@
+{
+	"apiVersion": 3,
+	"name": "meowseo/estimated-reading-time",
+	"title": "Estimated Reading Time",
+	"category": "meowseo",
+	"icon": "clock",
+	"description": "Display estimated reading time based on content length",
+	"keywords": [ "reading", "time", "seo" ],
+	"textdomain": "meowseo",
+	"attributes": {
+		"wordsPerMinute": {
+			"type": "number",
+			"default": 200
+		},
+		"showIcon": {
+			"type": "boolean",
+			"default": true
+		},
+		"customText": {
+			"type": "string",
+			"default": "Estimated reading time:"
+		}
+	},
+	"supports": {
+		"html": false,
+		"align": [ "left", "center", "right" ]
+	},
+	"editorScript": "file:./index.ts",
+	"style": "file:../blocks.css"
+}

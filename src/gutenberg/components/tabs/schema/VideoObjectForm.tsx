@@ -7,10 +7,7 @@
  * Requirements: 1.10
  */
 
-import {
-	TextControl,
-	TextareaControl,
-} from '@wordpress/components';
+import { TextControl, TextareaControl } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 import { useEntityPropBinding } from '../../../hooks/useEntityPropBinding';
 import { useCallback } from '@wordpress/element';
@@ -103,7 +100,10 @@ const VideoObjectForm: React.FC = () => {
 				label={ __( 'Duration (ISO 8601)', 'meowseo' ) }
 				value={ schemaConfig.duration || '' }
 				onChange={ ( value ) => updateField( 'duration', value ) }
-				help={ __( 'Format: PT5M30S (5 minutes 30 seconds)', 'meowseo' ) }
+				help={ __(
+					'Format: PT5M30S (5 minutes 30 seconds)',
+					'meowseo'
+				) }
 			/>
 
 			<TextControl
@@ -119,7 +119,10 @@ const VideoObjectForm: React.FC = () => {
 				value={ schemaConfig.embedUrl || '' }
 				onChange={ ( value ) => updateField( 'embedUrl', value ) }
 				type="url"
-				help={ __( 'URL for embedding the video (e.g., YouTube embed URL)', 'meowseo' ) }
+				help={ __(
+					'URL for embedding the video (e.g., YouTube embed URL)',
+					'meowseo'
+				) }
 			/>
 		</div>
 	);

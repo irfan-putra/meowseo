@@ -14,18 +14,15 @@
 
 namespace MeowSEO\Tests\Properties;
 
-use WP_UnitTestCase;
 use MeowSEO\Modules\Meta\Meta_Resolver;
 use MeowSEO\Modules\Meta\Title_Patterns;
 use MeowSEO\Options;
 use Eris\Generator;
-use Eris\TestTrait;
 
 /**
  * Test Property 12: Description Truncation with HTML Stripping
  */
-class MetaProperty12DescriptionTruncationTest extends WP_UnitTestCase {
-	use TestTrait;
+class MetaProperty12DescriptionTruncationTest extends MetaPropertyTestCase {
 
 	/**
 	 * Test description truncation strips HTML before measuring length

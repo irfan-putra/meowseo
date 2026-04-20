@@ -61,6 +61,17 @@ class AI_Module implements Module {
 	private AI_Generator $generator;
 
 	/**
+	 * Optimizer instance.
+	 *
+	 * Handles AI-powered suggestions for failing SEO checks.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @var AI_Optimizer
+	 */
+	private AI_Optimizer $optimizer;
+
+	/**
 	 * Settings instance.
 	 *
 	 * Handles settings page rendering and configuration.
@@ -104,11 +115,14 @@ class AI_Module implements Module {
 			// Instantiate Generator (depends on Provider Manager).
 			$this->generator = new AI_Generator( $this->provider_manager, $options );
 
+			// Instantiate Optimizer (depends on Provider Manager).
+			$this->optimizer = new AI_Optimizer( $this->provider_manager );
+
 			// Instantiate Settings (depends on Provider Manager).
 			$this->settings = new AI_Settings( $options, $this->provider_manager );
 
-			// Instantiate REST (depends on Generator and Provider Manager).
-			$this->rest = new AI_REST( $this->generator, $this->provider_manager );
+			// Instantiate REST (depends on Generator, Provider Manager, and Optimizer).
+			$this->rest = new AI_REST( $this->generator, $this->provider_manager, $this->optimizer );
 		} catch ( \Exception $e ) {
 			// Log the error with full context.
 			Logger::error(

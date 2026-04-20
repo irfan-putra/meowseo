@@ -1,0 +1,171 @@
+.meowseo-synonym-analysis-panel {
+	margin-top: 20px;
+	padding: 16px;
+	background: #fff;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+}
+
+.meowseo-synonym-analysis-title {
+	margin: 0 0 16px 0;
+	font-size: 14px;
+	font-weight: 600;
+	color: #1e1e1e;
+}
+
+.meowseo-synonym-analysis-empty,
+.meowseo-synonym-analysis-error {
+	padding: 12px;
+	text-align: center;
+	color: #757575;
+	font-size: 13px;
+}
+
+.meowseo-synonym-analysis-error {
+	color: #dc3232;
+}
+
+.meowseo-synonym-analysis-loading {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	padding: 20px;
+	color: #757575;
+	font-size: 13px;
+}
+
+.meowseo-combined-score {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 12px;
+	margin-bottom: 16px;
+	background: #f7f7f7;
+	border-radius: 4px;
+	font-size: 14px;
+}
+
+.meowseo-combined-score-label {
+	font-weight: 600;
+	color: #1e1e1e;
+}
+
+.meowseo-combined-score-value {
+	font-size: 18px;
+	font-weight: 700;
+}
+
+.meowseo-combined-score-status {
+	font-size: 12px;
+	font-weight: 500;
+}
+
+.meowseo-synonym-result-row {
+	margin-bottom: 12px;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	overflow: hidden;
+}
+
+.meowseo-synonym-result-header {
+	display: flex;
+	align-items: center;
+	width: 100%;
+	padding: 12px;
+	background: #fff;
+	border: none;
+	cursor: pointer;
+	transition: background-color 0.2s;
+}
+
+.meowseo-synonym-result-header:hover {
+	background: #f7f7f7;
+}
+
+.meowseo-synonym-info {
+	flex: 1;
+	text-align: left;
+}
+
+.meowseo-synonym-name {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	padding-left: 8px;
+	border-left: 3px solid;
+	font-size: 14px;
+	font-weight: 500;
+	color: #1e1e1e;
+}
+
+.meowseo-synonym-badge {
+	display: inline-block;
+	padding: 2px 8px;
+	background: #0073aa;
+	color: #fff;
+	font-size: 11px;
+	font-weight: 600;
+	border-radius: 3px;
+	text-transform: uppercase;
+}
+
+.meowseo-synonym-score {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-right: 12px;
+}
+
+.meowseo-synonym-score-value {
+	font-size: 18px;
+	font-weight: 700;
+}
+
+.meowseo-synonym-score-label {
+	font-size: 12px;
+	font-weight: 500;
+}
+
+.meowseo-synonym-toggle {
+	font-size: 12px;
+	color: #757575;
+}
+
+.meowseo-synonym-details {
+	padding: 12px;
+	background: #f7f7f7;
+	border-top: 1px solid #ddd;
+}
+
+.meowseo-synonym-check-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 8px;
+	margin-bottom: 4px;
+	background: #fff;
+	border-radius: 3px;
+	font-size: 13px;
+}
+
+.meowseo-synonym-check-row:last-child {
+	margin-bottom: 0;
+}
+
+.meowseo-synonym-check-icon {
+	font-size: 16px;
+	font-weight: 700;
+	width: 20px;
+	text-align: center;
+}
+
+.meowseo-synonym-check-label {
+	flex: 1;
+	color: #1e1e1e;
+}
+
+.meowseo-synonym-check-value {
+	font-weight: 600;
+	color: #757575;
+}

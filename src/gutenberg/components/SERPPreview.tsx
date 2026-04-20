@@ -6,7 +6,7 @@
  *
  * Requirements: 2.1, 2.2, 2.3, 2.12, 2.13, 2.14, 2.15, 2.16
  *
- * @package MeowSEO
+ * @package
  * @since 2.0.0
  */
 
@@ -26,9 +26,9 @@ interface SERPPreviewProps {
  *
  * Requirements 2.15, 2.16: Truncate title at 60 chars, description at 155 chars
  *
- * @param text Text to truncate
+ * @param text      Text to truncate
  * @param maxLength Maximum length before truncation
- * @returns Truncated text with ellipsis if needed
+ * @return Truncated text with ellipsis if needed
  */
 const truncateText = ( text: string, maxLength: number ): string => {
 	if ( ! text || text.length <= maxLength ) {
@@ -81,7 +81,10 @@ const SERPPreview: React.FC< SERPPreviewProps > = memo(
 			( newMode: 'desktop' | 'mobile' ) => {
 				onModeChange( newMode );
 				try {
-					localStorage.setItem( 'meowseo_serp_preview_mode', newMode );
+					localStorage.setItem(
+						'meowseo_serp_preview_mode',
+						newMode
+					);
 				} catch ( error ) {
 					// Silently fail if localStorage is not available
 					console.warn(
@@ -142,14 +145,13 @@ const SERPPreview: React.FC< SERPPreviewProps > = memo(
 
 					{ /* Blue clickable title */ }
 					<div className="meowseo-serp-preview__title">
-						{ displayTitle ||
-							__( 'Enter a title...', 'meowseo' ) }
+						{ displayTitle || __( 'Enter a title…', 'meowseo' ) }
 					</div>
 
 					{ /* Gray description text */ }
 					<div className="meowseo-serp-preview__description">
 						{ displayDescription ||
-							__( 'Enter a description...', 'meowseo' ) }
+							__( 'Enter a description…', 'meowseo' ) }
 					</div>
 				</div>
 			</div>

@@ -139,7 +139,9 @@ const JobPostingForm: React.FC = () => {
 			<TextControl
 				label={ __( 'Hiring Organization', 'meowseo' ) }
 				value={ schemaConfig.hiringOrganization }
-				onChange={ ( value ) => updateField( 'hiringOrganization', value ) }
+				onChange={ ( value ) =>
+					updateField( 'hiringOrganization', value )
+				}
 				required
 				help={ __( 'Company name', 'meowseo' ) }
 			/>

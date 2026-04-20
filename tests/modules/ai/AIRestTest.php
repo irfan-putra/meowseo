@@ -13,6 +13,7 @@ use PHPUnit\Framework\TestCase;
 use MeowSEO\Modules\AI\AI_REST;
 use MeowSEO\Modules\AI\AI_Generator;
 use MeowSEO\Modules\AI\AI_Provider_Manager;
+use MeowSEO\Modules\AI\AI_Optimizer;
 use MeowSEO\Options;
 
 /**
@@ -55,9 +56,10 @@ class AIRestTest extends TestCase {
 		// Create mocks
 		$this->generator_mock = $this->createMock( AI_Generator::class );
 		$this->provider_manager_mock = $this->createMock( AI_Provider_Manager::class );
+		$optimizer_mock = $this->createMock( AI_Optimizer::class );
 
 		// Create AI_REST instance
-		$this->rest = new AI_REST( $this->generator_mock, $this->provider_manager_mock );
+		$this->rest = new AI_REST( $this->generator_mock, $this->provider_manager_mock, $optimizer_mock );
 	}
 
 	/**

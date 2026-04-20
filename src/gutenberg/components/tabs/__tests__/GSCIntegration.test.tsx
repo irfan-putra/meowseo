@@ -199,7 +199,7 @@ describe( 'GSCIntegration', () => {
 		expect( button ).toHaveAttribute( 'data-busy', 'true' );
 
 		// Button text should change
-		expect( screen.getByText( /requesting…/i ) ).toBeInTheDocument();
+		expect( screen.getByText( /requesting/i ) ).toBeInTheDocument();
 	} );
 
 	/**

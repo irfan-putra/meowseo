@@ -11,22 +11,31 @@
 import { useSelect } from '@wordpress/data';
 import { __ } from '@wordpress/i18n';
 import { Icon } from '@wordpress/components';
+import AiSuggestionButton from '../../ai/components/AiSuggestionButton';
 
 /**
  * Analysis Tab Component
  */
 export default function AnalysisTab() {
-	const { seoScore, seoChecks, readabilityScore, readabilityChecks } =
-		useSelect( ( select ) => {
-			return {
-				seoScore: select( 'meowseo/data' ).getSeoScore(),
-				seoChecks: select( 'meowseo/data' ).getSeoChecks(),
-				readabilityScore:
-					select( 'meowseo/data' ).getReadabilityScore(),
-				readabilityChecks:
-					select( 'meowseo/data' ).getReadabilityChecks(),
-			};
-		}, [] );
+	const {
+		seoScore,
+		seoChecks,
+		readabilityScore,
+		readabilityChecks,
+		postId,
+		content,
+		keyword,
+	} = useSelect( ( select ) => {
+		return {
+			seoScore: select( 'meowseo/data' ).getSeoScore(),
+			seoChecks: select( 'meowseo/data' ).getSeoChecks(),
+			readabilityScore: select( 'meowseo/data' ).getReadabilityScore(),
+			readabilityChecks: select( 'meowseo/data' ).getReadabilityChecks(),
+			postId: select( 'core/editor' ).getCurrentPostId(),
+			content: select( 'core/editor' ).getEditedPostContent(),
+			keyword: select( 'meowseo/data' ).getFocusKeyword(),
+		};
+	}, [] );
 
 	/**
 	 * Get color class based on score
@@ -72,10 +81,11 @@ export default function AnalysisTab() {
 	/**
 	 * Render check list
 	 *
-	 * @param {Array} checks Array of check result objects
+	 * @param {Array}  checks    Array of check result objects
+	 * @param {string} checkType Type of checks ('seo' or 'readability')
 	 * @return {JSX.Element} Check list
 	 */
-	const renderCheckList = ( checks ) => {
+	const renderCheckList = ( checks, checkType = 'seo' ) => {
 		if ( ! checks || checks.length === 0 ) {
 			return (
 				<p className="meowseo-no-checks">
@@ -93,13 +103,23 @@ export default function AnalysisTab() {
 							check.pass ? 'pass' : 'fail'
 						}` }
 					>
-						<Icon
-							icon={ check.pass ? 'yes-alt' : 'dismiss' }
-							className="meowseo-check-icon"
-						/>
-						<span className="meowseo-check-label">
-							{ check.label }
-						</span>
+						<div className="meowseo-check-header">
+							<Icon
+								icon={ check.pass ? 'yes-alt' : 'dismiss' }
+								className="meowseo-check-icon"
+							/>
+							<span className="meowseo-check-label">
+								{ check.label }
+							</span>
+						</div>
+						{ ! check.pass && checkType === 'seo' && keyword && (
+							<AiSuggestionButton
+								checkName={ check.id }
+								content={ content }
+								keyword={ keyword }
+								postId={ postId }
+							/>
+						) }
 					</li>
 				) ) }
 			</ul>
@@ -114,7 +134,7 @@ export default function AnalysisTab() {
 					__( 'SEO Score', 'meowseo' ),
 					seoScore
 				) }
-				{ renderCheckList( seoChecks ) }
+				{ renderCheckList( seoChecks, 'seo' ) }
 			</div>
 
 			<div className="meowseo-analysis-section">
@@ -123,7 +143,7 @@ export default function AnalysisTab() {
 					__( 'Readability Score', 'meowseo' ),
 					readabilityScore
 				) }
-				{ renderCheckList( readabilityChecks ) }
+				{ renderCheckList( readabilityChecks, 'readability' ) }
 			</div>
 		</div>
 	);

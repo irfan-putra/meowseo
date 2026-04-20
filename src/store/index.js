@@ -327,7 +327,7 @@ try {
 } catch ( error ) {
 	// Log error but don't break the editor
 	console.error( 'MeowSEO: Failed to register store', error );
-	
+
 	// Provide fallback store mechanism for graceful degradation
 	// Create a minimal store with default state that components can still access
 	try {
@@ -350,17 +350,24 @@ try {
 				getMetaField: ( state, key ) => state.meta[ key ],
 				getSeoScore: ( state ) => state.analysis.seoScore,
 				getSeoChecks: ( state ) => state.analysis.seoChecks,
-				getReadabilityScore: ( state ) => state.analysis.readabilityScore,
-				getReadabilityChecks: ( state ) => state.analysis.readabilityChecks,
+				getReadabilityScore: ( state ) =>
+					state.analysis.readabilityScore,
+				getReadabilityChecks: ( state ) =>
+					state.analysis.readabilityChecks,
 				getActiveTab: ( state ) => state.ui.activeTab,
 				isSaving: ( state ) => state.ui.isSaving,
 				getError: ( state ) => state.ui.error,
 			},
 		} );
-		
-		console.warn( 'MeowSEO: Using fallback store due to registration failure. Some features may be limited.' );
+
+		console.warn(
+			'MeowSEO: Using fallback store due to registration failure. Some features may be limited.'
+		);
 	} catch ( fallbackError ) {
-		console.error( 'MeowSEO: Failed to register fallback store', fallbackError );
+		console.error(
+			'MeowSEO: Failed to register fallback store',
+			fallbackError
+		);
 		// At this point, components will need to handle missing store gracefully
 	}
 }

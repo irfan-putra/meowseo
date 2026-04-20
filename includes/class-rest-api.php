@@ -96,6 +96,9 @@ class REST_API {
 		// Register public SEO endpoints (Requirements 17.1-17.7, 18.1-18.6, 27.1-27.5).
 		$this->register_public_seo_routes();
 
+		// Register Sprint 4 endpoints (Task 16.3).
+		$this->register_sprint4_routes();
+
 		// Register REST_Logs routes (Requirement 14.1).
 		$rest_logs = new REST_Logs( $this->options );
 		$rest_logs->register_routes();
@@ -1419,6 +1422,19 @@ class REST_API {
 						'gsc',
 						'social',
 						'woocommerce',
+						'ai',
+						'import',
+						'image_seo',
+						'indexnow',
+						'roles',
+						'multilingual',
+						'multisite',
+						'locations',
+						'bulk',
+						'analytics',
+						'admin-bar',
+						'orphaned',
+						'synonyms',
 					),
 				),
 				'sanitize_callback' => array( $this, 'sanitize_enabled_modules' ),
@@ -1622,6 +1638,19 @@ class REST_API {
 			'gsc',
 			'social',
 			'woocommerce',
+			'ai',
+			'import',
+			'image_seo',
+			'indexnow',
+			'roles',
+			'multilingual',
+			'multisite',
+			'locations',
+			'bulk',
+			'analytics',
+			'admin-bar',
+			'orphaned',
+			'synonyms',
 		);
 
 		return array_values( array_intersect( $modules, $valid_modules ) );
@@ -2205,6 +2234,615 @@ class REST_API {
 		}
 
 		return $data;
+	}
+
+	/**
+	 * Register Sprint 4 REST API routes
+	 *
+	 * Provides endpoints for bulk operations, orphaned content, and AI suggestions.
+	 * Task 16.3 - Requirements: 1.9, 5.1, 8.4, 10.1
+	 *
+	 * @since 1.0.0
+	 * @return void
+	 */
+	private function register_sprint4_routes(): void {
+		// Bulk operations endpoint (Requirement 5.1).
+		register_rest_route(
+			self::NAMESPACE,
+			'/bulk/operations',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( $this, 'handle_bulk_operation' ),
+				'permission_callback' => array( $this, 'bulk_edit_permission' ),
+				'args'                => array(
+					'action'   => array(
+						'required'          => true,
+						'type'              => 'string',
+						'enum'              => array( 'set_noindex', 'set_index', 'set_nofollow', 'set_follow', 'remove_canonical', 'set_schema_article', 'set_schema_none' ),
+						'sanitize_callback' => 'sanitize_text_field',
+					),
+					'post_ids' => array(
+						'required'          => true,
+						'type'              => 'array',
+						'items'             => array(
+							'type' => 'integer',
+						),
+						'sanitize_callback' => array( $this, 'sanitize_post_ids' ),
+					),
+				),
+			)
+		);
+
+		// CSV export endpoint (Requirement 5.1).
+		register_rest_route(
+			self::NAMESPACE,
+			'/bulk/export',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( $this, 'export_bulk_csv' ),
+				'permission_callback' => array( $this, 'bulk_edit_permission' ),
+				'args'                => array(
+					'post_ids' => array(
+						'required'          => true,
+						'type'              => 'array',
+						'items'             => array(
+							'type' => 'integer',
+						),
+						'sanitize_callback' => array( $this, 'sanitize_post_ids' ),
+					),
+				),
+			)
+		);
+
+		// Orphaned content list endpoint (Requirement 8.4).
+		register_rest_route(
+			self::NAMESPACE,
+			'/orphaned/list',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( $this, 'get_orphaned_content' ),
+				'permission_callback' => array( $this, 'edit_posts_permission' ),
+				'args'                => array(
+					'post_type' => array(
+						'required'          => false,
+						'type'              => 'string',
+						'sanitize_callback' => 'sanitize_key',
+					),
+					'per_page'  => array(
+						'required'          => false,
+						'type'              => 'integer',
+						'default'           => 20,
+						'sanitize_callback' => 'absint',
+					),
+					'page'      => array(
+						'required'          => false,
+						'type'              => 'integer',
+						'default'           => 1,
+						'sanitize_callback' => 'absint',
+					),
+				),
+			)
+		);
+
+		// Orphaned content suggestions endpoint (Requirement 8.4).
+		register_rest_route(
+			self::NAMESPACE,
+			'/orphaned/suggestions/(?P<post_id>\d+)',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( $this, 'get_orphaned_suggestions' ),
+				'permission_callback' => array( $this, 'edit_posts_permission' ),
+				'args'                => array(
+					'post_id' => array(
+						'required'          => true,
+						'type'              => 'integer',
+						'sanitize_callback' => 'absint',
+					),
+				),
+			)
+		);
+
+		// AI optimizer suggestion endpoint (Requirement 10.1).
+		register_rest_route(
+			self::NAMESPACE,
+			'/ai/suggestion',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( $this, 'get_ai_suggestion' ),
+				'permission_callback' => array( $this, 'ai_optimizer_permission' ),
+				'args'                => array(
+					'post_id'    => array(
+						'required'          => true,
+						'type'              => 'integer',
+						'sanitize_callback' => 'absint',
+					),
+					'check_name' => array(
+						'required'          => true,
+						'type'              => 'string',
+						'sanitize_callback' => 'sanitize_text_field',
+					),
+					'content'    => array(
+						'required'          => true,
+						'type'              => 'string',
+						'sanitize_callback' => 'wp_kses_post',
+					),
+					'keyword'    => array(
+						'required'          => true,
+						'type'              => 'string',
+						'sanitize_callback' => 'sanitize_text_field',
+					),
+				),
+			)
+		);
+	}
+
+	/**
+	 * Handle bulk operation
+	 *
+	 * Applies bulk SEO operation to multiple posts.
+	 * Requirement: 5.1
+	 *
+	 * @since 1.0.0
+	 * @param \WP_REST_Request $request REST request object.
+	 * @return \WP_REST_Response REST response.
+	 */
+	public function handle_bulk_operation( \WP_REST_Request $request ): \WP_REST_Response {
+		// Verify nonce.
+		if ( ! $this->verify_nonce( $request ) ) {
+			return new \WP_REST_Response(
+				array(
+					'success' => false,
+					'message' => __( 'Security verification failed.', 'meowseo' ),
+					'code'    => 'rest_invalid_nonce',
+				),
+				403
+			);
+		}
+
+		$action   = $request->get_param( 'action' );
+		$post_ids = $request->get_param( 'post_ids' );
+
+		// Get bulk editor module.
+		$bulk_module = $this->module_manager->get_module( 'bulk' );
+
+		if ( ! $bulk_module ) {
+			return new \WP_REST_Response(
+				array(
+					'success' => false,
+					'message' => __( 'Bulk editor module not available.', 'meowseo' ),
+					'code'    => 'module_unavailable',
+				),
+				400
+			);
+		}
+
+		try {
+			$count = $bulk_module->handle_bulk_action( $action, $post_ids );
+
+			return new \WP_REST_Response(
+				array(
+					'success' => true,
+					'message' => sprintf(
+						/* translators: %d: number of posts modified */
+						__( '%d posts modified successfully.', 'meowseo' ),
+						$count
+					),
+					'count'   => $count,
+				),
+				200
+			);
+		} catch ( \Exception $e ) {
+			\MeowSEO\Helpers\Logger::error(
+				'Bulk operation failed',
+				array(
+					'action'   => $action,
+					'post_ids' => $post_ids,
+					'error'    => $e->getMessage(),
+				)
+			);
+
+			return new \WP_REST_Response(
+				array(
+					'success' => false,
+					'message' => __( 'Bulk operation failed. Please try again.', 'meowseo' ),
+					'code'    => 'bulk_operation_failed',
+				),
+				500
+			);
+		}
+	}
+
+	/**
+	 * Export bulk CSV
+	 *
+	 * Exports SEO data for selected posts to CSV.
+	 * Requirement: 5.1
+	 *
+	 * @since 1.0.0
+	 * @param \WP_REST_Request $request REST request object.
+	 * @return \WP_REST_Response REST response.
+	 */
+	public function export_bulk_csv( \WP_REST_Request $request ): \WP_REST_Response {
+		// Verify nonce.
+		if ( ! $this->verify_nonce( $request ) ) {
+			return new \WP_REST_Response(
+				array(
+					'success' => false,
+					'message' => __( 'Security verification failed.', 'meowseo' ),
+					'code'    => 'rest_invalid_nonce',
+				),
+				403
+			);
+		}
+
+		$post_ids = $request->get_param( 'post_ids' );
+
+		// Get bulk editor module.
+		$bulk_module = $this->module_manager->get_module( 'bulk' );
+
+		if ( ! $bulk_module ) {
+			return new \WP_REST_Response(
+				array(
+					'success' => false,
+					'message' => __( 'Bulk editor module not available.', 'meowseo' ),
+					'code'    => 'module_unavailable',
+				),
+				400
+			);
+		}
+
+		try {
+			$csv_content = $bulk_module->export_to_csv( $post_ids );
+
+			return new \WP_REST_Response(
+				array(
+					'success' => true,
+					'csv'     => $csv_content,
+				),
+				200
+			);
+		} catch ( \Exception $e ) {
+			\MeowSEO\Helpers\Logger::error(
+				'CSV export failed',
+				array(
+					'post_ids' => $post_ids,
+					'error'    => $e->getMessage(),
+				)
+			);
+
+			return new \WP_REST_Response(
+				array(
+					'success' => false,
+					'message' => __( 'CSV export failed. Please try again.', 'meowseo' ),
+					'code'    => 'csv_export_failed',
+				),
+				500
+			);
+		}
+	}
+
+	/**
+	 * Get orphaned content
+	 *
+	 * Returns list of orphaned posts with no internal links.
+	 * Requirement: 8.4
+	 *
+	 * @since 1.0.0
+	 * @param \WP_REST_Request $request REST request object.
+	 * @return \WP_REST_Response REST response.
+	 */
+	public function get_orphaned_content( \WP_REST_Request $request ): \WP_REST_Response {
+		// Verify nonce.
+		if ( ! $this->verify_nonce( $request ) ) {
+			return new \WP_REST_Response(
+				array(
+					'success' => false,
+					'message' => __( 'Security verification failed.', 'meowseo' ),
+					'code'    => 'rest_invalid_nonce',
+				),
+				403
+			);
+		}
+
+		$post_type = $request->get_param( 'post_type' );
+		$per_page  = $request->get_param( 'per_page' );
+		$page      = $request->get_param( 'page' );
+
+		// Get orphaned detector module.
+		$orphaned_module = $this->module_manager->get_module( 'orphaned' );
+
+		if ( ! $orphaned_module ) {
+			return new \WP_REST_Response(
+				array(
+					'success' => false,
+					'message' => __( 'Orphaned content module not available.', 'meowseo' ),
+					'code'    => 'module_unavailable',
+				),
+				400
+			);
+		}
+
+		try {
+			$filters = array();
+			if ( $post_type ) {
+				$filters['post_type'] = $post_type;
+			}
+			if ( $per_page ) {
+				$filters['per_page'] = $per_page;
+			}
+			if ( $page ) {
+				$filters['page'] = $page;
+			}
+
+			$orphaned_posts = $orphaned_module->get_orphaned_posts( $filters );
+
+			return new \WP_REST_Response(
+				array(
+					'success' => true,
+					'posts'   => $orphaned_posts,
+				),
+				200
+			);
+		} catch ( \Exception $e ) {
+			\MeowSEO\Helpers\Logger::error(
+				'Failed to retrieve orphaned content',
+				array(
+					'filters' => $filters,
+					'error'   => $e->getMessage(),
+				)
+			);
+
+			return new \WP_REST_Response(
+				array(
+					'success' => false,
+					'message' => __( 'Failed to retrieve orphaned content. Please try again.', 'meowseo' ),
+					'code'    => 'orphaned_content_failed',
+				),
+				500
+			);
+		}
+	}
+
+	/**
+	 * Get orphaned suggestions
+	 *
+	 * Returns linking suggestions for an orphaned post.
+	 * Requirement: 8.4
+	 *
+	 * @since 1.0.0
+	 * @param \WP_REST_Request $request REST request object.
+	 * @return \WP_REST_Response REST response.
+	 */
+	public function get_orphaned_suggestions( \WP_REST_Request $request ): \WP_REST_Response {
+		// Verify nonce.
+		if ( ! $this->verify_nonce( $request ) ) {
+			return new \WP_REST_Response(
+				array(
+					'success' => false,
+					'message' => __( 'Security verification failed.', 'meowseo' ),
+					'code'    => 'rest_invalid_nonce',
+				),
+				403
+			);
+		}
+
+		$post_id = (int) $request['post_id'];
+
+		// Get orphaned detector module.
+		$orphaned_module = $this->module_manager->get_module( 'orphaned' );
+
+		if ( ! $orphaned_module ) {
+			return new \WP_REST_Response(
+				array(
+					'success' => false,
+					'message' => __( 'Orphaned content module not available.', 'meowseo' ),
+					'code'    => 'module_unavailable',
+				),
+				400
+			);
+		}
+
+		try {
+			$suggestions = $orphaned_module->suggest_linking_opportunities( $post_id );
+
+			return new \WP_REST_Response(
+				array(
+					'success'     => true,
+					'suggestions' => $suggestions,
+				),
+				200
+			);
+		} catch ( \Exception $e ) {
+			\MeowSEO\Helpers\Logger::error(
+				'Failed to retrieve orphaned suggestions',
+				array(
+					'post_id' => $post_id,
+					'error'   => $e->getMessage(),
+				)
+			);
+
+			return new \WP_REST_Response(
+				array(
+					'success' => false,
+					'message' => __( 'Failed to retrieve suggestions. Please try again.', 'meowseo' ),
+					'code'    => 'orphaned_suggestions_failed',
+				),
+				500
+			);
+		}
+	}
+
+	/**
+	 * Get AI suggestion
+	 *
+	 * Returns AI-powered suggestion for fixing a failing SEO check.
+	 * Requirement: 10.1
+	 *
+	 * @since 1.0.0
+	 * @param \WP_REST_Request $request REST request object.
+	 * @return \WP_REST_Response REST response.
+	 */
+	public function get_ai_suggestion( \WP_REST_Request $request ): \WP_REST_Response {
+		// Verify nonce.
+		if ( ! $this->verify_nonce( $request ) ) {
+			return new \WP_REST_Response(
+				array(
+					'success' => false,
+					'message' => __( 'Security verification failed.', 'meowseo' ),
+					'code'    => 'rest_invalid_nonce',
+				),
+				403
+			);
+		}
+
+		$post_id    = (int) $request->get_param( 'post_id' );
+		$check_name = $request->get_param( 'check_name' );
+		$content    = $request->get_param( 'content' );
+		$keyword    = $request->get_param( 'keyword' );
+
+		// Get AI module.
+		$ai_module = $this->module_manager->get_module( 'ai' );
+
+		if ( ! $ai_module ) {
+			return new \WP_REST_Response(
+				array(
+					'success' => false,
+					'message' => __( 'AI module not available.', 'meowseo' ),
+					'code'    => 'module_unavailable',
+				),
+				400
+			);
+		}
+
+		try {
+			// Check if AI optimizer is available.
+			if ( ! method_exists( $ai_module, 'get_optimizer' ) ) {
+				return new \WP_REST_Response(
+					array(
+						'success' => false,
+						'message' => __( 'AI optimizer not available.', 'meowseo' ),
+						'code'    => 'optimizer_unavailable',
+					),
+					400
+				);
+			}
+
+			$optimizer  = $ai_module->get_optimizer();
+			$suggestion = $optimizer->get_suggestion( $check_name, $content, $keyword );
+
+			return new \WP_REST_Response(
+				array(
+					'success'    => true,
+					'suggestion' => $suggestion,
+				),
+				200
+			);
+		} catch ( \Exception $e ) {
+			\MeowSEO\Helpers\Logger::error(
+				'Failed to retrieve AI suggestion',
+				array(
+					'post_id'    => $post_id,
+					'check_name' => $check_name,
+					'error'      => $e->getMessage(),
+				)
+			);
+
+			return new \WP_REST_Response(
+				array(
+					'success' => false,
+					'message' => __( 'Failed to retrieve AI suggestion. Please try again.', 'meowseo' ),
+					'code'    => 'ai_suggestion_failed',
+				),
+				500
+			);
+		}
+	}
+
+	/**
+	 * Permission callback for bulk edit endpoints
+	 *
+	 * Requirement: 1.9
+	 *
+	 * @since 1.0.0
+	 * @param \WP_REST_Request $request REST request object.
+	 * @return bool|\WP_Error True if user has permission, WP_Error otherwise.
+	 */
+	public function bulk_edit_permission( \WP_REST_Request $request ) {
+		// Check if roles module is active.
+		$roles_module = $this->module_manager->get_module( 'roles' );
+
+		if ( $roles_module && method_exists( $roles_module, 'user_can' ) ) {
+			// Use role-based capability check.
+			if ( ! $roles_module->user_can( 'meowseo_bulk_edit' ) ) {
+				return new \WP_Error(
+					'rest_forbidden',
+					__( 'You do not have sufficient permissions to perform bulk operations.', 'meowseo' ),
+					array( 'status' => 403 )
+				);
+			}
+		} else {
+			// Fallback to edit_posts capability.
+			if ( ! current_user_can( 'edit_posts' ) ) {
+				return new \WP_Error(
+					'rest_forbidden',
+					__( 'You do not have sufficient permissions to perform bulk operations.', 'meowseo' ),
+					array( 'status' => 403 )
+				);
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Permission callback for AI optimizer endpoints
+	 *
+	 * Requirement: 1.9
+	 *
+	 * @since 1.0.0
+	 * @param \WP_REST_Request $request REST request object.
+	 * @return bool|\WP_Error True if user has permission, WP_Error otherwise.
+	 */
+	public function ai_optimizer_permission( \WP_REST_Request $request ) {
+		// Check if roles module is active.
+		$roles_module = $this->module_manager->get_module( 'roles' );
+
+		if ( $roles_module && method_exists( $roles_module, 'user_can' ) ) {
+			// Use role-based capability check.
+			if ( ! $roles_module->user_can( 'meowseo_use_ai_optimizer' ) ) {
+				return new \WP_Error(
+					'rest_forbidden',
+					__( 'You do not have sufficient permissions to use AI optimizer.', 'meowseo' ),
+					array( 'status' => 403 )
+				);
+			}
+		} else {
+			// Fallback to edit_posts capability.
+			if ( ! current_user_can( 'edit_posts' ) ) {
+				return new \WP_Error(
+					'rest_forbidden',
+					__( 'You do not have sufficient permissions to use AI optimizer.', 'meowseo' ),
+					array( 'status' => 403 )
+				);
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Sanitize post IDs array
+	 *
+	 * @since 1.0.0
+	 * @param array $post_ids Post IDs.
+	 * @return array Sanitized post IDs.
+	 */
+	public function sanitize_post_ids( $post_ids ): array {
+		if ( ! is_array( $post_ids ) ) {
+			return array();
+		}
+
+		return array_map( 'absint', $post_ids );
 	}
 
 	/**

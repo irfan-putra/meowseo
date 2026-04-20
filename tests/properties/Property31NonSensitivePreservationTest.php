@@ -164,7 +164,7 @@ class Property31NonSensitivePreservationTest extends TestCase {
 	 */
 	public function test_numeric_values_preserved(): void {
 		$this->forAll(
-			Generators::integers( -1000000, 1000000 )
+			Generators::int( -1000000, 1000000 )
 		)
 		->then(
 			function ( int $value ) {
@@ -208,7 +208,7 @@ class Property31NonSensitivePreservationTest extends TestCase {
 	 */
 	public function test_boolean_values_preserved(): void {
 		$this->forAll(
-			Generators::booleans()
+			Generators::bool()
 		)
 		->then(
 			function ( bool $value ) {
@@ -252,7 +252,7 @@ class Property31NonSensitivePreservationTest extends TestCase {
 	 */
 	public function test_array_values_preserved(): void {
 		$this->forAll(
-			Generators::integers( 1, 5 )
+			Generators::int( 1, 5 )
 		)
 		->then(
 			function ( int $num_items ) {
@@ -303,8 +303,8 @@ class Property31NonSensitivePreservationTest extends TestCase {
 	public function test_mixed_types_preserved(): void {
 		$this->forAll(
 			Generators::string( 'a-zA-Z0-9', 5, 20 ),
-			Generators::integers( 1, 1000 ),
-			Generators::booleans()
+			Generators::int( 1, 1000 ),
+			Generators::bool()
 		)
 		->then(
 			function ( string $name, int $count, bool $active ) {
@@ -372,7 +372,7 @@ class Property31NonSensitivePreservationTest extends TestCase {
 	public function test_nested_non_sensitive_data_preserved(): void {
 		$this->forAll(
 			Generators::string( 'a-zA-Z0-9', 5, 20 ),
-			Generators::integers( 1, 1000 )
+			Generators::int( 1, 1000 )
 		)
 		->then(
 			function ( string $email, int $user_id ) {

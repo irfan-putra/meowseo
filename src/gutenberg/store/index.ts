@@ -43,7 +43,7 @@ try {
 	}
 } catch ( error ) {
 	console.error( 'MeowSEO: Failed to create Redux store:', error );
-	
+
 	// Provide fallback store implementation for graceful degradation
 	// This ensures components can still function with reduced features
 	try {
@@ -61,43 +61,51 @@ try {
 			selectors: {
 				// Provide safe selectors that return default values
 				getSeoScore: ( state: any ) => state?.seoScore || 0,
-				getReadabilityScore: ( state: any ) => state?.readabilityScore || 0,
-				getAnalysisResults: ( state: any ) => state?.analysisResults || [],
-				getReadabilityResults: ( state: any ) => state?.readabilityResults || [],
+				getReadabilityScore: ( state: any ) =>
+					state?.readabilityScore || 0,
+				getAnalysisResults: ( state: any ) =>
+					state?.analysisResults || [],
+				getReadabilityResults: ( state: any ) =>
+					state?.readabilityResults || [],
 				getWordCount: ( state: any ) => state?.wordCount || 0,
 				getSentenceCount: ( state: any ) => state?.sentenceCount || 0,
 				getParagraphCount: ( state: any ) => state?.paragraphCount || 0,
 				getFleschScore: ( state: any ) => state?.fleschScore || 0,
 				getKeywordDensity: ( state: any ) => state?.keywordDensity || 0,
-				getAnalysisTimestamp: ( state: any ) => state?.analysisTimestamp || null,
+				getAnalysisTimestamp: ( state: any ) =>
+					state?.analysisTimestamp || null,
 				getActiveTab: ( state: any ) => state?.activeTab || 'general',
 				isAnalyzing: ( state: any ) => state?.isAnalyzing || false,
-				getContentSnapshot: ( state: any ) => state?.contentSnapshot || {
-					title: '',
-					content: '',
-					excerpt: '',
-					focusKeyword: '',
-					postType: '',
-					permalink: '',
-				},
+				getContentSnapshot: ( state: any ) =>
+					state?.contentSnapshot || {
+						title: '',
+						content: '',
+						excerpt: '',
+						focusKeyword: '',
+						postType: '',
+						permalink: '',
+					},
 			},
 			initialState,
 		} );
-		
+
 		register( fallbackStore );
-		
+
 		// Display user-friendly error message
-		console.warn( 
+		console.warn(
 			'MeowSEO: Using fallback store due to registration failure. ' +
-			'Analysis features may be limited. Please check browser console for details.'
+				'Analysis features may be limited. Please check browser console for details.'
 		);
 	} catch ( fallbackError ) {
-		console.error( 'MeowSEO: Failed to register fallback store:', fallbackError );
+		console.error(
+			'MeowSEO: Failed to register fallback store:',
+			fallbackError
+		);
 		// At this point, components will need to handle missing store gracefully
 		// Display user-friendly error message
 		console.error(
 			'MeowSEO: Store registration completely failed. ' +
-			'The sidebar may not function correctly. Please refresh the page.'
+				'The sidebar may not function correctly. Please refresh the page.'
 		);
 	}
 }

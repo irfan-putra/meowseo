@@ -106,8 +106,8 @@ class MetaPostmetaTest extends TestCase {
 		// Verify META_KEYS is an array.
 		$this->assertIsArray( $meta_keys );
 
-		// Verify it has 16 keys.
-		$this->assertCount( 16, $meta_keys );
+		// Verify it has 17 keys.
+		$this->assertCount( 17, $meta_keys );
 
 		// Verify expected keys exist.
 		$expected_keys = array(

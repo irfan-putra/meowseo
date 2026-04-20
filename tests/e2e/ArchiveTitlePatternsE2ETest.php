@@ -8,7 +8,7 @@
 
 namespace MeowSEO\Tests\E2E;
 
-use WP_UnitTestCase;
+use PHPUnit\Framework\TestCase;
 use MeowSEO\Options;
 use MeowSEO\Modules\Meta\Title_Patterns;
 use MeowSEO\Modules\Meta\Meta_Resolver;
@@ -20,7 +20,7 @@ use WP_Query;
  *
  * Validates Requirements 5.1-5.35
  */
-class ArchiveTitlePatternsE2ETest extends WP_UnitTestCase {
+class ArchiveTitlePatternsE2ETest extends TestCase {
 	/**
 	 * Options instance
 	 *
@@ -68,6 +68,11 @@ class ArchiveTitlePatternsE2ETest extends WP_UnitTestCase {
 	 */
 	public function setUp(): void {
 		parent::setUp();
+
+		// Skip if WordPress test framework is not available
+		if ( ! function_exists( 'wp_insert_term' ) || ! function_exists( 'wp_insert_user' ) ) {
+			$this->markTestSkipped( 'WordPress test framework is not available. These tests require a full WordPress installation with the WordPress Test Suite.' );
+		}
 
 		// Initialize components.
 		$this->options  = new Options();

@@ -11,6 +11,8 @@
 
 namespace MeowSEO\Tests\Integration;
 
+use PHPUnit\Framework\TestCase;
+
 /**
  * Theme Compatibility Test Case
  *
@@ -18,7 +20,7 @@ namespace MeowSEO\Tests\Integration;
  * with mocked WordPress functions. They should be run in a CI/CD environment
  * with WordPress Test Suite installed.
  */
-class ThemeCompatibilityTest extends \WP_UnitTestCase {
+class ThemeCompatibilityTest extends TestCase {
 	/**
 	 * Test themes to verify compatibility
 	 *
@@ -37,6 +39,11 @@ class ThemeCompatibilityTest extends \WP_UnitTestCase {
 	 */
 	public function setUp(): void {
 		parent::setUp();
+
+		// Skip if WordPress test framework is not available
+		if ( ! class_exists( '\WP_UnitTestCase' ) || ! function_exists( 'activate_plugin' ) ) {
+			$this->markTestSkipped( 'WordPress test framework is not available. These tests require a full WordPress installation with the WordPress Test Suite.' );
+		}
 
 		// Activate MeowSEO plugin.
 		activate_plugin( 'meowseo/meowseo.php' );

@@ -433,23 +433,22 @@ class Property8ExceptionFieldCaptureTest extends TestCase {
 				);
 
 				$log_entry = $meowseo_test_logs[0];
-				$context = json_decode( $log_entry['context'] ?? '{}', true );
 
-				// Verify stack trace is in context
+				// Verify stack trace is in the log entry (separate column, not in context)
 				$this->assertArrayHasKey(
 					'stack_trace',
-					$context,
-					'Context should contain stack_trace field'
+					$log_entry,
+					'Log entry should contain stack_trace field'
 				);
 
 				$this->assertNotEmpty(
-					$context['stack_trace'],
+					$log_entry['stack_trace'],
 					'Stack trace should not be empty'
 				);
 
 				$this->assertStringContainsString(
 					'#0',
-					$context['stack_trace'],
+					$log_entry['stack_trace'],
 					'Stack trace should contain frame information'
 				);
 			}
@@ -506,16 +505,15 @@ class Property8ExceptionFieldCaptureTest extends TestCase {
 				$log_entry = $meowseo_test_logs[0];
 				$context = json_decode( $log_entry['context'] ?? '{}', true );
 
-				// Verify all required fields are present
-				$required_fields = [
+				// Verify all required fields are present (stack_trace is in log entry, not context)
+				$required_context_fields = [
 					'exception_message',
 					'exception_class',
 					'file',
 					'line',
-					'stack_trace',
 				];
 
-				foreach ( $required_fields as $field ) {
+				foreach ( $required_context_fields as $field ) {
 					$this->assertArrayHasKey(
 						$field,
 						$context,
@@ -527,6 +525,18 @@ class Property8ExceptionFieldCaptureTest extends TestCase {
 						"$field should not be empty"
 					);
 				}
+
+				// Verify stack_trace is in log entry (separate column)
+				$this->assertArrayHasKey(
+					'stack_trace',
+					$log_entry,
+					'Log entry should contain stack_trace field'
+				);
+
+				$this->assertNotEmpty(
+					$log_entry['stack_trace'],
+					'stack_trace should not be empty'
+				);
 
 				// Verify field types
 				$this->assertIsString(
@@ -550,8 +560,8 @@ class Property8ExceptionFieldCaptureTest extends TestCase {
 				);
 
 				$this->assertIsString(
-					$context['stack_trace'],
-					'stack_trace should be string'
+					$log_entry['stack_trace'],
+					'stack_trace should be string (in log entry, not context)'
 				);
 			}
 		);

@@ -14,7 +14,6 @@
 
 namespace MeowSEO\Tests\Properties;
 
-use WP_UnitTestCase;
 use MeowSEO\Modules\Meta\Meta_Resolver;
 use MeowSEO\Modules\Meta\Title_Patterns;
 use MeowSEO\Options;
@@ -22,7 +21,7 @@ use MeowSEO\Options;
 /**
  * Test Property 14: OG Image Dimension Validation
  */
-class MetaProperty14OGImageDimensionValidationTest extends WP_UnitTestCase {
+class MetaProperty14OGImageDimensionValidationTest extends MetaPropertyTestCase {
 
 	/**
 	 * Test OG image dimension validation for featured images

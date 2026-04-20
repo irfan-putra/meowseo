@@ -214,11 +214,14 @@ class Logger {
 			return false;
 		}
 
+		// Handle both object and array return types from get_row.
+		$existing_id = is_array( $existing ) ? $existing['id'] : $existing->id;
+
 		// Increment hit count only (don't update created_at to avoid unique constraint violation).
 		$wpdb->query(
 			$wpdb->prepare(
 				"UPDATE {$table} SET hit_count = hit_count + 1 WHERE id = %d",
-				$existing->id
+				$existing_id
 			)
 		);
 
@@ -274,29 +277,45 @@ class Logger {
 			'client_secret',
 		];
 
-		return $this->sanitize_recursive( $context, $sensitive_patterns );
+		$safe_patterns = [
+			'token_type',
+		];
+
+		return $this->sanitize_recursive( $context, $sensitive_patterns, $safe_patterns );
 	}
 
 	/**
 	 * Recursively sanitize context data.
 	 *
-	 * @param array $data     Data to sanitize.
-	 * @param array $patterns Sensitive key patterns.
+	 * @param array $data            Data to sanitize.
+	 * @param array $patterns        Sensitive key patterns.
+	 * @param array $safe_patterns   Patterns to exclude from sanitization.
 	 * @return array Sanitized data.
 	 */
-	private function sanitize_recursive( array $data, array $patterns ): array {
+	private function sanitize_recursive( array $data, array $patterns, array $safe_patterns = [] ): array {
 		foreach ( $data as $key => $value ) {
-			// Check if key matches sensitive pattern.
-			foreach ( $patterns as $pattern ) {
-				if ( false !== stripos( $key, $pattern ) ) {
-					$data[ $key ] = '[REDACTED]';
-					continue 2;
+			// Check if key is in safe list.
+			$is_safe = false;
+			foreach ( $safe_patterns as $safe_pattern ) {
+				if ( false !== stripos( $key, $safe_pattern ) ) {
+					$is_safe = true;
+					break;
+				}
+			}
+
+			if ( ! $is_safe ) {
+				// Check if key matches sensitive pattern.
+				foreach ( $patterns as $pattern ) {
+					if ( false !== stripos( $key, $pattern ) ) {
+						$data[ $key ] = '[REDACTED]';
+						continue 2;
+					}
 				}
 			}
 
 			// Recursively sanitize nested arrays.
 			if ( is_array( $value ) ) {
-				$data[ $key ] = $this->sanitize_recursive( $value, $patterns );
+				$data[ $key ] = $this->sanitize_recursive( $value, $patterns, $safe_patterns );
 			}
 		}
 

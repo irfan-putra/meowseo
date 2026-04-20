@@ -14,18 +14,15 @@
 
 namespace MeowSEO\Tests\Properties;
 
-use WP_UnitTestCase;
 use MeowSEO\Modules\Meta\Meta_Resolver;
 use MeowSEO\Modules\Meta\Title_Patterns;
 use MeowSEO\Options;
 use Eris\Generator;
-use Eris\TestTrait;
 
 /**
  * Test Property 4: Canonical Pagination Stripping
  */
-class MetaProperty04CanonicalPaginationStrippingTest extends WP_UnitTestCase {
-	use TestTrait;
+class MetaProperty04CanonicalPaginationStrippingTest extends MetaPropertyTestCase {
 
 	/**
 	 * Test canonical strips pagination parameters

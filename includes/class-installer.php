@@ -98,6 +98,7 @@ class Installer {
 			$wpdb->prefix . 'meowseo_gsc_data',
 			$wpdb->prefix . 'meowseo_link_checks',
 			$wpdb->prefix . 'meowseo_logs',
+			$wpdb->prefix . 'meowseo_orphaned_content',
 		);
 
 		foreach ( $tables as $table ) {
@@ -237,6 +238,17 @@ CREATE TABLE {$prefix}meowseo_logs (
 	KEY idx_module (module),
 	KEY idx_created_at (created_at),
 	KEY idx_dedup (level, module, message_hash)
+) $charset_collate;
+
+CREATE TABLE {$prefix}meowseo_orphaned_content (
+	id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+	post_id BIGINT UNSIGNED NOT NULL,
+	inbound_link_count INT UNSIGNED NOT NULL DEFAULT 0,
+	last_scanned DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	PRIMARY KEY (id),
+	UNIQUE KEY idx_post_id (post_id),
+	KEY idx_inbound_link_count (inbound_link_count),
+	KEY idx_last_scanned (last_scanned)
 ) $charset_collate;
 ";
 

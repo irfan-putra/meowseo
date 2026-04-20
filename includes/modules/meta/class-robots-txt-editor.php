@@ -100,7 +100,7 @@ class Robots_Txt_Editor {
 					<button type="button" 
 							id="meowseo-reset-robots-txt" 
 							class="button"
-							onclick="return confirm('<?php echo esc_js( __( 'Are you sure you want to reset to default content? This cannot be undone.', 'meowseo' ) ); ?>');">
+							data-confirm-message="<?php esc_attr_e( 'Are you sure you want to reset to default content? This cannot be undone.', 'meowseo' ); ?>">
 						<?php esc_html_e( 'Reset to Default', 'meowseo' ); ?>
 					</button>
 				</p>

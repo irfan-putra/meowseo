@@ -158,7 +158,7 @@ class Property10LogEntryLimitTest extends TestCase {
 	 */
 	public function test_log_entry_count_never_exceeds_limit(): void {
 		$this->forAll(
-			Generators::integers( 1, 2000 )
+			Generators::int( 1, 2000 )
 		)
 		->then(
 			function ( int $num_logs ) {
@@ -193,7 +193,7 @@ class Property10LogEntryLimitTest extends TestCase {
 	 */
 	public function test_maintains_exactly_1000_entries_when_limit_exceeded(): void {
 		$this->forAll(
-			Generators::integers( 1001, 2000 )
+			Generators::int( 1001, 2000 )
 		)
 		->then(
 			function ( int $num_logs ) {
@@ -237,7 +237,7 @@ class Property10LogEntryLimitTest extends TestCase {
 	 */
 	public function test_preserves_most_recent_entries(): void {
 		$this->forAll(
-			Generators::integers( 1001, 1500 )
+			Generators::int( 1001, 1500 )
 		)
 		->then(
 			function ( int $num_logs ) {
@@ -287,7 +287,7 @@ class Property10LogEntryLimitTest extends TestCase {
 	 */
 	public function test_cleanup_triggered_after_exceeding_limit(): void {
 		$this->forAll(
-			Generators::integers( 1, 100 )
+			Generators::int( 1, 100 )
 		)
 		->then(
 			function ( int $batch_size ) {
@@ -331,7 +331,7 @@ class Property10LogEntryLimitTest extends TestCase {
 	 */
 	public function test_limit_applies_to_all_log_levels(): void {
 		$this->forAll(
-			Generators::integers( 200, 400 )
+			Generators::int( 200, 400 )
 		)
 		->then(
 			function ( int $entries_per_level ) {

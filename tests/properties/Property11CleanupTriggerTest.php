@@ -40,6 +40,8 @@ class Property11CleanupTriggerTest extends TestCase {
 		$meowseo_test_logs = [];
 		// Mock the database to capture log entries and track cleanup
 		$this->setup_mock_database();
+		// Reset Logger singleton to use new mock
+		$this->reset_logger_singleton();
 	}
 
 	/**
@@ -52,6 +54,18 @@ class Property11CleanupTriggerTest extends TestCase {
 		// Clear mock logs after each test
 		global $meowseo_test_logs;
 		$meowseo_test_logs = [];
+	}
+
+	/**
+	 * Reset Logger singleton to use new mock database
+	 *
+	 * @return void
+	 */
+	private function reset_logger_singleton(): void {
+		$reflection = new \ReflectionClass( Logger::class );
+		$instance_property = $reflection->getProperty( 'instance' );
+		$instance_property->setAccessible( true );
+		$instance_property->setValue( null, null );
 	}
 
 	/**
@@ -84,10 +98,33 @@ class Property11CleanupTriggerTest extends TestCase {
 			}
 
 			public function get_row( $query, $output = OBJECT ) {
+				// Handle deduplication queries
+				if ( strpos( $query, 'message_hash' ) !== false && strpos( $query, 'created_at >=' ) !== false ) {
+					// Extract the message_hash from the query
+					if ( preg_match( "/'([a-f0-9]{64})'/", $query, $matches ) ) {
+						$message_hash = $matches[1];
+						
+						// Find matching entry in logs
+						foreach ( array_reverse( $this->logs ) as $log ) {
+							if ( isset( $log['message_hash'] ) && $log['message_hash'] === $message_hash ) {
+								// Return as object or array based on output type
+								if ( $output === ARRAY_A ) {
+									return $log;
+								} else {
+									return (object) $log;
+								}
+							}
+						}
+					}
+				}
 				return null;
 			}
 
 			public function get_var( $query = null, $x = 0, $y = 0 ) {
+				// Handle COUNT(*) queries for cleanup trigger
+				if ( $query && strpos( $query, 'COUNT(*)' ) !== false ) {
+					return $this->entry_count;
+				}
 				// Return the current entry count
 				return $this->entry_count;
 			}
@@ -98,16 +135,10 @@ class Property11CleanupTriggerTest extends TestCase {
 					global $meowseo_test_logs;
 					$data['id'] = count( $this->logs ) + 1;
 					$data['created_at'] = $data['created_at'] ?? gmdate( 'Y-m-d H:i:s' );
+					$data['hit_count'] = $data['hit_count'] ?? 1;
 					$this->logs[] = $data;
 					$this->entry_count++;
 					$meowseo_test_logs[] = $data;
-
-					// Check if cleanup should be triggered
-					if ( $this->entry_count > self::MAX_ENTRIES ) {
-						$this->cleanup_triggered = true;
-						$this->cleanup_count++;
-						$this->cleanup_old_logs();
-					}
 
 					return true;
 				}
@@ -117,27 +148,55 @@ class Property11CleanupTriggerTest extends TestCase {
 			public function query( $query ) {
 				// Handle DELETE queries for cleanup
 				if ( strpos( $query, 'DELETE FROM' ) !== false && strpos( $query, 'ORDER BY created_at ASC' ) !== false ) {
+					$this->cleanup_triggered = true;
+					$this->cleanup_count++;
+					
 					// Extract LIMIT value from query
 					if ( preg_match( '/LIMIT (\d+)/', $query, $matches ) ) {
 						$limit = (int) $matches[1];
 						// Remove oldest entries
+						$removed = 0;
 						for ( $i = 0; $i < $limit && ! empty( $this->logs ); $i++ ) {
 							array_shift( $this->logs );
 							$this->entry_count--;
+							$removed++;
+						}
+						
+						// Synchronize global test logs
+						global $meowseo_test_logs;
+						for ( $i = 0; $i < $removed && ! empty( $meowseo_test_logs ); $i++ ) {
+							array_shift( $meowseo_test_logs );
 						}
 					}
 					return true;
 				}
-				return true;
-			}
-
-			private function cleanup_old_logs(): void {
-				// Delete oldest entries to maintain the 1000 entry limit
-				$excess = $this->entry_count - self::MAX_ENTRIES;
-				for ( $i = 0; $i < $excess; $i++ ) {
-					array_shift( $this->logs );
-					$this->entry_count--;
+				
+				// Handle UPDATE queries for deduplication
+				if ( strpos( $query, 'UPDATE' ) !== false && strpos( $query, 'hit_count = hit_count + 1' ) !== false ) {
+					// Extract ID from query
+					if ( preg_match( '/WHERE id = (\d+)/', $query, $matches ) ) {
+						$id = (int) $matches[1];
+						// Find and update the entry
+						foreach ( $this->logs as &$log ) {
+							if ( isset( $log['id'] ) && $log['id'] === $id ) {
+								$log['hit_count'] = ( $log['hit_count'] ?? 1 ) + 1;
+								break;
+							}
+						}
+						
+						// Also update in global test logs
+						global $meowseo_test_logs;
+						foreach ( $meowseo_test_logs as &$log ) {
+							if ( isset( $log['id'] ) && $log['id'] === $id ) {
+								$log['hit_count'] = ( $log['hit_count'] ?? 1 ) + 1;
+								break;
+							}
+						}
+					}
+					return true;
 				}
+				
+				return true;
 			}
 
 			public function was_cleanup_triggered(): bool {
@@ -175,7 +234,7 @@ class Property11CleanupTriggerTest extends TestCase {
 	 */
 	public function test_cleanup_triggered_when_limit_exceeded(): void {
 		$this->forAll(
-			Generators::integers( 1001, 1500 )
+			Generators::int( 1001, 1500 )
 		)
 		->then(
 			function ( int $num_logs ) {
@@ -217,7 +276,7 @@ class Property11CleanupTriggerTest extends TestCase {
 	 */
 	public function test_cleanup_not_triggered_when_under_limit(): void {
 		$this->forAll(
-			Generators::integers( 1, 500 )
+			Generators::int( 1, 500 )
 		)
 		->then(
 			function ( int $num_logs ) {
@@ -252,7 +311,7 @@ class Property11CleanupTriggerTest extends TestCase {
 	 */
 	public function test_cleanup_triggered_after_each_insertion_exceeding_limit(): void {
 		$this->forAll(
-			Generators::integers( 1, 50 )
+			Generators::int( 1, 50 )
 		)
 		->then(
 			function ( int $batch_size ) {
@@ -308,7 +367,7 @@ class Property11CleanupTriggerTest extends TestCase {
 	 */
 	public function test_cleanup_deletes_oldest_entries(): void {
 		$this->forAll(
-			Generators::integers( 1001, 1200 )
+			Generators::int( 1001, 1200 )
 		)
 		->then(
 			function ( int $num_logs ) {
@@ -355,7 +414,7 @@ class Property11CleanupTriggerTest extends TestCase {
 	 */
 	public function test_cleanup_maintains_data_integrity(): void {
 		$this->forAll(
-			Generators::integers( 1001, 1500 )
+			Generators::int( 1001, 1500 )
 		)
 		->then(
 			function ( int $num_logs ) {

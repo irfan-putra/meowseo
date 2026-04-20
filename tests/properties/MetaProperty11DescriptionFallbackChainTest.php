@@ -13,18 +13,15 @@
 
 namespace MeowSEO\Tests\Properties;
 
-use WP_UnitTestCase;
 use MeowSEO\Modules\Meta\Meta_Resolver;
 use MeowSEO\Modules\Meta\Title_Patterns;
 use MeowSEO\Options;
 use Eris\Generator;
-use Eris\TestTrait;
 
 /**
  * Test Property 11: Description Fallback Chain Completeness
  */
-class MetaProperty11DescriptionFallbackChainTest extends WP_UnitTestCase {
-	use TestTrait;
+class MetaProperty11DescriptionFallbackChainTest extends MetaPropertyTestCase {
 
 	/**
 	 * Test description fallback chain completeness

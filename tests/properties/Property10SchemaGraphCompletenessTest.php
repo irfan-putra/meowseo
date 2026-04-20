@@ -48,6 +48,7 @@ class Property10SchemaGraphCompletenessTest extends TestCase {
 		$options = $this->createMock( Options::class );
 		$options->method( 'get_separator' )->willReturn( ' - ' );
 		$options->method( 'get_default_social_image_url' )->willReturn( '' );
+		$options->method( 'get' )->willReturn( true ); // Default return for any get() call
 
 		$this->schema_builder = new Schema_Builder( $options );
 	}

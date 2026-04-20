@@ -73,6 +73,7 @@ class GSCQueueTest extends TestCase {
 			public $prefix = 'wp_';
 			public $last_error = '';
 			public $insert_id = 0;
+			public $last_prepare_args = [];
 			private $test;
 
 			public function __construct( $test ) {
@@ -80,6 +81,9 @@ class GSCQueueTest extends TestCase {
 			}
 
 			public function prepare( $query, ...$args ) {
+				// Store the original args for later use
+				$this->last_prepare_args = $args;
+				
 				// Simple prepare implementation for testing.
 				foreach ( $args as $arg ) {
 					$query = preg_replace( '/%[sd]/', is_numeric( $arg ) ? $arg : "'" . addslashes( $arg ) . "'", $query, 1 );
@@ -88,6 +92,12 @@ class GSCQueueTest extends TestCase {
 			}
 
 			public function insert( $table, $data, $format = null ) {
+				// Only insert into queue_storage if it's the GSC queue table
+				if ( strpos( $table, 'meowseo_gsc_queue' ) === false ) {
+					// For other tables (like logger), just return success without storing
+					return 1;
+				}
+
 				$job_id = $this->test->next_job_id++;
 				$data['id'] = $job_id;
 				$this->test->queue_storage[ $job_id ] = $data;
@@ -98,32 +108,54 @@ class GSCQueueTest extends TestCase {
 			public function get_var( $query ) {
 				// Handle COUNT queries.
 				if ( stripos( $query, 'COUNT(*)' ) !== false ) {
+					// Check if this is a simple COUNT without WHERE clause
+					if ( stripos( $query, 'WHERE' ) === false ) {
+						return count( $this->test->queue_storage );
+					}
+					
+					// Use the last_prepare_args to get the actual values without parsing
+					$job_type = null;
+					$payload = null;
+					$check_status = stripos( $query, "status = 'pending'" ) !== false;
+					
+					// If we have prepare args, use them
+					if ( ! empty( $this->last_prepare_args ) ) {
+						if ( isset( $this->last_prepare_args[0] ) ) {
+							$job_type = $this->last_prepare_args[0];
+						}
+						if ( isset( $this->last_prepare_args[1] ) ) {
+							$payload = $this->last_prepare_args[1];
+						}
+					}
+					
 					// Check for specific conditions in the query.
 					$count = 0;
 					foreach ( $this->test->queue_storage as $job ) {
 						$matches = true;
 
 						// Check for status = 'pending'.
-						if ( stripos( $query, "status = 'pending'" ) !== false ) {
+						if ( $check_status ) {
 							$matches = $matches && ( $job['status'] ?? '' ) === 'pending';
 						}
 
 						// Check for job_type match.
-						if ( preg_match( "/job_type = '([^']+)'/", $query, $type_matches ) ) {
-							$matches = $matches && ( $job['job_type'] ?? '' ) === $type_matches[1];
+						if ( $job_type !== null ) {
+							$matches = $matches && ( $job['job_type'] ?? '' ) === $job_type;
 						}
 
 						// Check for payload match.
-						if ( preg_match( "/payload = '([^']+)'/", $query, $payload_matches ) ) {
-							// Unescape the payload for comparison.
-							$expected_payload = str_replace( "\\'", "'", $payload_matches[1] );
-							$matches = $matches && ( $job['payload'] ?? '' ) === $expected_payload;
+						if ( $payload !== null ) {
+							$matches = $matches && ( $job['payload'] ?? '' ) === $payload;
 						}
 
 						if ( $matches ) {
 							$count++;
 						}
 					}
+					
+					// Clear prepare args after use
+					$this->last_prepare_args = [];
+					
 					return $count;
 				}
 				return 0;

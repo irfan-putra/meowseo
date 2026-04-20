@@ -243,12 +243,26 @@ class GSCQueueRateLimitTest extends TestCase {
 				return $results;
 			}
 
+			public function get_row( $query, $output = ARRAY_A ) {
+				$results = $this->get_results( $query, $output );
+				return ! empty( $results ) ? $results[0] : null;
+			}
+
 			public function update( $table, $data, $where, $format = null, $where_format = null ) {
 				if ( isset( $where['id'] ) && isset( $this->test->queue_storage[ $where['id'] ] ) ) {
 					$this->test->queue_storage[ $where['id'] ] = array_merge( $this->test->queue_storage[ $where['id'] ], $data );
 					return 1;
 				}
 				return 0;
+			}
+
+			public function query( $query ) {
+				// Handle DELETE queries
+				if ( stripos( $query, 'DELETE' ) !== false ) {
+					// For testing, we can just return true
+					return true;
+				}
+				return false;
 			}
 		};
 	}

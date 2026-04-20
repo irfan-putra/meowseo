@@ -6,3 +6,4 @@
 
 export { AiGeneratorPanel } from './AiGeneratorPanel';
 export { PreviewPanel } from './PreviewPanel';
+export { default as AiSuggestionButton } from './AiSuggestionButton';

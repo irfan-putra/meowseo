@@ -1,6 +1,6 @@
 /**
  * ErrorBoundary Component
- * 
+ *
  * Catches errors in React components and displays a user-friendly error UI
  * instead of hardcoded HTML error messages.
  *
@@ -12,7 +12,7 @@ import { Component } from '@wordpress/element';
 
 /**
  * ErrorBoundary Component for Settings
- * 
+ *
  * Catches errors in the settings app and displays a user-friendly error UI
  * instead of hardcoded HTML error messages.
  */
@@ -57,10 +57,12 @@ class ErrorBoundary extends Component {
 				<div className="notice notice-error meowseo-error-boundary">
 					<h2>MeowSEO Error</h2>
 					<p>
-						An error occurred and the interface could not load properly.
+						An error occurred and the interface could not load
+						properly.
 					</p>
 					<p>
-						<strong>Error details:</strong> { this.state.error?.message || 'Unknown error' }
+						<strong>Error details:</strong>{ ' ' }
+						{ this.state.error?.message || 'Unknown error' }
 					</p>
 					<div className="meowseo-error-actions">
 						<button
@@ -79,13 +81,16 @@ class ErrorBoundary extends Component {
 					</div>
 					<details style={ { marginTop: '20px' } }>
 						<summary>Technical Details (for debugging)</summary>
-						<pre style={ { 
-							background: '#f5f5f5', 
-							padding: '10px', 
-							overflow: 'auto',
-							fontSize: '12px'
-						} }>
-							{ this.state.error?.stack || 'No stack trace available' }
+						<pre
+							style={ {
+								background: '#f5f5f5',
+								padding: '10px',
+								overflow: 'auto',
+								fontSize: '12px',
+							} }
+						>
+							{ this.state.error?.stack ||
+								'No stack trace available' }
 						</pre>
 					</details>
 				</div>

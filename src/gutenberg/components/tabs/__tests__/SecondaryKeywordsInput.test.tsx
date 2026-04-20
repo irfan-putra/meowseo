@@ -18,7 +18,11 @@ jest.mock( '@wordpress/element', () => ( {
 
 jest.mock( '@wordpress/components', () => ( {
 	Button: ( { children, onClick, disabled, variant }: any ) => (
-		<button onClick={ onClick } disabled={ disabled } data-variant={ variant }>
+		<button
+			onClick={ onClick }
+			disabled={ disabled }
+			data-variant={ variant }
+		>
 			{ children }
 		</button>
 	),

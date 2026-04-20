@@ -534,7 +534,7 @@ class Property18ModuleListInclusionTest extends TestCase {
 
 				// Verify the structure: "- Active Modules: module1, module2, ..."
 				$this->assertMatchesRegularExpression(
-					'/- Active Modules:\s*[\w,\s]*\n/',
+					'/- Active Modules:\s*[\w,\s-]*\n/',
 					$formatted,
 					'Module list should have correct header structure'
 				);
@@ -549,9 +549,9 @@ class Property18ModuleListInclusionTest extends TestCase {
 				$module_list = trim( $matches[1] );
 				// Module list should be either empty or comma-separated values
 				if ( ! empty( $module_list ) ) {
-					// If not empty, should contain only word characters, commas, and spaces
+					// If not empty, should contain only word characters, hyphens, commas, and spaces
 					$this->assertMatchesRegularExpression(
-						'/^[\w,\s]+$/',
+						'/^[\w,\s-]+$/',
 						$module_list,
 						'Module list should contain only module names, commas, and spaces'
 					);

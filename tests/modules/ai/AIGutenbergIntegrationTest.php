@@ -15,6 +15,7 @@ use PHPUnit\Framework\TestCase;
 use MeowSEO\Modules\AI\AI_REST;
 use MeowSEO\Modules\AI\AI_Generator;
 use MeowSEO\Modules\AI\AI_Provider_Manager;
+use MeowSEO\Modules\AI\AI_Optimizer;
 use MeowSEO\Options;
 
 /**
@@ -68,7 +69,8 @@ class AIGutenbergIntegrationTest extends TestCase {
 		$this->options = $this->createMock( Options::class );
 		$provider_manager = new AI_Provider_Manager( $this->options );
 		$this->generator = new AI_Generator( $provider_manager, $this->options );
-		$this->rest = new AI_REST( $this->generator, $provider_manager );
+		$optimizer = new AI_Optimizer( $provider_manager, $this->options );
+		$this->rest = new AI_REST( $this->generator, $provider_manager, $optimizer );
 
 		// Create test post
 		$this->post_id = wp_insert_post( [
@@ -152,7 +154,8 @@ class AIGutenbergIntegrationTest extends TestCase {
 		] );
 
 		$generator = new AI_Generator( $provider_manager, $this->options );
-		$rest = new AI_REST( $generator, $provider_manager );
+		$optimizer = new AI_Optimizer( $provider_manager, $this->options );
+		$rest = new AI_REST( $generator, $provider_manager, $optimizer );
 
 		// Generate content
 		$result = $generator->generate_all_meta( $this->post_id, false );

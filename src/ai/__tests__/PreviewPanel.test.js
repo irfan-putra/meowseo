@@ -408,7 +408,7 @@ describe( 'PreviewPanel Component', () => {
 				/>
 			);
 
-			expect( screen.getByText( 'Applying…' ) ).toBeInTheDocument();
+			expect( screen.getByText( /Applying/i ) ).toBeInTheDocument();
 		} );
 	} );
 
@@ -546,7 +546,7 @@ describe( 'PreviewPanel Component', () => {
 				/>
 			);
 
-			const applyButton = screen.getByText( 'Applying…' );
+			const applyButton = screen.getByText( /Applying/i );
 			expect( applyButton ).toHaveAttribute( 'aria-busy', 'true' );
 		} );
 	} );

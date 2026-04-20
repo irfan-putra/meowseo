@@ -17,6 +17,7 @@ use MeowSEO\Modules\AI\AI_Module;
 use MeowSEO\Modules\AI\AI_Provider_Manager;
 use MeowSEO\Modules\AI\AI_Generator;
 use MeowSEO\Modules\AI\AI_REST;
+use MeowSEO\Modules\AI\AI_Optimizer;
 use MeowSEO\Modules\AI\Providers\Provider_Gemini;
 use MeowSEO\Options;
 use MeowSEO\Helpers\Logger;
@@ -81,7 +82,8 @@ class AIGenerationEndToEndTest extends TestCase {
 		// Initialize components
 		$this->provider_manager = new AI_Provider_Manager( $this->options );
 		$this->generator = new AI_Generator( $this->provider_manager, $this->options );
-		$this->rest = new AI_REST( $this->generator, $this->provider_manager );
+		$this->optimizer = new AI_Optimizer( $this->provider_manager, $this->options );
+		$this->rest = new AI_REST( $this->generator, $this->provider_manager, $this->optimizer );
 
 		// Create test post
 		$this->post_id = wp_insert_post( [

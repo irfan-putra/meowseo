@@ -42,6 +42,19 @@ if ( ! defined( 'MEOWSEO_URL' ) ) {
 	define( 'MEOWSEO_URL', 'http://example.com/wp-content/plugins/meowseo/' );
 }
 
+// Define WordPress time constants
+if ( ! defined( 'HOUR_IN_SECONDS' ) ) {
+	define( 'HOUR_IN_SECONDS', 3600 );
+}
+
+if ( ! defined( 'DAY_IN_SECONDS' ) ) {
+	define( 'DAY_IN_SECONDS', 86400 );
+}
+
+if ( ! defined( 'WEEK_IN_SECONDS' ) ) {
+	define( 'WEEK_IN_SECONDS', 604800 );
+}
+
 // Register custom autoloader for WordPress naming convention
 require_once MEOWSEO_PLUGIN_DIR . 'includes/class-autoloader.php';
 \MeowSEO\Autoloader::register();
@@ -87,6 +100,41 @@ if ( ! function_exists( 'wp_strip_all_tags' ) ) {
 if ( ! function_exists( 'strip_shortcodes' ) ) {
 	function strip_shortcodes( $content ) {
 		return preg_replace( '/\[.*?\]/', '', $content );
+	}
+}
+
+if ( ! function_exists( 'get_locale' ) ) {
+	function get_locale() {
+		return 'en_US';
+	}
+}
+
+if ( ! function_exists( 'wp_list_pluck' ) ) {
+	function wp_list_pluck( $list, $field, $index_key = null ) {
+		$newlist = array();
+		
+		if ( ! $index_key ) {
+			foreach ( $list as $value ) {
+				if ( is_object( $value ) ) {
+					$newlist[] = $value->$field ?? null;
+				} else {
+					$newlist[] = $value[ $field ] ?? null;
+				}
+			}
+			return $newlist;
+		}
+		
+		foreach ( $list as $value ) {
+			if ( is_object( $value ) ) {
+				$index = $value->$index_key ?? null;
+				$newlist[ $index ] = $value->$field ?? null;
+			} else {
+				$index = $value[ $index_key ] ?? null;
+				$newlist[ $index ] = $value[ $field ] ?? null;
+			}
+		}
+		
+		return $newlist;
 	}
 }
 
@@ -422,6 +470,7 @@ if ( ! isset( $wpdb ) ) {
 	$wpdb = new class {
 		public $posts = 'wp_posts';
 		public $postmeta = 'wp_postmeta';
+		public $options = 'wp_options';
 		public $prefix = 'wp_';
 		public $insert_id = 1;
 		public $last_error = '';
@@ -501,9 +550,16 @@ if ( ! isset( $wpdb ) ) {
 						$results = array_values( $wpdb_storage[ $table ] );
 					}
 					
-					// Apply LIMIT if present
-					if ( preg_match( '/LIMIT\s+(\d+)/i', $query, $limit_matches ) ) {
-						$results = array_slice( $results, 0, (int) $limit_matches[1] );
+					// Apply LIMIT and OFFSET if present
+					$offset = 0;
+					$limit = null;
+					
+					if ( preg_match( '/LIMIT\s+(\d+)(?:\s+OFFSET\s+(\d+))?/i', $query, $limit_matches ) ) {
+						$limit = (int) $limit_matches[1];
+						if ( isset( $limit_matches[2] ) ) {
+							$offset = (int) $limit_matches[2];
+						}
+						$results = array_slice( $results, $offset, $limit );
 					}
 					
 					return array_map( function( $row ) use ( $output ) {
@@ -652,12 +708,164 @@ if ( ! isset( $wpdb ) ) {
 		public function query( $query ) {
 			global $wpdb_storage;
 			
+			// Handle INSERT ... ON DUPLICATE KEY UPDATE queries
+			if ( preg_match( '/INSERT\s+INTO\s+(\w+)\s*\(([^)]+)\)\s*VALUES\s+(.+?)\s+ON\s+DUPLICATE\s+KEY\s+UPDATE\s+(.+?)$/is', $query, $matches ) ) {
+				$table = $matches[1];
+				$columns_str = $matches[2];
+				$values_section = $matches[3];
+				$update_clause = $matches[4];
+				
+				// Clean up column names (remove backticks and whitespace)
+				$columns = array_map( function( $col ) {
+					return trim( str_replace( '`', '', $col ) );
+				}, explode( ',', $columns_str ) );
+				
+				if ( ! isset( $wpdb_storage[ $table ] ) ) {
+					$wpdb_storage[ $table ] = array();
+				}
+				
+				// Simple approach: just extract the first complete value tuple
+				// Match: (value1, value2, ..., valueN)
+				if ( preg_match( '/^\s*\((.+?)\)(?:\s*,\s*\(|$)/s', $values_section, $tuple_match ) ) {
+					$values_str = $tuple_match[1];
+					
+					// Parse values using the simple regex approach
+					$values = array();
+					if ( preg_match_all( "/'([^']*)'|(\d+)/", $values_str, $value_matches, PREG_SET_ORDER ) ) {
+						foreach ( $value_matches as $match ) {
+							$values[] = isset( $match[1] ) && $match[1] !== '' ? $match[1] : $match[2];
+						}
+					}
+					
+					if ( count( $columns ) === count( $values ) ) {
+						$data = array_combine( $columns, $values );
+						
+						// Check for duplicate based on url_hash (unique key for 404 log)
+						$duplicate_id = null;
+						if ( isset( $data['url_hash'] ) ) {
+							foreach ( $wpdb_storage[ $table ] as $id => $row ) {
+								if ( isset( $row['url_hash'] ) && $row['url_hash'] === $data['url_hash'] ) {
+									$duplicate_id = $id;
+									break;
+								}
+							}
+						}
+						
+						if ( $duplicate_id !== null ) {
+							// Duplicate found - apply UPDATE clause
+							// Parse UPDATE clause: hit_count = hit_count + VALUES(hit_count), last_seen = VALUES(last_seen)
+							if ( preg_match_all( '/(\w+)\s*=\s*(\w+)\s*\+\s*VALUES\((\w+)\)|(\w+)\s*=\s*VALUES\((\w+)\)/i', $update_clause, $update_matches, PREG_SET_ORDER ) ) {
+								foreach ( $update_matches as $match ) {
+									if ( isset( $match[1] ) && $match[1] !== '' ) {
+										// Increment: hit_count = hit_count + VALUES(hit_count)
+										$field = $match[1];
+										$value_field = $match[3];
+										if ( isset( $data[ $value_field ] ) ) {
+											$wpdb_storage[ $table ][ $duplicate_id ][ $field ] = 
+												( $wpdb_storage[ $table ][ $duplicate_id ][ $field ] ?? 0 ) + $data[ $value_field ];
+										}
+									} elseif ( isset( $match[4] ) && $match[4] !== '' ) {
+										// Direct assignment: last_seen = VALUES(last_seen)
+										$field = $match[4];
+										$value_field = $match[5];
+										if ( isset( $data[ $value_field ] ) ) {
+											$wpdb_storage[ $table ][ $duplicate_id ][ $field ] = $data[ $value_field ];
+										}
+									}
+								}
+							}
+						} else {
+							// No duplicate - insert new row
+							if ( ! isset( $data['id'] ) ) {
+								$data['id'] = $this->insert_id++;
+							} else {
+								$this->insert_id = max( $this->insert_id, $data['id'] + 1 );
+							}
+							$wpdb_storage[ $table ][ $data['id'] ] = $data;
+						}
+					}
+				}
+				
+				return 1; // Return number of rows affected
+			}
+			
 			// Handle DELETE queries
 			if ( preg_match( '/DELETE\s+FROM\s+(\w+)/i', $query, $matches ) ) {
 				$table = $matches[1];
 				if ( isset( $wpdb_storage[ $table ] ) ) {
+					// Apply WHERE conditions if present
+					if ( preg_match( '/WHERE\s+(.+?)$/is', $query, $where_matches ) ) {
+						$deleted = 0;
+						foreach ( $wpdb_storage[ $table ] as $id => $row ) {
+							if ( $this->matches_where( $row, $where_matches[1] ) ) {
+								unset( $wpdb_storage[ $table ][ $id ] );
+								$deleted++;
+							}
+						}
+						return $deleted;
+					}
+					// Delete all if no WHERE clause
+					$count = count( $wpdb_storage[ $table ] );
 					$wpdb_storage[ $table ] = array();
-					return true;
+					return $count;
+				}
+			}
+			
+			// Handle UPDATE queries
+			if ( preg_match( '/UPDATE\s+(\w+)\s+SET\s+(.+?)(?:\s+WHERE\s+(.+?))?$/is', $query, $matches ) ) {
+				$table = $matches[1];
+				$set_clause = $matches[2];
+				$where_clause = isset( $matches[3] ) ? $matches[3] : '';
+				
+				if ( isset( $wpdb_storage[ $table ] ) ) {
+					$updated = 0;
+					
+					// Parse SET clause
+					$set_pairs = array();
+					if ( preg_match_all( "/(\w+)\s*=\s*(?:'([^']*)'|(\d+)|NOW\(\))/i", $set_clause, $set_matches, PREG_SET_ORDER ) ) {
+						foreach ( $set_matches as $match ) {
+							$field = $match[1];
+							if ( isset( $match[2] ) && $match[2] !== '' ) {
+								$set_pairs[ $field ] = $match[2];
+							} elseif ( isset( $match[3] ) ) {
+								$set_pairs[ $field ] = $match[3];
+							} elseif ( stripos( $match[0], 'NOW()' ) !== false ) {
+								$set_pairs[ $field ] = gmdate( 'Y-m-d H:i:s' );
+							}
+						}
+					}
+					
+					// Apply updates
+					foreach ( $wpdb_storage[ $table ] as $id => &$row ) {
+						if ( empty( $where_clause ) || $this->matches_where( $row, $where_clause ) ) {
+							foreach ( $set_pairs as $field => $value ) {
+								$row[ $field ] = $value;
+							}
+							$updated++;
+						}
+					}
+					
+					return $updated;
+				}
+			}
+			
+			// Handle INSERT queries
+			if ( preg_match( '/INSERT\s+INTO\s+(\w+)\s*\(([^)]+)\)\s*VALUES\s*\(([^)]+)\)/is', $query, $matches ) ) {
+				$table = $matches[1];
+				$columns = array_map( 'trim', explode( ',', $matches[2] ) );
+				$values_str = $matches[3];
+				
+				// Parse values (handle quoted strings and numbers)
+				$values = array();
+				if ( preg_match_all( "/'([^']*)'|(\d+)/", $values_str, $value_matches, PREG_SET_ORDER ) ) {
+					foreach ( $value_matches as $match ) {
+						$values[] = isset( $match[1] ) && $match[1] !== '' ? $match[1] : $match[2];
+					}
+				}
+				
+				if ( count( $columns ) === count( $values ) ) {
+					$data = array_combine( $columns, $values );
+					return $this->insert( $table, $data );
 				}
 			}
 			
@@ -991,6 +1199,12 @@ if ( ! function_exists( 'home_url' ) ) {
 	}
 }
 
+if ( ! function_exists( 'get_home_url' ) ) {
+	function get_home_url( $blog_id = null, $path = '', $scheme = null ) {
+		return 'http://example.com' . $path;
+	}
+}
+
 if ( ! function_exists( 'get_term_link' ) ) {
 	function get_term_link( $term, $taxonomy = '' ) {
 		return 'http://example.com/term/test/';
@@ -1108,6 +1322,9 @@ if ( ! function_exists( 'get_bloginfo' ) ) {
 	function get_bloginfo( $show = '' ) {
 		if ( $show === 'name' ) {
 			return 'Test Site';
+		}
+		if ( $show === 'version' ) {
+			return '6.4.2';
 		}
 		return '';
 	}
@@ -2507,5 +2724,202 @@ if ( ! function_exists( 'sanitize_title' ) ) {
 		}
 		
 		return $title;
+	}
+}
+
+// In-memory site options storage for testing (multisite)
+global $wp_site_options_storage;
+if ( ! isset( $wp_site_options_storage ) ) {
+	$wp_site_options_storage = array();
+}
+
+if ( ! function_exists( 'is_multisite' ) ) {
+	function is_multisite() {
+		return false;
+	}
+}
+
+if ( ! function_exists( 'get_site_option' ) ) {
+	function get_site_option( $option, $default = false ) {
+		global $wp_site_options_storage;
+		return $wp_site_options_storage[ $option ] ?? $default;
+	}
+}
+
+if ( ! function_exists( 'update_site_option' ) ) {
+	function update_site_option( $option, $value ) {
+		global $wp_site_options_storage;
+		$wp_site_options_storage[ $option ] = $value;
+		return true;
+	}
+}
+
+if ( ! function_exists( 'delete_site_option' ) ) {
+	function delete_site_option( $option ) {
+		global $wp_site_options_storage;
+		unset( $wp_site_options_storage[ $option ] );
+		return true;
+	}
+}
+
+if ( ! function_exists( 'get_current_blog_id' ) ) {
+	function get_current_blog_id() {
+		return 1;
+	}
+}
+
+if ( ! function_exists( 'plugin_basename' ) ) {
+	function plugin_basename( $file ) {
+		return 'meowseo/meowseo.php';
+	}
+}
+
+if ( ! function_exists( 'sanitize_email' ) ) {
+	function sanitize_email( $email ) {
+		return filter_var( $email, FILTER_SANITIZE_EMAIL );
+	}
+}
+
+if ( ! function_exists( 'wp_nonce_field' ) ) {
+	function wp_nonce_field( $action = -1, $name = '_wpnonce', $referer = true, $echo = true ) {
+		$nonce = wp_create_nonce( $action );
+		$field = '<input type="hidden" id="' . esc_attr( $name ) . '" name="' . esc_attr( $name ) . '" value="' . esc_attr( $nonce ) . '" />';
+		if ( $echo ) {
+			echo $field;
+		}
+		return $field;
+	}
+}
+
+if ( ! function_exists( 'wp_create_nonce' ) ) {
+	function wp_create_nonce( $action = -1 ) {
+		return 'test_nonce_' . $action;
+	}
+}
+
+if ( ! function_exists( 'wp_verify_nonce' ) ) {
+	function wp_verify_nonce( $nonce, $action = -1 ) {
+		return $nonce === 'test_nonce_' . $action ? 1 : false;
+	}
+}
+
+if ( ! function_exists( 'current_user_can' ) ) {
+	function current_user_can( $capability, ...$args ) {
+		return true;
+	}
+}
+
+if ( ! function_exists( 'wp_die' ) ) {
+	function wp_die( $message = '', $title = '', $args = array() ) {
+		throw new \Exception( $message );
+	}
+}
+
+if ( ! function_exists( 'add_settings_error' ) ) {
+	function add_settings_error( $setting, $code, $message, $type = 'error' ) {
+		// Mock function
+	}
+}
+
+if ( ! function_exists( 'settings_errors' ) ) {
+	function settings_errors( $setting = '', $sanitize = false, $hide_on_update = false ) {
+		// Mock function
+	}
+}
+
+if ( ! function_exists( 'submit_button' ) ) {
+	function submit_button( $text = null, $type = 'primary', $name = 'submit', $wrap = true, $other_attributes = null ) {
+		return '<button type="submit" name="' . esc_attr( $name ) . '" class="button button-' . esc_attr( $type ) . '">' . esc_html( $text ?? 'Save Changes' ) . '</button>';
+	}
+}
+
+if ( ! function_exists( 'checked' ) ) {
+	function checked( $checked, $current = true, $echo = true ) {
+		$result = '';
+		if ( $checked === $current ) {
+			$result = ' checked="checked"';
+		}
+		if ( $echo ) {
+			echo $result;
+		}
+		return $result;
+	}
+}
+
+if ( ! function_exists( 'add_menu_page' ) ) {
+	function add_menu_page( $page_title, $menu_title, $capability, $menu_slug, $function = '', $icon_url = '', $position = null ) {
+		// Mock function
+		return 'toplevel_page_' . $menu_slug;
+	}
+}
+
+if ( ! function_exists( 'add_submenu_page' ) ) {
+	function add_submenu_page( $parent_slug, $page_title, $menu_title, $capability, $menu_slug, $function = '' ) {
+		// Mock function
+		return $parent_slug . '_' . $menu_slug;
+	}
+}
+
+if ( ! function_exists( 'get_role' ) ) {
+	function get_role( $role ) {
+		// Mock function - return a simple role object
+		return (object) array(
+			'name' => $role,
+			'capabilities' => array(),
+		);
+	}
+}
+
+if ( ! function_exists( 'wp_parse_args' ) ) {
+	function wp_parse_args( $args, $defaults = array() ) {
+		if ( is_object( $args ) ) {
+			$r = get_object_vars( $args );
+		} elseif ( is_array( $args ) ) {
+			$r =& $args;
+		} else {
+			return $defaults;
+		}
+
+		if ( is_array( $defaults ) && $defaults ) {
+			return array_merge( $defaults, $r );
+		}
+		return $r;
+	}
+}
+
+if ( ! function_exists( 'has_blocks' ) ) {
+	function has_blocks( $post = null ) {
+		if ( is_string( $post ) ) {
+			return strpos( $post, '<!-- wp:' ) !== false;
+		}
+		
+		if ( is_object( $post ) && isset( $post->post_content ) ) {
+			return strpos( $post->post_content, '<!-- wp:' ) !== false;
+		}
+		
+		return false;
+	}
+}
+
+// Global test override for get_current_screen
+global $test_current_screen;
+$test_current_screen = null;
+
+if ( ! function_exists( 'get_current_screen' ) ) {
+	function get_current_screen() {
+		global $test_current_screen;
+		
+		// Allow tests to override the current screen
+		if ( $test_current_screen !== null ) {
+			return $test_current_screen;
+		}
+		
+		// Return a default screen object
+		return (object) array(
+			'id' => 'dashboard',
+			'base' => 'dashboard',
+			'post_type' => '',
+			'taxonomy' => '',
+		);
 	}
 }

@@ -149,9 +149,30 @@ class RankMath_Importer extends Base_Importer {
 
 		if ( empty( $mappings ) ) {
 			return array(
-				'processed' => 0,
-				'total'     => 0,
-				'errors'    => 0,
+				'imported' => 0,
+				'total'    => 0,
+				'errors'   => 0,
+			);
+		}
+
+		$imported = 0;
+		$errors   = 0;
+
+		// If specific post IDs provided, process them directly.
+		if ( ! empty( $post_ids ) ) {
+			foreach ( $post_ids as $post_id ) {
+				$result = $this->import_rankmath_post_meta_fields( $post_id, $mappings );
+				if ( $result ) {
+					$imported++;
+				} else {
+					$errors++;
+				}
+			}
+
+			return array(
+				'imported' => $imported,
+				'total'    => count( $post_ids ),
+				'errors'   => $errors,
 			);
 		}
 
@@ -161,16 +182,24 @@ class RankMath_Importer extends Base_Importer {
 			'post_status' => 'any',
 		);
 
-		if ( ! empty( $post_ids ) ) {
-			$args['post__in'] = $post_ids;
-		}
-
 		// Process posts in batches.
-		$callback = function ( $post_id ) use ( $mappings ) {
-			return $this->import_rankmath_post_meta_fields( $post_id, $mappings );
+		$callback = function ( $post_id ) use ( $mappings, &$imported, &$errors ) {
+			$result = $this->import_rankmath_post_meta_fields( $post_id, $mappings );
+			if ( $result ) {
+				$imported++;
+			} else {
+				$errors++;
+			}
+			return true;
 		};
 
-		return $this->processor->process_posts( $callback, $args );
+		$result = $this->processor->process_posts( $callback, $args );
+
+		return array(
+			'imported' => $imported,
+			'total'    => $result['total'] ?? 0,
+			'errors'   => $errors,
+		);
 	}
 
 	/**

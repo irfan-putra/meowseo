@@ -6,7 +6,7 @@
  *
  * Requirements: 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 2.10, 2.11
  *
- * @package MeowSEO
+ * @package
  * @since 2.0.0
  */
 
@@ -30,11 +30,11 @@ type CounterStatus = 'good' | 'warning' | 'error';
  * - 2.6, 2.7, 2.8: Title status (red >60, orange <50, green 50-60)
  * - 2.9, 2.10, 2.11: Description status (red >155, orange <120, green 120-155)
  *
- * @param count Current character count
+ * @param count      Current character count
  * @param optimalMin Minimum optimal length
  * @param optimalMax Maximum optimal length
- * @param maxLength Maximum allowed length
- * @returns Status indicator: 'good', 'warning', or 'error'
+ * @param maxLength  Maximum allowed length
+ * @return Status indicator: 'good', 'warning', or 'error'
  */
 const getStatus = (
 	count: number,
@@ -59,10 +59,10 @@ const getStatus = (
 /**
  * Get status message for accessibility
  *
- * @param status Current status
- * @param count Current character count
+ * @param status    Current status
+ * @param count     Current character count
  * @param maxLength Maximum length
- * @returns Accessible status message
+ * @return Accessible status message
  */
 const getStatusMessage = (
 	status: CounterStatus,

@@ -60,9 +60,8 @@ export function useContentSync() {
 						'directAnswer'
 					) || '';
 				const schemaType =
-					select( 'meowseo/data' )?.getMetaField?.(
-						'schemaType'
-					) || '';
+					select( 'meowseo/data' )?.getMetaField?.( 'schemaType' ) ||
+					'';
 
 				// Compute analysis using new analysis engine
 				const analysis = analyzeContent( {

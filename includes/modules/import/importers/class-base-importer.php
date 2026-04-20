@@ -139,28 +139,44 @@ abstract class Base_Importer {
 			);
 		}
 
-		// Build query args.
+		$imported = 0;
+		$errors   = 0;
+
+		// If specific post IDs provided, process them directly
+		if ( ! empty( $post_ids ) ) {
+			foreach ( $post_ids as $post_id ) {
+				$result = $this->import_post_meta_fields( $post_id, $mappings );
+				$imported += $result['imported'];
+				$errors += $result['errors'];
+			}
+
+			return array(
+				'imported' => $imported,
+				'total'    => count( $post_ids ),
+				'errors'   => $errors,
+			);
+		}
+
+		// Build query args for all posts
 		$args = array(
 			'post_type'   => 'any',
 			'post_status' => 'any',
 		);
 
-		if ( ! empty( $post_ids ) ) {
-			$args['post__in'] = $post_ids;
-		}
-
 		// Process posts in batches.
-		$callback = function ( $post_id ) use ( $mappings ) {
-			return $this->import_post_meta_fields( $post_id, $mappings );
+		$callback = function ( $post_id ) use ( $mappings, &$imported, &$errors ) {
+			$result = $this->import_post_meta_fields( $post_id, $mappings );
+			$imported += $result['imported'];
+			$errors += $result['errors'];
+			return true;
 		};
 
 		$result = $this->processor->process_posts( $callback, $args );
 
-		// Transform 'processed' to 'imported' for consistency with test expectations
 		return array(
-			'imported' => $result['processed'] ?? 0,
+			'imported' => $imported,
 			'total'    => $result['total'] ?? 0,
-			'errors'   => $result['errors'] ?? 0,
+			'errors'   => $errors,
 		);
 	}
 
@@ -189,28 +205,44 @@ abstract class Base_Importer {
 			);
 		}
 
-		// Build query args.
+		$imported = 0;
+		$errors   = 0;
+
+		// If specific term IDs provided, process them directly
+		if ( ! empty( $term_ids ) ) {
+			foreach ( $term_ids as $term_id ) {
+				$result = $this->import_term_meta_fields( $term_id, $mappings );
+				$imported += $result['imported'];
+				$errors += $result['errors'];
+			}
+
+			return array(
+				'imported' => $imported,
+				'total'    => count( $term_ids ),
+				'errors'   => $errors,
+			);
+		}
+
+		// Build query args for all terms
 		$args = array(
 			'taxonomy'   => \get_taxonomies( array( 'public' => true ) ),
 			'hide_empty' => false,
 		);
 
-		if ( ! empty( $term_ids ) ) {
-			$args['include'] = $term_ids;
-		}
-
 		// Process terms in batches.
-		$callback = function ( $term_id ) use ( $mappings ) {
-			return $this->import_term_meta_fields( $term_id, $mappings );
+		$callback = function ( $term_id ) use ( $mappings, &$imported, &$errors ) {
+			$result = $this->import_term_meta_fields( $term_id, $mappings );
+			$imported += $result['imported'];
+			$errors += $result['errors'];
+			return true;
 		};
 
 		$result = $this->processor->process_terms( $callback, $args );
 
-		// Transform 'processed' to 'imported' for consistency with test expectations
 		return array(
-			'imported' => $result['processed'] ?? 0,
+			'imported' => $imported,
 			'total'    => $result['total'] ?? 0,
-			'errors'   => $result['errors'] ?? 0,
+			'errors'   => $errors,
 		);
 	}
 
@@ -269,10 +301,11 @@ abstract class Base_Importer {
 	 *
 	 * @param int   $post_id  Post ID.
 	 * @param array $mappings Postmeta mappings.
-	 * @return bool True on success, false on failure.
+	 * @return array Result with 'imported' and 'errors' counts.
 	 */
-	protected function import_post_meta_fields( int $post_id, array $mappings ): bool {
-		$success = true;
+	protected function import_post_meta_fields( int $post_id, array $mappings ): array {
+		$imported = 0;
+		$errors   = 0;
 
 		foreach ( $mappings as $source_key => $meowseo_key ) {
 			$value = \get_post_meta( $post_id, $source_key, true );
@@ -284,14 +317,18 @@ abstract class Base_Importer {
 			$transformed = $this->validate_and_transform( $meowseo_key, $value );
 
 			if ( false === $transformed ) {
-				$success = false;
+				$errors++;
 				continue;
 			}
 
 			\update_post_meta( $post_id, $meowseo_key, $transformed );
+			$imported++;
 		}
 
-		return $success;
+		return array(
+			'imported' => $imported,
+			'errors'   => $errors,
+		);
 	}
 
 	/**
@@ -299,10 +336,11 @@ abstract class Base_Importer {
 	 *
 	 * @param int   $term_id  Term ID.
 	 * @param array $mappings Termmeta mappings.
-	 * @return bool True on success, false on failure.
+	 * @return array Result with 'imported' and 'errors' counts.
 	 */
-	protected function import_term_meta_fields( int $term_id, array $mappings ): bool {
-		$success = true;
+	protected function import_term_meta_fields( int $term_id, array $mappings ): array {
+		$imported = 0;
+		$errors   = 0;
 
 		foreach ( $mappings as $source_key => $meowseo_key ) {
 			$value = \get_term_meta( $term_id, $source_key, true );
@@ -314,14 +352,18 @@ abstract class Base_Importer {
 			$transformed = $this->validate_and_transform( $meowseo_key, $value );
 
 			if ( false === $transformed ) {
-				$success = false;
+				$errors++;
 				continue;
 			}
 
 			\update_term_meta( $term_id, $meowseo_key, $transformed );
+			$imported++;
 		}
 
-		return $success;
+		return array(
+			'imported' => $imported,
+			'errors'   => $errors,
+		);
 	}
 
 	/**

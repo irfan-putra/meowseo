@@ -142,7 +142,7 @@ class Sitemap implements Module {
 
 		// News sitemap (Requirement 3.1, 3.5)
 		add_rewrite_rule(
-			'^news-sitemap\.xml$',
+			'^sitemap-news\.xml$',
 			'index.php?meowseo_sitemap=news',
 			'top'
 		);

@@ -17,7 +17,7 @@
  * It provides a React-compatible interface while maintaining the existing
  * vanilla JavaScript functionality for backward compatibility.
  *
- * @returns {void}
+ * @return {void}
  */
 export function DashboardApp() {
 	// Initialize dashboard widgets on DOM ready

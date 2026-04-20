@@ -360,7 +360,7 @@ class Property30NestedSanitizationTest extends TestCase {
 	 */
 	public function test_arrays_of_sensitive_data(): void {
 		$this->forAll(
-			Generators::integers( 1, 5 )
+			Generators::int( 1, 5 )
 		)
 		->then(
 			function ( int $num_items ) {

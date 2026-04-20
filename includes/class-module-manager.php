@@ -52,6 +52,15 @@ class Module_Manager {
 		'import'        => 'Modules\Import\Import',
 		'image_seo'     => 'Modules\Image_SEO\Image_SEO',
 		'indexnow'      => 'Modules\IndexNow\IndexNow',
+		'roles'         => 'Modules\Roles\Role_Manager',
+		'multilingual'  => 'Modules\Multilingual\Multilingual_Module',
+		'multisite'     => 'Modules\Multisite\Multisite_Module',
+		'locations'     => 'Modules\Locations\Locations_Module',
+		'bulk'          => 'Modules\Bulk\Bulk_Editor',
+		'analytics'     => 'Modules\Analytics\Analytics_Module',
+		'admin-bar'     => 'Modules\Admin_Bar\Admin_Bar_Module',
+		'orphaned'      => 'Modules\Orphaned\Orphaned_Module',
+		'synonyms'      => 'Modules\Synonyms\Synonym_Module',
 	);
 
 	/**

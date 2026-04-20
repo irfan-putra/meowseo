@@ -1,0 +1,27 @@
+{
+	"apiVersion": 3,
+	"name": "meowseo/siblings",
+	"title": "Sibling Posts",
+	"category": "meowseo",
+	"icon": "networking",
+	"description": "Display posts with the same parent page",
+	"keywords": [ "siblings", "posts", "seo" ],
+	"textdomain": "meowseo",
+	"attributes": {
+		"showThumbnails": {
+			"type": "boolean",
+			"default": true
+		},
+		"orderBy": {
+			"type": "string",
+			"default": "menu_order",
+			"enum": [ "menu_order", "title", "date" ]
+		}
+	},
+	"supports": {
+		"html": false,
+		"align": [ "full", "wide" ]
+	},
+	"editorScript": "file:./index.ts",
+	"style": "file:../blocks.css"
+}

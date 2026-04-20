@@ -1,0 +1,40 @@
+{
+	"apiVersion": 3,
+	"name": "meowseo/related-posts",
+	"title": "Related Posts",
+	"category": "meowseo",
+	"icon": "link",
+	"description": "Display posts related by keyword, category, or tag",
+	"keywords": [ "related", "posts", "seo" ],
+	"textdomain": "meowseo",
+	"attributes": {
+		"numberOfPosts": {
+			"type": "number",
+			"default": 3
+		},
+		"displayStyle": {
+			"type": "string",
+			"default": "list",
+			"enum": [ "list", "grid" ]
+		},
+		"showExcerpt": {
+			"type": "boolean",
+			"default": true
+		},
+		"showThumbnail": {
+			"type": "boolean",
+			"default": true
+		},
+		"relationshipType": {
+			"type": "string",
+			"default": "keyword",
+			"enum": [ "keyword", "category", "tag" ]
+		}
+	},
+	"supports": {
+		"html": false,
+		"align": [ "full", "wide" ]
+	},
+	"editorScript": "file:./index.ts",
+	"style": "file:../blocks.css"
+}

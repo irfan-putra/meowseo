@@ -37,6 +37,11 @@ class Property11SitemapCacheStorageTest extends TestCase {
 	protected function setUp(): void {
 		parent::setUp();
 
+		// Skip if WordPress functions are already defined (can't mock with Patchwork).
+		if ( function_exists( 'wp_upload_dir' ) ) {
+			$this->markTestSkipped( 'WordPress functions already defined. These tests require Brain\Monkey mocking which cannot override existing functions.' );
+		}
+
 		// Mock WordPress functions
 		Functions\when( 'wp_upload_dir' )->justReturn( [
 			'basedir' => sys_get_temp_dir() . '/meowseo-test-uploads',
