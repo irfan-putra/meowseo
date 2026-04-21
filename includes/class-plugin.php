@@ -125,6 +125,11 @@ class Plugin {
 				try {
 					$this->admin = new Admin( $this->options, $this->module_manager );
 					$this->admin->boot();
+
+					// Initialize GitHub Update System (only if user can update plugins).
+					if ( current_user_can( 'update_plugins' ) ) {
+						add_action( 'admin_init', array( $this, 'initialize_updater' ) );
+					}
 				} catch ( \Exception $e ) {
 					// Log admin initialization error but don't break the plugin.
 					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
@@ -135,6 +140,44 @@ class Plugin {
 		} catch ( \Exception $e ) {
 			// Re-throw critical errors for handling at the entry point.
 			throw $e;
+		}
+	}
+
+	/**
+	 * Initialize the GitHub update system
+	 *
+	 * Sets up the GitHub auto-update checker and settings page.
+	 * This is called on the admin_init hook to ensure all dependencies are loaded.
+	 *
+	 * @return void
+	 */
+	public function initialize_updater(): void {
+		// Only initialize if user has update_plugins capability.
+		if ( ! current_user_can( 'update_plugins' ) ) {
+			return;
+		}
+
+		try {
+			// Create configuration instance.
+			$config = new \MeowSEO\Updater\Update_Config();
+
+			// Create logger instance.
+			$logger = new \MeowSEO\Updater\Update_Logger();
+
+			// Create update checker instance.
+			$checker = new \MeowSEO\Updater\GitHub_Update_Checker( MEOWSEO_FILE, $config, $logger );
+
+			// Initialize the checker (register hooks).
+			$checker->init();
+
+			// Create and register settings page.
+			$settings_page = new \MeowSEO\Updater\Update_Settings_Page( $config, $checker, $logger );
+			$settings_page->register();
+		} catch ( \Exception $e ) {
+			// Log updater initialization error but don't break the plugin.
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( 'MeowSEO: Failed to initialize GitHub updater: ' . $e->getMessage() );
+			}
 		}
 	}
 

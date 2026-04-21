@@ -68,6 +68,16 @@ if ( ! defined( 'MEOWSEO_URL' ) ) {
 	define( 'MEOWSEO_URL', 'http://example.com/wp-content/plugins/meowseo/' );
 }
 
+// Define MEOWSEO_FILE constant
+if ( ! defined( 'MEOWSEO_FILE' ) ) {
+	define( 'MEOWSEO_FILE', __DIR__ . '/../meowseo.php' );
+}
+
+// Define MEOWSEO_VERSION constant
+if ( ! defined( 'MEOWSEO_VERSION' ) ) {
+	define( 'MEOWSEO_VERSION', '1.0.0' );
+}
+
 // Define WordPress time constants
 if ( ! defined( 'HOUR_IN_SECONDS' ) ) {
 	define( 'HOUR_IN_SECONDS', 3600 );
@@ -325,21 +335,47 @@ if ( ! function_exists( 'wp_cache_flush' ) ) {
 	}
 }
 
+// In-memory transient storage for testing
+global $wp_transient_storage;
+if ( ! isset( $wp_transient_storage ) ) {
+	$wp_transient_storage = array();
+}
+
 if ( ! function_exists( 'get_transient' ) ) {
 	function get_transient( $transient ) {
-		return false;
+		global $wp_transient_storage;
+		if ( ! isset( $wp_transient_storage[ $transient ] ) ) {
+			return false;
+		}
+		$data = $wp_transient_storage[ $transient ];
+		// Check if expired
+		if ( $data['expiration'] > 0 && $data['expiration'] < time() ) {
+			unset( $wp_transient_storage[ $transient ] );
+			return false;
+		}
+		return $data['value'];
 	}
 }
 
 if ( ! function_exists( 'set_transient' ) ) {
 	function set_transient( $transient, $value, $expiration = 0 ) {
+		global $wp_transient_storage;
+		$wp_transient_storage[ $transient ] = array(
+			'value' => $value,
+			'expiration' => $expiration > 0 ? time() + $expiration : 0,
+		);
 		return true;
 	}
 }
 
 if ( ! function_exists( 'delete_transient' ) ) {
 	function delete_transient( $transient ) {
-		return true;
+		global $wp_transient_storage;
+		if ( isset( $wp_transient_storage[ $transient ] ) ) {
+			unset( $wp_transient_storage[ $transient ] );
+			return true;
+		}
+		return false;
 	}
 }
 
@@ -1516,7 +1552,8 @@ if ( ! function_exists( 'current_user_can' ) ) {
 			return $test_current_user_can_override;
 		}
 		
-		return true;
+		// Return false by default (no capabilities)
+		return false;
 	}
 }
 
@@ -1601,7 +1638,8 @@ if ( ! function_exists( 'wp_verify_nonce' ) ) {
 			return $test_wp_verify_nonce_override;
 		}
 		
-		return true;
+		// Check if nonce matches the expected format
+		return $nonce === 'test_nonce_' . $action ? 1 : false;
 	}
 }
 
@@ -2389,11 +2427,18 @@ if ( ! function_exists( 'wp_remote_post' ) ) {
 
 if ( ! function_exists( 'wp_remote_get' ) ) {
 	function wp_remote_get( $url, $args = array() ) {
+		// Check if there's a pre_http_request filter
+		$preempt = apply_filters( 'pre_http_request', false, $args, $url );
+		if ( false !== $preempt ) {
+			return $preempt;
+		}
+		
 		// Mock function - return a mock response
 		return array(
 			'response' => array(
 				'code' => 200,
 			),
+			'headers'  => array(),
 			'body' => '{}',
 		);
 	}
@@ -2429,6 +2474,15 @@ if ( ! function_exists( 'wp_remote_retrieve_body' ) ) {
 	}
 }
 
+if ( ! function_exists( 'wp_remote_retrieve_headers' ) ) {
+	function wp_remote_retrieve_headers( $response ) {
+		if ( is_wp_error( $response ) ) {
+			return array();
+		}
+		return isset( $response['headers'] ) ? $response['headers'] : array();
+	}
+}
+
 if ( ! function_exists( 'wp_enqueue_script' ) ) {
 	function wp_enqueue_script( $handle, $src = '', $deps = array(), $ver = false, $in_footer = false ) {
 		// Mock function
@@ -2453,7 +2507,7 @@ if ( ! function_exists( 'wp_localize_script' ) ) {
 if ( ! function_exists( 'wp_create_nonce' ) ) {
 	function wp_create_nonce( $action = -1 ) {
 		// Mock function - return a test nonce
-		return 'test_nonce_' . md5( $action );
+		return 'test_nonce_' . $action;
 	}
 }
 
@@ -2878,7 +2932,46 @@ if ( ! function_exists( 'get_current_blog_id' ) ) {
 
 if ( ! function_exists( 'plugin_basename' ) ) {
 	function plugin_basename( $file ) {
-		return 'meowseo/meowseo.php';
+		// Normalize path separators.
+		$file = str_replace( '\\', '/', $file );
+		
+		// Try to extract from a generic path pattern.
+		// Look for /plugins/ in the path.
+		if ( preg_match( '#/plugins/(.+)$#', $file, $matches ) ) {
+			return $matches[1];
+		}
+		
+		// Fallback: return just the filename.
+		return basename( $file );
+	}
+}
+
+if ( ! function_exists( 'get_plugin_data' ) ) {
+	function get_plugin_data( $plugin_file, $markup = true, $translate = true ) {
+		// Mock function for testing - read actual plugin data from file
+		$plugin_data = array(
+			'Name'        => 'MeowSEO',
+			'PluginURI'   => 'https://example.com',
+			'Version'     => '1.0.0',
+			'Description' => 'Test plugin',
+			'Author'      => 'Test Author',
+			'AuthorURI'   => 'https://example.com',
+			'TextDomain'  => 'meowseo',
+			'DomainPath'  => '/languages',
+			'Network'     => false,
+			'Title'       => 'MeowSEO',
+			'AuthorName'  => 'Test Author',
+		);
+
+		// Try to read actual version from plugin file header.
+		if ( file_exists( $plugin_file ) ) {
+			$file_contents = file_get_contents( $plugin_file, false, null, 0, 2000 );
+			if ( preg_match( '/Version:\s*(.+?)$/m', $file_contents, $matches ) ) {
+				$plugin_data['Version'] = trim( $matches[1] );
+			}
+		}
+
+		return $plugin_data;
 	}
 }
 
@@ -2896,24 +2989,6 @@ if ( ! function_exists( 'wp_nonce_field' ) ) {
 			echo $field;
 		}
 		return $field;
-	}
-}
-
-if ( ! function_exists( 'wp_create_nonce' ) ) {
-	function wp_create_nonce( $action = -1 ) {
-		return 'test_nonce_' . $action;
-	}
-}
-
-if ( ! function_exists( 'wp_verify_nonce' ) ) {
-	function wp_verify_nonce( $nonce, $action = -1 ) {
-		return $nonce === 'test_nonce_' . $action ? 1 : false;
-	}
-}
-
-if ( ! function_exists( 'current_user_can' ) ) {
-	function current_user_can( $capability, ...$args ) {
-		return true;
 	}
 }
 
