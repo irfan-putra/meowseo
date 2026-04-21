@@ -65,7 +65,7 @@ class AI_Settings {
 	 */
 	public function register_settings(): void {
 		// Provider API keys (encrypted).
-		$providers = [ 'gemini', 'openai', 'anthropic', 'imagen', 'dalle' ];
+		$providers = [ 'gemini', 'openai', 'anthropic', 'imagen', 'dalle', 'deepseek', 'glm', 'qwen' ];
 		foreach ( $providers as $provider ) {
 			register_setting(
 				'meowseo_ai_settings',
@@ -237,7 +237,7 @@ class AI_Settings {
 	 */
 	public function sanitize_provider_order( $value ) {
 		// Valid provider slugs.
-		$valid_slugs = [ 'gemini', 'openai', 'anthropic', 'imagen', 'dalle' ];
+		$valid_slugs = [ 'gemini', 'openai', 'anthropic', 'imagen', 'dalle', 'deepseek', 'glm', 'qwen' ];
 
 		// If not an array, return empty array.
 		if ( ! is_array( $value ) ) {
@@ -277,7 +277,7 @@ class AI_Settings {
 	 */
 	public function sanitize_active_providers( $value ) {
 		// Valid provider slugs.
-		$valid_slugs = [ 'gemini', 'openai', 'anthropic', 'imagen', 'dalle' ];
+		$valid_slugs = [ 'gemini', 'openai', 'anthropic', 'imagen', 'dalle', 'deepseek', 'glm', 'qwen' ];
 
 		// If not an array, return empty array.
 		if ( ! is_array( $value ) ) {
@@ -503,19 +503,94 @@ class AI_Settings {
 	 *
 	 * Displays provider list with drag-and-drop support, API key inputs,
 	 * active/inactive toggles, test connection buttons, and capability indicators.
-	 * Requirements: 2.1, 2.2, 2.8, 2.9, 2.10
+	 * Requirements: 2.1, 2.2, 2.8, 2.9, 2.10, 6.7-6.9
 	 *
 	 * @return void
 	 */
 	private function render_provider_configuration_section(): void {
-		$provider_order = $this->options->get( 'ai_provider_order', array( 'gemini', 'openai', 'anthropic', 'imagen', 'dalle' ) );
+		$provider_order = $this->options->get( 'ai_provider_order', array( 'gemini', 'openai', 'anthropic', 'imagen', 'dalle', 'deepseek', 'glm', 'qwen' ) );
 		$active_providers = $this->options->get( 'ai_active_providers', array() );
 		$providers = array(
-			'gemini'    => array( 'label' => __( 'Google Gemini', 'meowseo' ), 'supports_text' => true, 'supports_image' => false ),
-			'openai'    => array( 'label' => __( 'OpenAI', 'meowseo' ), 'supports_text' => true, 'supports_image' => true ),
-			'anthropic' => array( 'label' => __( 'Anthropic Claude', 'meowseo' ), 'supports_text' => true, 'supports_image' => false ),
-			'imagen'    => array( 'label' => __( 'Google Imagen', 'meowseo' ), 'supports_text' => false, 'supports_image' => true ),
-			'dalle'     => array( 'label' => __( 'DALL-E', 'meowseo' ), 'supports_text' => false, 'supports_image' => true ),
+			'gemini'    => array(
+				'label'           => __( 'Google Gemini', 'meowseo' ),
+				'supports_text'   => true,
+				'supports_image'  => true,
+				'model'           => 'Gemini 2.0 Flash / Nano Banana 2',
+				'context_window'  => '1M tokens',
+				'pricing'         => __( 'Text: $0.10/$0.40 per 1M tokens | Image: $0.045-$0.150 per image', 'meowseo' ),
+				'api_key_url'     => 'https://aistudio.google.com/app/apikey',
+				'regional_note'   => '',
+			),
+			'openai'    => array(
+				'label'           => __( 'OpenAI', 'meowseo' ),
+				'supports_text'   => true,
+				'supports_image'  => true,
+				'model'           => 'GPT-4o-mini / DALL-E-3',
+				'context_window'  => '128K tokens',
+				'pricing'         => __( 'Text: $0.15/$0.60 per 1M tokens | Image: $0.040 per image', 'meowseo' ),
+				'api_key_url'     => 'https://platform.openai.com/api-keys',
+				'regional_note'   => '',
+			),
+			'anthropic' => array(
+				'label'           => __( 'Anthropic Claude', 'meowseo' ),
+				'supports_text'   => true,
+				'supports_image'  => false,
+				'model'           => 'Claude Haiku',
+				'context_window'  => '200K tokens',
+				'pricing'         => __( 'Text: $0.25/$1.25 per 1M tokens', 'meowseo' ),
+				'api_key_url'     => 'https://console.anthropic.com/settings/keys',
+				'regional_note'   => '',
+			),
+			'imagen'    => array(
+				'label'           => __( 'Google Imagen', 'meowseo' ),
+				'supports_text'   => false,
+				'supports_image'  => true,
+				'model'           => 'Imagen 3',
+				'context_window'  => 'N/A',
+				'pricing'         => __( 'Image: $0.020 per image', 'meowseo' ),
+				'api_key_url'     => 'https://aistudio.google.com/app/apikey',
+				'regional_note'   => '',
+			),
+			'dalle'     => array(
+				'label'           => __( 'DALL-E', 'meowseo' ),
+				'supports_text'   => false,
+				'supports_image'  => true,
+				'model'           => 'DALL-E-3',
+				'context_window'  => 'N/A',
+				'pricing'         => __( 'Image: $0.040 per image', 'meowseo' ),
+				'api_key_url'     => 'https://platform.openai.com/api-keys',
+				'regional_note'   => '',
+			),
+			'deepseek'  => array(
+				'label'           => __( 'DeepSeek', 'meowseo' ),
+				'supports_text'   => true,
+				'supports_image'  => true,
+				'model'           => 'DeepSeek-V3.2 / Janus-Pro-7B',
+				'context_window'  => '128K tokens',
+				'pricing'         => __( 'Text: $0.07/$0.28 per 1M tokens | Image: Varies', 'meowseo' ),
+				'api_key_url'     => 'https://platform.deepseek.com/api_keys',
+				'regional_note'   => __( 'Excellent for cost optimization (94-97% cost reduction vs major providers)', 'meowseo' ),
+			),
+			'glm'       => array(
+				'label'           => __( 'Zhipu AI GLM', 'meowseo' ),
+				'supports_text'   => true,
+				'supports_image'  => true,
+				'model'           => 'GLM-4.7-flash / GLM-Image (16B)',
+				'context_window'  => '128K tokens',
+				'pricing'         => __( 'Text: $0.014/$0.014 per 1M tokens | Image: ~$0.02 per image | Free tier available', 'meowseo' ),
+				'api_key_url'     => 'https://open.bigmodel.cn/usercenter/apikeys',
+				'regional_note'   => __( 'Best for Chinese language content. Excellent text rendering in images.', 'meowseo' ),
+			),
+			'qwen'      => array(
+				'label'           => __( 'Alibaba Qwen', 'meowseo' ),
+				'supports_text'   => true,
+				'supports_image'  => true,
+				'model'           => 'Qwen-Plus / Qwen-Image (20B)',
+				'context_window'  => '128K tokens',
+				'pricing'         => __( 'Text: $0.40/$2.00 per 1M tokens | Image: ~$0.03 per image', 'meowseo' ),
+				'api_key_url'     => 'https://dashscope.console.aliyun.com/apiKey',
+				'regional_note'   => __( 'Strong multilingual support. Better accessibility in China region.', 'meowseo' ),
+			),
 		);
 		?>
 		<div class="meowseo-ai-section">
@@ -542,6 +617,33 @@ class AI_Settings {
 							</div>
 
 							<div class="meowseo-provider-config">
+								<!-- Provider Information -->
+								<div class="meowseo-provider-info">
+									<div class="meowseo-provider-info-row">
+										<strong><?php esc_html_e( 'Model:', 'meowseo' ); ?></strong>
+										<span><?php echo esc_html( $provider['model'] ); ?></span>
+										<span class="meowseo-provider-info-separator">|</span>
+										<strong><?php esc_html_e( 'Context:', 'meowseo' ); ?></strong>
+										<span><?php echo esc_html( $provider['context_window'] ); ?></span>
+									</div>
+									<div class="meowseo-provider-info-row">
+										<strong><?php esc_html_e( 'Pricing:', 'meowseo' ); ?></strong>
+										<span><?php echo esc_html( $provider['pricing'] ); ?></span>
+									</div>
+									<?php if ( ! empty( $provider['regional_note'] ) ) : ?>
+										<div class="meowseo-provider-info-row meowseo-provider-regional-note">
+											<span class="dashicons dashicons-info"></span>
+											<span><?php echo esc_html( $provider['regional_note'] ); ?></span>
+										</div>
+									<?php endif; ?>
+									<div class="meowseo-provider-info-row">
+										<a href="<?php echo esc_url( $provider['api_key_url'] ); ?>" target="_blank" rel="noopener noreferrer" class="meowseo-api-key-link">
+											<?php esc_html_e( 'Get API Key', 'meowseo' ); ?>
+											<span class="dashicons dashicons-external"></span>
+										</a>
+									</div>
+								</div>
+
 								<div class="meowseo-provider-row">
 									<label for="ai_api_key_<?php echo esc_attr( $provider_slug ); ?>">
 										<?php esc_html_e( 'API Key', 'meowseo' ); ?>

@@ -115,7 +115,7 @@ class ProviderManagerTest extends TestCase {
 
 		$statuses = $manager->get_provider_statuses();
 
-		$expected_slugs = [ 'gemini', 'openai', 'anthropic', 'imagen', 'dalle' ];
+		$expected_slugs = [ 'gemini', 'openai', 'anthropic', 'imagen', 'dalle', 'deepseek', 'glm', 'qwen' ];
 
 		foreach ( $expected_slugs as $slug ) {
 			$this->assertArrayHasKey(
@@ -185,7 +185,7 @@ class ProviderManagerTest extends TestCase {
 
 		$statuses = $manager->get_provider_statuses();
 
-		$text_providers = [ 'gemini', 'openai', 'anthropic' ];
+		$text_providers = [ 'gemini', 'openai', 'anthropic', 'deepseek', 'glm', 'qwen' ];
 
 		foreach ( $text_providers as $slug ) {
 			$this->assertTrue(
@@ -208,7 +208,7 @@ class ProviderManagerTest extends TestCase {
 
 		$statuses = $manager->get_provider_statuses();
 
-		$image_providers = [ 'imagen', 'dalle', 'openai' ];
+		$image_providers = [ 'gemini', 'imagen', 'dalle', 'openai', 'deepseek', 'glm', 'qwen' ];
 
 		foreach ( $image_providers as $slug ) {
 			$this->assertTrue(
@@ -401,6 +401,9 @@ class ProviderManagerTest extends TestCase {
 			'anthropic' => 'Anthropic Claude',
 			'imagen'    => 'Google Imagen',
 			'dalle'     => 'OpenAI DALL-E',
+			'deepseek'  => 'DeepSeek',
+			'glm'       => 'Zhipu AI GLM',
+			'qwen'      => 'Alibaba Qwen',
 		];
 
 		foreach ( $expected_labels as $slug => $label ) {

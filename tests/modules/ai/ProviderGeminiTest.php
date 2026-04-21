@@ -115,16 +115,16 @@ class ProviderGeminiTest extends TestCase {
 	}
 
 	/**
-	 * Test that supports_image returns false.
+	 * Test that supports_image returns true.
 	 *
 	 * @return void
 	 */
-	public function test_supports_image_returns_false(): void {
+	public function test_supports_image_returns_true(): void {
 		$provider = new Provider_Gemini( 'test-api-key' );
 
-		$this->assertFalse(
+		$this->assertTrue(
 			$provider->supports_image(),
-			'supports_image should return false for Gemini'
+			'supports_image should return true for Gemini'
 		);
 	}
 

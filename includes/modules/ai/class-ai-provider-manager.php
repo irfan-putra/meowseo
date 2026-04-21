@@ -18,6 +18,9 @@ use MeowSEO\Modules\AI\Providers\Provider_OpenAI;
 use MeowSEO\Modules\AI\Providers\Provider_Anthropic;
 use MeowSEO\Modules\AI\Providers\Provider_Imagen;
 use MeowSEO\Modules\AI\Providers\Provider_Dalle;
+use MeowSEO\Modules\AI\Providers\Provider_DeepSeek;
+use MeowSEO\Modules\AI\Providers\Provider_GLM;
+use MeowSEO\Modules\AI\Providers\Provider_Qwen;
 use MeowSEO\Options;
 use MeowSEO\Helpers\Logger;
 use WP_Error;
@@ -151,6 +154,9 @@ class AI_Provider_Manager {
 			'anthropic' => Provider_Anthropic::class,
 			'imagen'    => Provider_Imagen::class,
 			'dalle'     => Provider_Dalle::class,
+			'deepseek'  => Provider_DeepSeek::class,
+			'glm'       => Provider_GLM::class,
+			'qwen'      => Provider_Qwen::class,
 		];
 
 		foreach ( $provider_classes as $slug => $class ) {
@@ -410,7 +416,7 @@ class AI_Provider_Manager {
 
 		return new WP_Error(
 			'all_image_providers_failed',
-			__( 'All image providers failed.', 'meowseo' ),
+			__( 'All image providers failed. Please check your API keys and try again.', 'meowseo' ),
 			[ 'errors' => $this->errors ]
 		);
 	}
@@ -661,7 +667,7 @@ class AI_Provider_Manager {
 		}
 
 		// Add providers without API keys.
-		$all_slugs = [ 'gemini', 'openai', 'anthropic', 'imagen', 'dalle' ];
+		$all_slugs = [ 'gemini', 'openai', 'anthropic', 'imagen', 'dalle', 'deepseek', 'glm', 'qwen' ];
 
 		foreach ( $all_slugs as $slug ) {
 			if ( isset( $statuses[ $slug ] ) ) {
@@ -675,8 +681,8 @@ class AI_Provider_Manager {
 				'label'               => $this->get_provider_label( $slug ),
 				'active'              => in_array( $slug, $active, true ),
 				'has_api_key'         => false,
-				'supports_text'       => in_array( $slug, [ 'gemini', 'openai', 'anthropic' ], true ),
-				'supports_image'      => in_array( $slug, [ 'imagen', 'dalle', 'openai' ], true ),
+				'supports_text'       => in_array( $slug, [ 'gemini', 'openai', 'anthropic', 'deepseek', 'glm', 'qwen' ], true ),
+				'supports_image'      => in_array( $slug, [ 'gemini', 'imagen', 'dalle', 'openai', 'deepseek', 'glm', 'qwen' ], true ),
 				'rate_limited'        => false,
 				'rate_limit_remaining' => 0,
 				'priority'            => $priority,
@@ -706,6 +712,9 @@ class AI_Provider_Manager {
 			'anthropic' => 'Anthropic Claude',
 			'imagen'    => 'Google Imagen',
 			'dalle'     => 'OpenAI DALL-E',
+			'deepseek'  => 'DeepSeek',
+			'glm'       => 'Zhipu AI GLM',
+			'qwen'      => 'Alibaba Qwen',
 		];
 
 		return $labels[ $slug ] ?? ucfirst( $slug );

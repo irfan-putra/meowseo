@@ -58,7 +58,7 @@ class AI_REST {
 	 *
 	 * @var array
 	 */
-	private array $valid_providers = array( 'gemini', 'openai', 'anthropic', 'imagen', 'dalle' );
+	private array $valid_providers = array( 'gemini', 'openai', 'anthropic', 'imagen', 'dalle', 'deepseek', 'glm', 'qwen' );
 
 	/**
 	 * Valid generation types.
@@ -730,6 +730,9 @@ class AI_REST {
 			'anthropic' => Providers\Provider_Anthropic::class,
 			'imagen'    => Providers\Provider_Imagen::class,
 			'dalle'     => Providers\Provider_DALL_E::class,
+			'deepseek'  => Providers\Provider_DeepSeek::class,
+			'glm'       => Providers\Provider_GLM::class,
+			'qwen'      => Providers\Provider_Qwen::class,
 		);
 
 		if ( ! isset( $provider_classes[ $provider ] ) ) {

@@ -41,7 +41,7 @@ class ProviderVerificationTest extends TestCase {
 			'Gemini'     => [
 				'class'          => Provider_Gemini::class,
 				'supports_text'  => true,
-				'supports_image' => false,
+				'supports_image' => true,
 				'slug'           => 'gemini',
 				'label'          => 'Google Gemini',
 			],
