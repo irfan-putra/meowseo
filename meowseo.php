@@ -77,6 +77,9 @@ add_action( 'plugins_loaded', array( 'MeowSEO\Installer', 'maybe_migrate' ), 5 )
 add_action( 'plugins_loaded', function() {
 	try {
 		\MeowSEO\Plugin::instance()->boot();
+
+		// Boot license system (v1.1.0).
+		\MeowSEO\License\LicenseManager::instance()->boot();
 	} catch ( \Exception $e ) {
 		// Log critical initialization error.
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
