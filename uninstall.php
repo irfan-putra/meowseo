@@ -14,8 +14,12 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 	exit;
 }
 
+if ( ! defined( 'MEOWSEO_PATH' ) ) {
+	define( 'MEOWSEO_PATH', plugin_dir_path( __FILE__ ) );
+}
+
 // Load the autoloader and Installer class.
-require_once plugin_dir_path( __FILE__ ) . 'includes/class-autoloader.php';
+require_once MEOWSEO_PATH . 'includes/class-autoloader.php';
 MeowSEO\Autoloader::register();
 
 // Call the uninstall method.

@@ -49,9 +49,15 @@ spl_autoload_register( function ( $class ) {
 	$file_name = strtolower( preg_replace( '/([a-z])([A-Z])/', '$1-$2', $last_part ) );
 	$file_name = str_replace( '_', '-', $file_name );
 	
+	// Convert namespace directories to lowercase and underscores to hyphens.
+	$parts = array_map( function( $part ) {
+		return str_replace( '_', '-', strtolower( $part ) );
+	}, $parts );
+
 	// Try class file first, then interface file.
-	$class_file = MEOWSEO_PATH . 'includes' . DIRECTORY_SEPARATOR . implode( DIRECTORY_SEPARATOR, $parts ) . DIRECTORY_SEPARATOR . 'class-' . $file_name . '.php';
-	$interface_file = MEOWSEO_PATH . 'includes' . DIRECTORY_SEPARATOR . implode( DIRECTORY_SEPARATOR, $parts ) . DIRECTORY_SEPARATOR . 'interface-' . $file_name . '.php';
+	$dir_path = implode( DIRECTORY_SEPARATOR, $parts );
+	$class_file = MEOWSEO_PATH . 'includes' . DIRECTORY_SEPARATOR . ( $dir_path ? $dir_path . DIRECTORY_SEPARATOR : '' ) . 'class-' . $file_name . '.php';
+	$interface_file = MEOWSEO_PATH . 'includes' . DIRECTORY_SEPARATOR . ( $dir_path ? $dir_path . DIRECTORY_SEPARATOR : '' ) . 'interface-' . $file_name . '.php';
 
 	// Load file if it exists.
 	if ( file_exists( $class_file ) ) {
