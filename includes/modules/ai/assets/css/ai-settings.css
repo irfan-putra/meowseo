@@ -94,6 +94,80 @@
 	border-left: 2px solid #ddd;
 }
 
+/* Provider Information Section */
+.meowseo-provider-info {
+	background-color: #f8f9fa;
+	border: 1px solid #e1e4e8;
+	border-radius: 4px;
+	padding: 12px;
+	margin-bottom: 12px;
+	font-size: 12px;
+	line-height: 1.6;
+}
+
+.meowseo-provider-info-row {
+	margin-bottom: 6px;
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 6px;
+}
+
+.meowseo-provider-info-row:last-child {
+	margin-bottom: 0;
+}
+
+.meowseo-provider-info-row strong {
+	color: #333;
+	font-weight: 600;
+}
+
+.meowseo-provider-info-row span {
+	color: #555;
+}
+
+.meowseo-provider-info-separator {
+	color: #ccc;
+	margin: 0 4px;
+}
+
+.meowseo-provider-regional-note {
+	background-color: #e7f3ff;
+	border-left: 3px solid #0073aa;
+	padding: 8px;
+	margin-top: 8px;
+	border-radius: 3px;
+}
+
+.meowseo-provider-regional-note .dashicons {
+	color: #0073aa;
+	font-size: 16px;
+	width: 16px;
+	height: 16px;
+	margin-right: 4px;
+}
+
+.meowseo-api-key-link {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	color: #0073aa;
+	text-decoration: none;
+	font-weight: 500;
+	transition: color 0.2s ease;
+}
+
+.meowseo-api-key-link:hover {
+	color: #005a87;
+	text-decoration: underline;
+}
+
+.meowseo-api-key-link .dashicons {
+	font-size: 14px;
+	width: 14px;
+	height: 14px;
+}
+
 .meowseo-provider-row {
 	display: flex;
 	align-items: center;
@@ -386,6 +460,21 @@
 
 	.meowseo-provider-header {
 		flex-wrap: wrap;
+	}
+
+	.meowseo-provider-info {
+		margin-left: 0;
+		font-size: 11px;
+	}
+
+	.meowseo-provider-info-row {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 4px;
+	}
+
+	.meowseo-provider-info-separator {
+		display: none;
 	}
 
 	.meowseo-ai-section .form-table th {
