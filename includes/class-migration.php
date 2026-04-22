@@ -171,7 +171,7 @@ class Migration {
 				FROM {$wpdb->posts} p
 				WHERE p.post_type IN ({$post_types_placeholders})
 				AND p.post_status IN ('publish', 'draft', 'pending', 'private', 'future')",
-				...$post_types
+				...array_values( $post_types )
 			)
 		);
 
@@ -199,7 +199,7 @@ class Migration {
 					AND post_status IN ('publish', 'draft', 'pending', 'private', 'future')
 					ORDER BY ID ASC
 					LIMIT %d OFFSET %d",
-					...array_merge( $post_types, array( $batch_size, $offset ) )
+					...array_values( array_merge( $post_types, array( $batch_size, $offset ) ) )
 				)
 			);
 
